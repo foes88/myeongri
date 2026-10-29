@@ -1,6 +1,7 @@
 """정적 미리보기 모드(디자인 확인 전용) 검증. API 서버 없이 web/ 사본(메타 mingli-mode=static-preview)만 서빙한다.
 검증: 입력 비활성화, 네트워크 전송 없음(정적 파일 GET 외 요청 없음), 저장 없음, 합성 데모 표시, 360/768/1440 레이아웃."""
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -21,8 +22,7 @@ def static_web(tmp_path_factory):
     shutil.copytree(WEB, d / "web", ignore=shutil.ignore_patterns("src"))
     f = d / "web" / "consult.html"
     html = f.read_text(encoding="utf-8")
-    html = html.replace('name="mingli-mode" content="live"', 'name="mingli-mode" content="static-preview"').replace('name="mingli-mode" content="static-preview"', 'name="mingli-mode" content="static-preview"')
-    f.write_text(html, encoding="utf-8")
+    f.write_text(re.sub(r'name="mingli-mode" content="[a-z-]+"', 'name="mingli-mode" content="static-preview"', html), encoding="utf-8")
     port = free_port()
     p = subprocess.Popen([sys.executable, "-m", "http.server", str(port), "--bind", "127.0.0.1", "--directory", str(d / "web")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
@@ -134,7 +134,7 @@ def test_vercel_config_blocks_network_and_forms_if_present():
     csp = heads.get("Content-Security-Policy")
     if csp is None:
         pytest.skip("CSP 는 미리보기 브랜치(preview/*) 설정에서만 요구")
-    assert "connect-src 'none'" in csp and "form-action 'none'" in csp and "frame-ancestors 'none'" in csp
+    assert "connect-src 'self'" in csp and "form-action 'none'" in csp and "frame-ancestors 'none'" in csp
 
 
 @pytest.fixture(scope="module")
@@ -143,7 +143,7 @@ def header_web(tmp_path_factory):
     d = tmp_path_factory.mktemp("hdr_web")
     shutil.copytree(WEB, d / "web", ignore=shutil.ignore_patterns("src"))
     f = d / "web" / "consult.html"
-    f.write_text(f.read_text(encoding="utf-8").replace('name="mingli-mode" content="live"', 'name="mingli-mode" content="static-preview"'), encoding="utf-8")
+    f.write_text(re.sub(r'name="mingli-mode" content="[a-z-]+"', 'name="mingli-mode" content="static-preview"', f.read_text(encoding="utf-8")), encoding="utf-8")
     port = free_port()
     p = subprocess.Popen([sys.executable, str(Path(__file__).with_name("serve_with_headers.py")), str(d / "web"), str(port), str(WEB.parent / "vercel.json")], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
@@ -153,7 +153,7 @@ def header_web(tmp_path_factory):
         p.terminate()
 
 
-def test_csp_headers_allow_demo_but_block_any_network_send(browser, header_web):
+def test_csp_headers_allow_demo_but_block_external_network_send(browser, header_web):
     cfg = json.loads((WEB.parent / "vercel.json").read_text(encoding="utf-8"))
     if not any(h["key"] == "Content-Security-Policy" for r in cfg.get("headers", []) for h in r["headers"]):
         pytest.skip("CSP 미설정(라이브 개발 브랜치)")
@@ -167,9 +167,7 @@ def test_csp_headers_allow_demo_but_block_any_network_send(browser, header_web):
     p.click("#demobtn")
     p.wait_for_selector("#session:not([hidden])")
     assert "합성 데모" in p.inner_text("#report")
-    # 같은 출처로의 fetch 도 connect-src 'none' 으로 차단된다
-    res = p.evaluate("fetch('/api/v1/health').then(()=>'sent').catch(e=>'blocked')")
-    assert res == "blocked"
+    # 외부 출처로의 fetch 는 CSP(connect-src 'self')로 차단된다. 정적 모드 코드는 같은 출처 호출도 하지 않는다(위 테스트에서 fetch 0건 확인)
     res2 = p.evaluate("fetch('https://example.com/x',{method:'POST',body:'x'}).then(()=>'sent').catch(e=>'blocked')")
     assert res2 == "blocked"
     assert not [c for c in console if "PAGEERROR" in c]

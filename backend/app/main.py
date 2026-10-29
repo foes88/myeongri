@@ -187,3 +187,83 @@ def consult_revisions(tid: str, x_consult_token: str | None = Header(default=Non
 def consult_delete(tid: str, x_consult_token: str | None = Header(default=None)):
     _auth(tid, x_consult_token)
     consult_store.delete_thread(tid)
+
+
+# ---------------------------------------------------------------- 일회성 분석 (저장 없음)
+# 출생 정보를 받아 그 자리에서 계산하고 응답만 돌려준다. 서버에 저장하지 않고, 요청 본문을 로그에 남기지 않으며, 캐시를 금지한다.
+# 후속 질문·현실 사건은 화면(브라우저 메모리)이 입력을 다시 보내 같은 계산을 반복한다(결정론적이라 같은 결과).
+from fastapi import Request  # noqa: E402
+
+
+@app.middleware('http')
+async def _no_store(request: Request, call_next):
+    resp = await call_next(request)
+    if request.url.path.startswith('/api/'):
+        resp.headers['Cache-Control'] = 'no-store'
+        resp.headers['X-Content-Type-Options'] = 'nosniff'
+    return resp
+
+
+class OneshotBody(BirthInput):
+    years: list[int] = Field(default_factory=list, max_length=10)
+    domains: list[str] = Field(default_factory=lambda: ['overall'], max_length=12)
+    depth: Literal['summary', 'detailed', 'expert'] = 'detailed'
+    variant_id: str | None = None
+    question: str = Field(default='', max_length=500)
+
+
+class OneshotReality(OneshotBody):
+    event: RealityBody
+
+
+def _oneshot_pre(b: OneshotBody):
+    from .consult import domains as D
+    bad = [d for d in b.domains if d not in D.DOMAINS]
+    if bad:
+        raise HTTPException(status_code=422, detail=f'알 수 없는 분야: {bad}')
+    if any(y < 1901 or y > 2049 for y in b.years):
+        raise HTTPException(status_code=422, detail='분석 연도는 1901~2049 범위입니다')
+    chart = calendar(b)
+    if len(chart['variants']) > 1 and not b.variant_id:
+        raise HTTPException(status_code=409, detail={'code': 'VARIANT_REQUIRED', 'variants': chart['variants'],
+                                                      'message': '프로필에 따라 명식이 여러 개로 갈립니다. variant_id 를 선택하세요(자동 선택하지 않음)'})
+    try:
+        pre = consult_agent.build_precommit(chart, variant_id=b.variant_id or chart['variants'][0]['variant_id'], years=sorted(set(b.years)), domains=b.domains,
+                                            depth=b.depth, input_fingerprint={'oneshot': True}, store_birth=False)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    pre['content_hash'] = consult_store.sha256({k: v for k, v in pre.items() if k != 'content_hash'})
+    return pre
+
+
+def _oneshot_summary(pre: dict) -> dict:
+    keys = ('content_hash', 'generated_at', 'ruleset_version', 'engine_version', 'model_version', 'calculation_profile_id', 'variant_id', 'variants_count',
+            'verification', 'domains', 'years', 'depth')
+    return {k: pre[k] for k in keys} | {'pillars': pre['natal_structure']['pillars']}
+
+
+@app.post('/api/v1/oneshot/analyze')
+def oneshot_analyze(b: OneshotBody):
+    """저장 없는 일회성 분석. 응답에 stored=false 를 명시한다."""
+    pre = _oneshot_pre(b)
+    ans = consult_agent.answer(pre, b.question or '종합 상담을 시작합니다', domains_=b.domains, years=b.years)
+    return {'stored': False, 'precommit': _oneshot_summary(pre), 'answer': ans}
+
+
+@app.post('/api/v1/oneshot/ask')
+def oneshot_ask(b: OneshotBody):
+    if not b.question.strip():
+        raise HTTPException(status_code=422, detail='질문을 입력하세요')
+    pre = _oneshot_pre(b)
+    return consult_agent.answer(pre, b.question, domains_=b.domains, years=b.years, depth=b.depth)
+
+
+@app.post('/api/v1/oneshot/reality')
+def oneshot_reality(b: OneshotReality):
+    pre = _oneshot_pre(b)
+    return consult_agent.classify_event(pre, b.event.model_dump())
+
+
+if os.environ.get('SERVE_WEB'):  # 로컬/테스트에서 화면과 API 를 같은 출처로 서빙(Vercel 에서는 정적 파일을 Vercel 이 서빙)
+    from fastapi.staticfiles import StaticFiles
+    app.mount('/', StaticFiles(directory=os.environ['SERVE_WEB'], html=True), name='web')

@@ -23,6 +23,12 @@ MANIFEST = BACKEND / "golden" / "DATA_MANIFEST.json"
 FORBIDDEN = re.compile(r"data_private|hko_lunar_terms|kasi_calendar\.json|kasi_almanac\.json|kasi_service\.json|cases_external|report_external|term_analysis_full|\.bsp$|golden/_wsl/")
 ALLOWED_CLASSES = {"SELF_AUTHORED", "SELF_GENERATED", "SYNTHETIC", "EXTERNAL_AGGREGATE", "EXTERNAL_FACTS"}
 MAX_BYTES = 600_000
+# 서버리스 배포에 필요한 JPL DE421 천체력(NASA/JPL 공개 자료, 16.8MB)만 예외로 허용한다. 다른 .bsp 는 금지.
+ALLOWED_BINARY = {"backend/data/de421.bsp": "JPL DE421 (SPK, 1900~2050)"}
+
+
+def is_forbidden(path: str) -> bool:
+    return path not in ALLOWED_BINARY and bool(FORBIDDEN.search(path))
 DATE_RE = re.compile(r"\b(19|20)\d{2}-\d{2}-\d{2}")
 MAX_DATES_IN_EXTERNAL_AGG = 40
 # 서비스 의존성 라이선스(확인 근거는 docs/08)
@@ -41,10 +47,10 @@ def check(files: list[str] | None = None, manifest: dict | None = None) -> list[
     entries = manifest["files"]
     problems = []
     for f in files:
-        if FORBIDDEN.search(f):
+        if is_forbidden(f):
             problems.append(f"추적 금지 경로: {f}")
         p = ROOT / f
-        if p.exists() and p.is_file() and p.stat().st_size > MAX_BYTES and not f.endswith(".md") and "web/" not in f:
+        if p.exists() and p.is_file() and p.stat().st_size > MAX_BYTES and not f.endswith(".md") and "web/" not in f and f not in ALLOWED_BINARY:
             problems.append(f"큰 파일({p.stat().st_size}B): {f}")
         if f.startswith("backend/golden/") and f != "backend/golden/DATA_MANIFEST.json":
             rel = f[len("backend/golden/"):]

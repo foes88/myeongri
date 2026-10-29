@@ -12,12 +12,12 @@ data/private/
 eval_private/
 *.private.*
 
-backend/data/*.bsp
 
 # sxtwl WSL 교차검산 중간 산출물
 backend/golden/_wsl/
-backend/data/*.bsp
 
 # 이용 조건 불명확한 외부 원자료/파생 대량 자료 (공개 저장소 금지)
 backend/data_private/
 backend/golden/sources/
+backend/data/*.bsp
+!backend/data/de421.bsp

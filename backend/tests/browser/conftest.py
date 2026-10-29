@@ -24,17 +24,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "browser: 실제 브라우저(Playwright) 테스트 — 기본 실행에서는 -m browser 로만 선택")
 
 
-STATIC_PREVIEW = 'name="mingli-mode" content="static-preview"' in (WEB / "consult.html").read_text(encoding="utf-8")
-# 서버(API)가 필요한 라이브 상담 테스트: 정적 미리보기 모드에서는 건너뛴다(정적 모드는 test_static_preview.py 가 검증)
-LIVE_ONLY_MODULES = ("test_consult_ui",)
-LIVE_ONLY_NAMES = ("test_consult_form_responsive_and_report_chapters", "test_depth_modes_are_visually_separated_and_palette_has_no_blue_or_mint")
-
-
 def pytest_collection_modifyitems(config, items):
-    if STATIC_PREVIEW:
-        for it in items:
-            if it.module.__name__.rsplit(".", 1)[-1] in LIVE_ONLY_MODULES or it.originalname in LIVE_ONLY_NAMES:
-                it.add_marker(pytest.mark.skip(reason="정적 미리보기 모드: 라이브 API 상담 테스트는 건너뜀"))
     if "browser" in (config.getoption("-m") or ""):
         return
     skip = pytest.mark.skip(reason="브라우저 테스트: python -m pytest -m browser tests/browser (playwright+chromium 필요)")
@@ -79,7 +69,13 @@ def env(tmp_path_factory):
     envv = dict(os.environ, CONSULT_DIR=str(e.consult_dir), CORS_ORIGINS=e.web, PYTHONIOENCODING="utf-8")
     e.p_api = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(e.api_port), "--host", "127.0.0.1", "--log-level", "warning"],
                                cwd=BACKEND, env=envv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    e.p_web = subprocess.Popen([sys.executable, "-m", "http.server", str(e.web_port), "--bind", "127.0.0.1", "--directory", str(WEB)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    import re as _re
+    import shutil
+    live = tmp_path_factory.mktemp("live_web") / "web"
+    shutil.copytree(WEB, live, ignore=shutil.ignore_patterns("src"))
+    cf = live / "consult.html"
+    cf.write_text(_re.sub(r'name="mingli-mode" content="[a-z-]+"', 'name="mingli-mode" content="live"', cf.read_text(encoding="utf-8")), encoding="utf-8")  # 라이브(저장형 상담) 모드로 검증
+    e.p_web = subprocess.Popen([sys.executable, "-m", "http.server", str(e.web_port), "--bind", "127.0.0.1", "--directory", str(live)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         wait_http(e.api + "/api/v1/health")
         wait_http(e.web + "/consult.html")
