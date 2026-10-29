@@ -1,0 +1,1295 @@
+{
+ "dataset": {
+  "pairs": 12,
+  "barnum_charts": 12,
+  "synthetic": true,
+  "personal_data": false,
+  "realizable_barnum_charts": 0,
+  "note": "합성 명식은 달력상 실현 불가능한 조합일 수 있으며 실제 출생정보와 연결하지 않는다. calendar_realizable 은 불리언만 기록."
+ },
+ "pairs": [
+  {
+   "pair_id": "D01",
+   "factor": "일간만 다름",
+   "note": "일지 子 고정, 일간 甲→丙",
+   "expected_facets": [
+    "deukryeong",
+    "gyeokguk",
+    "strength",
+    "structure",
+    "tonggeun"
+   ],
+   "changed_facets": [
+    "deukryeong",
+    "domain",
+    "gyeokguk",
+    "month",
+    "period",
+    "schools",
+    "strength",
+    "structure",
+    "tonggeun"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [
+    "domain",
+    "month",
+    "period",
+    "schools"
+   ],
+   "signature_distance": 0.763,
+   "text_distance": 0.144,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    false
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 27,
+     "anchored": 9,
+     "ratio": 0.333
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 33,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.111,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 28,
+     "anchored": 9,
+     "ratio": 0.321
+    },
+    "evidence": {
+     "cited_claims": 17,
+     "graph_connectivity": 0.471,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 14,
+      "implementer_convention": 1,
+      "location_confirmed": 2
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 34,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 70.3,
+     "jargon_density": 0.096,
+     "glossary_coverage": 0.5,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D02",
+   "factor": "월령(월지)만 다름",
+   "note": "월지 申→子",
+   "expected_facets": [
+    "deukryeong",
+    "gyeokguk",
+    "month"
+   ],
+   "changed_facets": [
+    "deukryeong",
+    "domain",
+    "gyeokguk",
+    "month",
+    "period",
+    "relations",
+    "schools",
+    "strength",
+    "structure",
+    "tonggeun"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [
+    "domain",
+    "period",
+    "relations",
+    "schools",
+    "strength",
+    "structure",
+    "tonggeun"
+   ],
+   "signature_distance": 0.759,
+   "text_distance": 0.302,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    false
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 27,
+     "anchored": 9,
+     "ratio": 0.333
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 33,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.111,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 24,
+     "anchored": 5,
+     "ratio": 0.208
+    },
+    "evidence": {
+     "cited_claims": 14,
+     "graph_connectivity": 0.429,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 10,
+      "location_confirmed": 3,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 30,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 70.2,
+     "jargon_density": 0.112,
+     "glossary_coverage": 0.471,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D03",
+   "factor": "통근 구조만 다름",
+   "note": "시지 寅→午 (丙의 뿌리 변화)",
+   "expected_facets": [
+    "relations",
+    "tonggeun"
+   ],
+   "changed_facets": [
+    "domain",
+    "period",
+    "relations",
+    "schools",
+    "strength",
+    "tonggeun"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [
+    "domain",
+    "period",
+    "schools",
+    "strength"
+   ],
+   "signature_distance": 0.343,
+   "text_distance": 0.116,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    false
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 27,
+     "anchored": 9,
+     "ratio": 0.333
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 33,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.111,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 28,
+     "anchored": 9,
+     "ratio": 0.321
+    },
+    "evidence": {
+     "cited_claims": 17,
+     "graph_connectivity": 0.588,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 13,
+      "location_confirmed": 3,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 34,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 69.9,
+     "jargon_density": 0.101,
+     "glossary_coverage": 0.438,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D04",
+   "factor": "격국 후보만 다름",
+   "note": "월주 庚申→辛酉: 칠살격 계열→정관격 계열",
+   "expected_facets": [
+    "deukryeong",
+    "gyeokguk",
+    "month"
+   ],
+   "changed_facets": [
+    "deukryeong",
+    "domain",
+    "gyeokguk",
+    "month",
+    "period",
+    "relations",
+    "schools",
+    "structure",
+    "tonggeun"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [
+    "domain",
+    "period",
+    "relations",
+    "schools",
+    "structure",
+    "tonggeun"
+   ],
+   "signature_distance": 0.659,
+   "text_distance": 0.138,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    true
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 27,
+     "anchored": 9,
+     "ratio": 0.333
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 33,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.111,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 26,
+     "anchored": 9,
+     "ratio": 0.346
+    },
+    "evidence": {
+     "cited_claims": 18,
+     "graph_connectivity": 0.556,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "implementer_convention": 1,
+      "location_confirmed": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 32,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.11,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D05",
+   "factor": "조후(계절)만 다름",
+   "note": "월지 子(겨울)→午(여름)",
+   "expected_facets": [
+    "gyeokguk",
+    "month",
+    "schools"
+   ],
+   "changed_facets": [
+    "deukryeong",
+    "domain",
+    "gyeokguk",
+    "month",
+    "period",
+    "relations",
+    "schools",
+    "strength"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [
+    "deukryeong",
+    "domain",
+    "period",
+    "relations",
+    "strength"
+   ],
+   "signature_distance": 0.619,
+   "text_distance": 0.153,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    false,
+    false
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 24,
+     "anchored": 5,
+     "ratio": 0.208
+    },
+    "evidence": {
+     "cited_claims": 14,
+     "graph_connectivity": 0.429,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 10,
+      "location_confirmed": 3,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 30,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 70.2,
+     "jargon_density": 0.112,
+     "glossary_coverage": 0.471,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 24,
+     "anchored": 6,
+     "ratio": 0.25
+    },
+    "evidence": {
+     "cited_claims": 15,
+     "graph_connectivity": 0.467,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 12,
+      "implementer_convention": 1,
+      "location_confirmed": 2
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 30,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 68.2,
+     "jargon_density": 0.114,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D06",
+   "factor": "합충 관계만 다름",
+   "note": "시지 未→酉 (연지 卯와 卯酉 충)",
+   "expected_facets": [
+    "relations"
+   ],
+   "changed_facets": [
+    "domain",
+    "period",
+    "relations"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [
+    "domain",
+    "period"
+   ],
+   "signature_distance": 0.427,
+   "text_distance": 0.074,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    false,
+    false
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 28,
+     "anchored": 9,
+     "ratio": 0.321
+    },
+    "evidence": {
+     "cited_claims": 17,
+     "graph_connectivity": 0.471,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 13,
+      "location_confirmed": 3,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 34,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 69.8,
+     "jargon_density": 0.101,
+     "glossary_coverage": 0.389,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 28,
+     "anchored": 8,
+     "ratio": 0.286
+    },
+    "evidence": {
+     "cited_claims": 18,
+     "graph_connectivity": 0.556,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 15,
+      "implementer_convention": 1,
+      "location_confirmed": 2
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 34,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 70.7,
+     "jargon_density": 0.101,
+     "glossary_coverage": 0.412,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D07",
+   "factor": "대운만 다름",
+   "note": "원국 동일, 대운 배열만 다름",
+   "expected_facets": [
+    "period"
+   ],
+   "changed_facets": [
+    "period"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [],
+   "signature_distance": 0.167,
+   "text_distance": 0.025,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    true
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 27,
+     "anchored": 9,
+     "ratio": 0.333
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 33,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.111,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 27,
+     "anchored": 9,
+     "ratio": 0.333
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 33,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 70.1,
+     "jargon_density": 0.107,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D08",
+   "factor": "세운(연도)만 다름",
+   "note": "원국·대운 동일, 분석 연도만 다름",
+   "expected_facets": [
+    "period"
+   ],
+   "changed_facets": [
+    "period"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [],
+   "signature_distance": 0.306,
+   "text_distance": 0.059,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    true
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 27,
+     "anchored": 9,
+     "ratio": 0.333
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 33,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.111,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 26,
+     "anchored": 8,
+     "ratio": 0.308
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 32,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 67.6,
+     "jargon_density": 0.105,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D09",
+   "factor": "운세 분야만 다름",
+   "note": "같은 명식·같은 연도, 재물 vs 직업",
+   "expected_facets": [
+    "domain"
+   ],
+   "changed_facets": [
+    "domain"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [],
+   "signature_distance": 0.45,
+   "text_distance": 0.114,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    true
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 21,
+     "anchored": 5,
+     "ratio": 0.238
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 1,
+     "with_counter": 1,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 27,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.333
+    },
+    "readability": {
+     "avg_sentence_chars": 70.5,
+     "jargon_density": 0.125,
+     "glossary_coverage": 0.278,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 21,
+     "anchored": 6,
+     "ratio": 0.286
+    },
+    "evidence": {
+     "cited_claims": 17,
+     "graph_connectivity": 0.588,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 14,
+      "implementer_convention": 1,
+      "location_confirmed": 2
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 1,
+     "with_counter": 1,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 27,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 67.1,
+     "jargon_density": 0.122,
+     "glossary_coverage": 0.333,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D10",
+   "factor": "분야 다름(연애 vs 가족)",
+   "note": "궁위 신호가 다른 분야",
+   "expected_facets": [
+    "domain"
+   ],
+   "changed_facets": [
+    "domain"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [],
+   "signature_distance": 0.205,
+   "text_distance": 0.171,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    true
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 21,
+     "anchored": 5,
+     "ratio": 0.238
+    },
+    "evidence": {
+     "cited_claims": 16,
+     "graph_connectivity": 0.562,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 13,
+      "implementer_convention": 1,
+      "location_confirmed": 2
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 1,
+     "with_counter": 1,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 27,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 61.7,
+     "jargon_density": 0.122,
+     "glossary_coverage": 0.111,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 21,
+     "anchored": 5,
+     "ratio": 0.238
+    },
+    "evidence": {
+     "cited_claims": 16,
+     "graph_connectivity": 0.562,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 13,
+      "implementer_convention": 1,
+      "location_confirmed": 2
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 1,
+     "with_counter": 1,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 27,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 72.0,
+     "jargon_density": 0.115,
+     "glossary_coverage": 0.111,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D11",
+   "factor": "대운 교체 연도",
+   "note": "분석 연도 중반(6월)에 대운이 교체되는 배열 vs 교체되지 않는 배열",
+   "expected_facets": [
+    "period"
+   ],
+   "changed_facets": [
+    "period"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [],
+   "signature_distance": 0.077,
+   "text_distance": 0.021,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    true
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 29,
+     "anchored": 10,
+     "ratio": 0.345
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 35,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.121,
+     "glossary_coverage": 0.421,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 27,
+     "anchored": 9,
+     "ratio": 0.333
+    },
+    "evidence": {
+     "cited_claims": 19,
+     "graph_connectivity": 0.632,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 16,
+      "location_confirmed": 2,
+      "implementer_convention": 1
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 2,
+     "with_counter": 2,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 33,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.6
+    },
+    "readability": {
+     "avg_sentence_chars": 72.6,
+     "jargon_density": 0.111,
+     "glossary_coverage": 0.444,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  },
+  {
+   "pair_id": "D12",
+   "factor": "성별만 다름(연애 분야)",
+   "note": "배우자성이 재성↔관성으로 바뀜(대운 방향도 달라짐)",
+   "expected_facets": [
+    "domain",
+    "period"
+   ],
+   "changed_facets": [
+    "domain",
+    "period"
+   ],
+   "sensitive": true,
+   "missing_facets": [],
+   "unexpected_facets": [],
+   "signature_distance": 0.326,
+   "text_distance": 0.038,
+   "cosmetic_only": false,
+   "calendar_realizable": [
+    true,
+    true
+   ],
+   "metrics_a": {
+    "specificity": {
+     "content_sentences": 21,
+     "anchored": 5,
+     "ratio": 0.238
+    },
+    "evidence": {
+     "cited_claims": 16,
+     "graph_connectivity": 0.562,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 13,
+      "implementer_convention": 1,
+      "location_confirmed": 2
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 1,
+     "with_counter": 1,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 27,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 61.7,
+     "jargon_density": 0.122,
+     "glossary_coverage": 0.111,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   },
+   "metrics_b": {
+    "specificity": {
+     "content_sentences": 21,
+     "anchored": 5,
+     "ratio": 0.238
+    },
+    "evidence": {
+     "cited_claims": 16,
+     "graph_connectivity": 0.562,
+     "counter_coverage": 1.0,
+     "classical_status_counts": {
+      "text_confirmed": 13,
+      "implementer_convention": 1,
+      "location_confirmed": 2
+     },
+     "classical_overclaim_sentences": 0,
+     "only_confirmed": false
+    },
+    "domain_counter": {
+     "domains": 1,
+     "with_counter": 1,
+     "ratio": 1.0
+    },
+    "assertion": {
+     "assertive_sentences": 0,
+     "total": 27,
+     "assertive_ratio": 0.0,
+     "hedged_claim_ratio": 0.5
+    },
+    "readability": {
+     "avg_sentence_chars": 62.6,
+     "jargon_density": 0.117,
+     "glossary_coverage": 0.111,
+     "proxy_only": true
+    },
+    "consistency_ok": true
+   }
+  }
+ ],
+ "pair_summary": {
+  "sensitive": 12,
+  "total": 12,
+  "cosmetic_only": 0
+ },
+ "controls": {
+  "identical_input_signature_distance": 0.0,
+  "identical_input_text_distance": 0.0
+ },
+ "repeat_consistency": {
+  "runs": 3,
+  "identical": true,
+  "consistency_ok": true
+ },
+ "aggregate": {
+  "specificity_ratio_mean": 0.307,
+  "cited_claims_mean": 16.75,
+  "graph_connectivity_mean": 0.487,
+  "counter_coverage_mean": 1.0,
+  "domain_counter_ratio_mean": 1.0,
+  "classical_overclaim_total": 0,
+  "assertive_ratio_mean": 0.0,
+  "hedged_claim_ratio_mean": 0.567,
+  "avg_sentence_chars_mean": 69.958,
+  "jargon_density_mean": 0.1,
+  "glossary_coverage_mean": 0.409,
+  "consistency_ok_all": true
+ },
+ "barnum": {
+  "charts": 12,
+  "content_sentences": 337,
+  "generic_candidate_sentences": 77,
+  "generic_ratio": 0.228,
+  "fact_bearing_template_sentences": 59,
+  "generic_by_type": {
+   "scaffold_or_hedge": 58,
+   "rule_level_statement": 19,
+   "other_generic": 0
+  },
+  "other_generic_ratio": 0.0,
+  "other_generic_examples": [],
+  "mean_signature_distance": 0.875,
+  "mean_text_distance": 0.277,
+  "cosmetic_difference_pairs": 0,
+  "note": "일반론 후보=사실 자리표시자가 없고 여러 명식에서 같은 문장. 문장이 다른 것 자체는 품질의 증거가 아니다(signature 거리와 함께 본다)."
+ },
+ "school_conflict_chart": {
+  "has_school_conflict": true,
+  "explained": true
+ },
+ "limits": [
+  "자동 평가는 사실표·출처·논리·차이·일관성만 측정한다.",
+  "상담의 깊이와 실제 도움, 일반인 이해도의 실제 값은 사람 평가가 필요하다(eval_human_template.csv).",
+  "전문 상담 결과와의 비교 자료가 없으므로 철학관 대비 우수성을 주장하지 않는다.",
+  "문장이 다르다는 것은 좋은 분석의 증거가 아니다. signature 거리와 함께 본다.",
+  "예측력(Track B)은 이 평가의 대상이 아니다."
+ ]
+}

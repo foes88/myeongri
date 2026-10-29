@@ -1,0 +1,435 @@
+{
+ "generated": "2026-10-29",
+ "tools": {
+  "korean-saju": {
+   "version": "0.3.0",
+   "license": "MIT",
+   "lineage": "KASI 특일정보 API 절기(2000~2027)+KASI 음력 내장, Meeus 폴백; 독립 코드",
+   "scope": "연·월·일·시주(진태양시·야자시 분리), 대운"
+  },
+  "bazi": {
+   "version": "2.4.0",
+   "license": "MIT",
+   "lineage": "celestial-calendar(C++ VSOP87D 계열) 초 단위 절기표·균시차표; 독립 코드",
+   "scope": "연·월·일·시주(진태양시), 대운"
+  },
+  "celestial-calendar": {
+   "version": "0.6.1",
+   "license": "MIT",
+   "lineage": "VSOP87D 태양 + ΔT 모델",
+   "scope": "절기 순간·균시차"
+  },
+  "cnlunar": {
+   "version": "0.2.5",
+   "license": "MIT",
+   "lineage": "절기 날짜(일 단위) 압축표",
+   "scope": "일 단위 간지(경계일 제외)"
+  }
+ },
+ "notes": [],
+ "korean_saju_vs_engine": {
+  "note": "korean-saju 의 '진태양시(AST)'는 경도 보정만 있고 균시차가 없다(SolarTimeCorrection.to_apparent_solar_time = KST + (경도−135°)×4분). 따라서 엔진의 평균태양시 프로필과 대응시킨다.",
+  "yaja_separated__vs__MEAN_SOLAR__MIDNIGHT_NEXT_DAY_STEM": {
+   "cases": 600,
+   "agree_all": 600,
+   "fields": {
+    "year": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "month": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "day": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "hour": {
+     "compared": 600,
+     "mismatch": 0
+    }
+   },
+   "mismatch_near_boundary": 0,
+   "mismatch_unexplained": [],
+   "skipped_zi_band": 0,
+   "mismatch_unexplained_count": 0
+  },
+  "yaja_unified__vs__MEAN_SOLAR__ZI_2300_DAY_CHANGE": {
+   "cases": 600,
+   "agree_all": 600,
+   "fields": {
+    "year": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "month": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "day": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "hour": {
+     "compared": 600,
+     "mismatch": 0
+    }
+   },
+   "mismatch_near_boundary": 0,
+   "mismatch_unexplained": [],
+   "skipped_zi_band": 0,
+   "mismatch_unexplained_count": 0
+  },
+  "contrast_yaja_separated__vs__APPARENT_SOLAR(균시차 포함, 일치하지 않는 것이 정상)": {
+   "cases": 600,
+   "agree_all": 551,
+   "fields": {
+    "year": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "month": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "day": {
+     "compared": 600,
+     "mismatch": 7
+    },
+    "hour": {
+     "compared": 600,
+     "mismatch": 42
+    }
+   },
+   "mismatch_near_boundary": 17,
+   "mismatch_unexplained": [
+    {
+     "id": "C0024",
+     "fields": [
+      "hour"
+     ],
+     "engine": [
+      "丙申",
+      "癸巳",
+      "丙申",
+      "辛卯"
+     ],
+     "other": [
+      "丙申",
+      "癸巳",
+      "丙申",
+      "庚寅"
+     ],
+     "pillar_time": "2016-05-14T05:02:34"
+    },
+    {
+     "id": "C0040",
+     "fields": [
+      "hour"
+     ],
+     "engine": [
+      "乙未",
+      "丁亥",
+      "戊子",
+      "癸亥"
+     ],
+     "other": [
+      "乙未",
+      "丁亥",
+      "戊子",
+      "壬戌"
+     ],
+     "pillar_time": "2015-11-08T21:06:11"
+    },
+    {
+     "id": "C0061",
+     "fields": [
+      "hour"
+     ],
+     "engine": [
+      "己卯",
+      "丙子",
+      "丙申",
+      "庚子"
+     ],
+     "other": [
+      "己卯",
+      "丙子",
+      "丙申",
+      "己亥"
+     ],
+     "pillar_time": "1999-12-10T23:05:14"
+    },
+    {
+     "id": "C0067",
+     "fields": [
+      "hour"
+     ],
+     "engine": [
+      "戊子",
+      "乙卯",
+      "乙卯",
+      "丙子"
+     ],
+     "other": [
+      "戊子",
+      "乙卯",
+      "乙卯",
+      "丁丑"
+     ],
+     "pillar_time": "2008-03-16T00:55:07"
+    },
+    {
+     "id": "C0068",
+     "fields": [
+      "hour"
+     ],
+     "engine": [
+      "癸巳",
+      "壬戌",
+      "甲子",
+      "乙亥"
+     ],
+     "other": [
+      "癸巳",
+      "壬戌",
+      "甲子",
+      "甲戌"
+     ],
+     "pillar_time": "2013-10-25T21:09:52"
+    },
+    {
+     "id": "C0070",
+     "fields": [
+      "hour"
+     ],
+     "engine": [
+      "丁巳",
+      "庚戌",
+      "丙午",
+      "丁酉"
+     ],
+     "other": [
+      "丁巳",
+      "庚戌",
+      "丙午",
+      "丙申"
+     ],
+     "pillar_time": "1977-10-16T17:05:16"
+    },
+    {
+     "id": "C0071",
+     "fields": [
+      "day"
+     ],
+     "engine": [
+      "戊寅",
+      "癸亥",
+      "己卯",
+      "甲子"
+     ],
+     "other": [
+      "戊寅",
+      "癸亥",
+      "戊寅",
+      "甲子"
+     ],
+     "pillar_time": "1998-11-28T00:12:17"
+    },
+    {
+     "id": "C0110",
+     "fields": [
+      "hour"
+     ],
+     "engine": [
+      "壬子",
+      "壬寅",
+      "癸未",
+      "戊午"
+     ],
+     "other": [
+      "壬子",
+      "壬寅",
+      "癸未",
+      "己未"
+     ],
+     "pillar_time": "1972-02-22T12:48:12"
+    }
+   ],
+   "skipped_zi_band": 0,
+   "mismatch_unexplained_count": 32
+  },
+  "in_kasi_term_range_2000_2027": 262,
+  "total_cases": 600
+ },
+ "bazi_vs_engine": {
+  "note": "bazi: 서울 경도+KST 벽시계 입력 시 진태양시(균시차 포함, celestial 표) 사용. 일 경계 옵션 WAN_ZISHI=23시 일주 교체(ZI_2300_DAY_CHANGE), ZIZHENG=00시 교체·당일 천간(MIDNIGHT_SAME_DAY_STEM).",
+  "WAN_ZISHI__vs__APPARENT__ZI_2300_DAY_CHANGE": {
+   "cases": 600,
+   "agree_all": 600,
+   "fields": {
+    "year": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "month": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "day": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "hour": {
+     "compared": 600,
+     "mismatch": 0
+    }
+   },
+   "mismatch_near_boundary": 0,
+   "mismatch_unexplained": [],
+   "skipped_zi_band": 0,
+   "mismatch_unexplained_count": 0
+  },
+  "ZIZHENG__vs__APPARENT__MIDNIGHT_SAME_DAY_STEM": {
+   "cases": 600,
+   "agree_all": 600,
+   "fields": {
+    "year": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "month": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "day": {
+     "compared": 600,
+     "mismatch": 0
+    },
+    "hour": {
+     "compared": 600,
+     "mismatch": 0
+    }
+   },
+   "mismatch_near_boundary": 0,
+   "mismatch_unexplained": [],
+   "skipped_zi_band": 0,
+   "mismatch_unexplained_count": 0
+  }
+ },
+ "cnlunar_vs_engine_civil_date_level": {
+  "compared": 466,
+  "mismatch": [],
+  "excluded_near_jie_day": 110,
+  "year_basis_lunar_new_year_expected": 5,
+  "mismatch_count": 0
+ },
+ "celestial_calendar_jieqi_vs_engine": {
+  "compared": 3600,
+  "max_abs_s": 50.305174,
+  "mean_abs_s": 11.738340393888889,
+  "over_60s": 0,
+  "max_abs_s_by_decade": {
+   "1900": 50.3,
+   "1910": 38.0,
+   "1920": 26.7,
+   "1930": 23.6,
+   "1940": 22.2,
+   "1950": 17.1,
+   "1960": 12.1,
+   "1970": 4.4,
+   "1980": 2.3,
+   "1990": 1.8,
+   "2000": 0.8,
+   "2010": 1.5,
+   "2020": 2.0,
+   "2030": 3.9,
+   "2040": 5.7,
+   "2050": 5.9
+  },
+  "note": "celestial-calendar 는 UT1 순간을 돌려주고 엔진은 UTC. 1972 이전은 UT1/UTC 정의·ΔT 모델 차이가 섞여 있음"
+ },
+ "equation_of_time": {
+  "samples": 1500,
+  "engine_vs_celestial_calendar_max_min": 0.003,
+  "engine_vs_celestial_calendar_mean_min": 0.0031,
+  "engine_vs_noaa_formula_max_min": 0.903,
+  "noaa_formula_note": "NOAA 근사식은 ±1분 안팎이라 대략적 일치만 확인",
+  "sign_convention_ok_apparent_minus_mean": true,
+  "engine_vs_bazi_apparent_time_seconds": {
+   "samples": 300,
+   "max_s": 0.33,
+   "mean_s": 0.188
+  }
+ },
+ "daeun_cross_implementation": {
+  "cases": 600,
+  "direction_agree_ks": 600,
+  "direction_agree_bazi": 600,
+  "ks_months_diff": {
+   "0": 309,
+   "1": 291
+  },
+  "ks_error": 0,
+  "bazi_error": 0,
+  "bazi_first_luck_date_minus_engine_days": {
+   "n": 600,
+   "min": -4,
+   "max": 3,
+   "mean": -0.67,
+   "within_3_days": 593,
+   "within_10_days": 600
+  },
+  "interpretation": "방향은 구현 간 일치 여부 확인 가능(음양×성별 규칙). 시작 시점은 '3일=1년' 환산의 세부(1년 길이, 반올림, 절기 순간 사용)가 구현마다 달라 정답이 없는 관습이므로, 일치 정도는 '독립 구현이 같은 관습을 같은 방식으로 적용했는가'만 뜻한다."
+ },
+ "month_year_from_kasi_almanac_terms": {
+  "range": "2005-01-15~2016-12-20",
+  "tested": 600,
+  "mismatch": 0,
+  "mismatch_samples": [],
+  "excluded_within_150s_of_term": true,
+  "terms_supplemented_by_tolerant_regex": {
+   "2015": [
+    "입추"
+   ]
+  },
+  "method": "KASI 월력요항 절기(분 단위)로 월 경계를 구하고 월건·연간은 오호둔 산술(아래 KASI 월건 대조로 산술 확인)로 이름 부여"
+ },
+ "kasi_wolgun_arithmetic": {
+  "local_file": {
+   "months": 72,
+   "mismatch": 0
+  },
+  "service_sample": {
+   "queries": 60,
+   "mismatch": 0
+  },
+  "wolgun_basis": {
+   "before_lichun": "乙丑",
+   "after_lichun": "乙丑",
+   "same_lunar_month": true,
+   "conclusion": "입춘 전후로 월건이 같으므로 KASI 월건은 절기 기준 월주가 아니라 음력 월 기준"
+  }
+ },
+ "summary": {
+  "month_pillar_independent_lineages_for_boundary": [
+   "JPL DE421(엔진)",
+   "寿星(lunar-python/sxtwl)",
+   "KASI 월력요항(2004~2017)·HKO(2026~28)",
+   "VSOP87D(celestial-calendar)",
+   "KASI 특일정보 API(korean-saju 내장 2000~2027)"
+  ],
+  "month_pillar_naming_independent_check": "KASI 월건(음력월 기준) 오호둔 산술 대조 + korean-saju·bazi 의 월주 이름 산출",
+  "korean_saju_field_mismatch_mean_solar_profile": {
+   "year": 0,
+   "month": 0,
+   "day": 0,
+   "hour": 0
+  },
+  "unexplained_mismatches_korean_saju": 0,
+  "unexplained_mismatches_bazi": 0,
+  "unexplained_mismatches_cnlunar": 0,
+  "kasi_derived_month_year_mismatch": 0
+ }
+}

@@ -1,0 +1,1464 @@
+{
+ "generated": "2026-10-29T05:08:19.009242+00:00",
+ "total": 125,
+ "total_with_external": 491,
+ "external": {
+  "present": true,
+  "total": 366,
+  "categories": [
+   "KASIDAY",
+   "KASILUNAR",
+   "KASITERM",
+   "TERMTIME"
+  ],
+  "note": "외부 자료(HKO/KASI) 파생 케이스는 data_private/ 에 있어 공개 저장소에 없다. 이 집계는 로컬에서 tools.fetch_* 후 재현해야 한다."
+ },
+ "by_category": {
+  "GEN": {
+   "PASS": 24
+  },
+  "TERM": {
+   "PASS": 24
+  },
+  "ZI": {
+   "PASS": 16
+  },
+  "SOLAR": {
+   "PASS": 12
+  },
+  "TZ": {
+   "PASS": 17
+  },
+  "LUNAR": {
+   "PASS": 17,
+   "MISMATCH_EXPLAINED": 5
+  },
+  "DAEUN": {
+   "PASS": 10
+  },
+  "TERMTIME": {
+   "PASS": 72
+  },
+  "KASITERM": {
+   "PASS": 144
+  },
+  "KASILUNAR": {
+   "PASS": 75
+  },
+  "KASIDAY": {
+   "PASS": 75
+  }
+ },
+ "by_source": {
+  "lunar-python": {
+   "PASS": 103,
+   "MISMATCH_EXPLAINED": 5
+  },
+  "Meeus EoT": {
+   "PASS": 12
+  },
+  "IANA tzdata/공개 연혁": {
+   "PASS": 17
+  },
+  "HKO": {
+   "PASS": 72
+  },
+  "KASI 달력자료": {
+   "PASS": 294
+  }
+ },
+ "failures": [
+  {
+   "test_id": "G-LUNAR-004",
+   "expect": {
+    "solar_date": "2001-04-23"
+   },
+   "detail": {
+    "got_solar_date": "2001-04-24"
+   },
+   "input": {
+    "calendar": "lunar",
+    "year": 2001,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "judgement": {
+    "verdict": "RESOLVED_OFFICIAL_KASI_SERVICE",
+    "reason": "HKO·lunar-python(중국 음력, UTC+8)은 2001-04-23을 4월 1일로, 한국 음력(KST, UTC+9)은 04-24로 봄. 삭(朔) 순간이 자정 부근이라 표준시 차이로 날짜가 갈림(삭 시각 미검산).",
+    "needs": null,
+    "evidence": {
+     "kasi_service": "KASI 음양력 변환 서비스(/life/solc): 2001-04-24=음력 4월 1일, 2001-04-23=음력 3월 30일 (golden/kasi_service_check.json)",
+     "almanac": "2001년은 월력요항 제공 범위(2004년 이후) 밖 — 월력요항 문서 확인은 불가",
+     "expectation_basis": "기대값(2001-04-23)은 HKO/중국 음력 기준이라 한국 기준과 하루 다름. 기대값은 변경하지 않음"
+    }
+   }
+  },
+  {
+   "test_id": "G-LUNAR-011",
+   "expect": {
+    "solar_date": "2012-05-21"
+   },
+   "detail": {
+    "raised": "존재하지 않는 음력 날짜입니다: 2012-04-01 (윤달)"
+   },
+   "input": {
+    "calendar": "lunar",
+    "year": 2012,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "judgement": {
+    "verdict": "RESOLVED_OFFICIAL_KASI_ALMANAC",
+    "reason": "HKO·lunar-python은 2012 윤4월, 한국 음력 라이브러리는 윤3월. 한·중 음력의 윤달 배치 차이(중기 배치/삭 시각 기준 상이)로 추정.",
+    "needs": null,
+    "evidence": {
+     "almanac": "KASI 월력요항 2012·2017 페이지의 음력-양력 대조표: 2012 윤3월 1일=2012-04-21, 2017 윤5월 1일=2017-06-24 (golden/kasi_official_check.json: 2004~2017 161개월 전부 한국 음력 라이브러리와 일치)",
+     "kasi_service": "KASI 음양력 변환 서비스도 동일 (golden/kasi_service_check.json)",
+     "expectation_basis": "기대값은 HKO/중국 음력(2012 윤4월, 2017 윤6월)이라 한국 기준과 다름. 기대값은 변경하지 않음"
+    }
+   }
+  },
+  {
+   "test_id": "G-LUNAR-012",
+   "expect": {
+    "solar_date": "2012-04-21"
+   },
+   "detail": {
+    "got_solar_date": "2012-05-21"
+   },
+   "input": {
+    "calendar": "lunar",
+    "year": 2012,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "judgement": {
+    "verdict": "RESOLVED_OFFICIAL_KASI_ALMANAC",
+    "reason": "011과 동일 원인(2012 윤달 위치)",
+    "needs": null,
+    "evidence": {
+     "almanac": "KASI 월력요항 2012·2017 페이지의 음력-양력 대조표: 2012 윤3월 1일=2012-04-21, 2017 윤5월 1일=2017-06-24 (golden/kasi_official_check.json: 2004~2017 161개월 전부 한국 음력 라이브러리와 일치)",
+     "kasi_service": "KASI 음양력 변환 서비스도 동일 (golden/kasi_service_check.json)",
+     "expectation_basis": "기대값은 HKO/중국 음력(2012 윤4월, 2017 윤6월)이라 한국 기준과 다름. 기대값은 변경하지 않음"
+    }
+   }
+  },
+  {
+   "test_id": "G-LUNAR-015",
+   "expect": {
+    "solar_date": "2017-07-23"
+   },
+   "detail": {
+    "raised": "존재하지 않는 음력 날짜입니다: 2017-06-01 (윤달)"
+   },
+   "input": {
+    "calendar": "lunar",
+    "year": 2017,
+    "month": 6,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "judgement": {
+    "verdict": "RESOLVED_OFFICIAL_KASI_ALMANAC",
+    "reason": "HKO·lunar-python은 2017 윤6월, 한국 라이브러리는 윤5월",
+    "needs": null,
+    "evidence": {
+     "almanac": "KASI 월력요항 2012·2017 페이지의 음력-양력 대조표: 2012 윤3월 1일=2012-04-21, 2017 윤5월 1일=2017-06-24 (golden/kasi_official_check.json: 2004~2017 161개월 전부 한국 음력 라이브러리와 일치)",
+     "kasi_service": "KASI 음양력 변환 서비스도 동일 (golden/kasi_service_check.json)",
+     "expectation_basis": "기대값은 HKO/중국 음력(2012 윤4월, 2017 윤6월)이라 한국 기준과 다름. 기대값은 변경하지 않음"
+    }
+   }
+  },
+  {
+   "test_id": "G-LUNAR-016",
+   "expect": {
+    "solar_date": "2017-06-24"
+   },
+   "detail": {
+    "got_solar_date": "2017-07-23"
+   },
+   "input": {
+    "calendar": "lunar",
+    "year": 2017,
+    "month": 6,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "judgement": {
+    "verdict": "RESOLVED_OFFICIAL_KASI_ALMANAC",
+    "reason": "015와 동일 원인(2017 윤달 위치)",
+    "needs": null,
+    "evidence": {
+     "almanac": "KASI 월력요항 2012·2017 페이지의 음력-양력 대조표: 2012 윤3월 1일=2012-04-21, 2017 윤5월 1일=2017-06-24 (golden/kasi_official_check.json: 2004~2017 161개월 전부 한국 음력 라이브러리와 일치)",
+     "kasi_service": "KASI 음양력 변환 서비스도 동일 (golden/kasi_service_check.json)",
+     "expectation_basis": "기대값은 HKO/중국 음력(2012 윤4월, 2017 윤6월)이라 한국 기준과 다름. 기대값은 변경하지 않음"
+    }
+   }
+  }
+ ],
+ "results": [
+  {
+   "test_id": "G-GEN-001",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "庚午",
+     "month": "丁亥",
+     "day": "丁酉",
+     "hour": "丁未"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-002",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "辛卯",
+     "month": "辛丑",
+     "day": "癸酉",
+     "hour": "庚申"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-003",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "辛巳",
+     "month": "丁酉",
+     "day": "癸巳",
+     "hour": "壬戌"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-004",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "壬申",
+     "month": "己酉",
+     "day": "壬辰",
+     "hour": "壬寅"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-005",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "壬申",
+     "month": "癸丑",
+     "day": "丙午",
+     "hour": "庚寅"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-006",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丙午",
+     "month": "壬辰",
+     "day": "丙辰",
+     "hour": "丁酉"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-007",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "辛卯",
+     "month": "丁酉",
+     "day": "甲戌",
+     "hour": "丙寅"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-008",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "己巳",
+     "month": "己巳",
+     "day": "庚午",
+     "hour": "戊寅"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-009",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "甲辰",
+     "month": "壬申",
+     "day": "辛亥",
+     "hour": "丙申"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-010",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "庚戌",
+     "month": "己卯",
+     "day": "戊午",
+     "hour": "辛酉"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-011",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "甲午",
+     "month": "丁卯",
+     "day": "丁亥",
+     "hour": "庚戌"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-012",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "癸卯",
+     "month": "癸亥",
+     "day": "辛巳",
+     "hour": "甲午"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-013",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "庚申",
+     "month": "辛巳",
+     "day": "戊戌",
+     "hour": "戊午"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-014",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "壬午",
+     "month": "甲辰",
+     "day": "甲寅",
+     "hour": "壬申"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-015",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "壬戌",
+     "month": "庚戌",
+     "day": "乙酉",
+     "hour": "壬午"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-016",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "辛亥",
+     "month": "甲午",
+     "day": "丁卯",
+     "hour": "己酉"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-017",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "庚午",
+     "month": "辛巳",
+     "day": "甲午",
+     "hour": "己巳"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-018",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丙午",
+     "month": "癸巳",
+     "day": "庚寅",
+     "hour": "辛巳"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-019",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "癸卯",
+     "month": "辛酉",
+     "day": "癸酉",
+     "hour": "丁巳"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-020",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "乙酉",
+     "month": "癸未",
+     "day": "辛丑",
+     "hour": "甲午"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-021",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "辛亥",
+     "month": "辛丑",
+     "day": "壬申",
+     "hour": "己酉"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-022",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "壬寅",
+     "day": "癸亥",
+     "hour": "庚申"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-023",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丙戌",
+     "month": "丁酉",
+     "day": "甲辰",
+     "hour": "壬申"
+    }
+   }
+  },
+  {
+   "test_id": "G-GEN-024",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "戊午",
+     "month": "乙卯",
+     "day": "壬寅",
+     "hour": "丁未"
+    }
+   }
+  },
+  {
+   "test_id": "G-TERM-001",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丙午",
+     "month": "庚子"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-002",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丙午",
+     "month": "辛丑"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-003",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丙午",
+     "month": "辛丑"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-004",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "壬寅"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-005",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "壬寅"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-006",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "癸卯"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-007",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "癸卯"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-008",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "甲辰"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-009",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "甲辰"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-010",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "乙巳"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-011",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "乙巳"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-012",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "丙午"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-013",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "丙午"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-014",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "丁未"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-015",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "丁未"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-016",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "戊申"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-017",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "戊申"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-018",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "己酉"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-019",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "己酉"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-020",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "庚戌"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-021",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "庚戌"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-022",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "辛亥"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-023",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "辛亥"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-TERM-024",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "year": "丁未",
+     "month": "壬子"
+    },
+    "ambiguous": false
+   }
+  },
+  {
+   "test_id": "G-ZI-001",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳",
+     "hour": "辛亥"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-002",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "戊午"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-003",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "戊午"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-004",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳",
+     "hour": "庚子"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-005",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳",
+     "hour": "庚子"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-006",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳",
+     "hour": "辛丑"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-007",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳",
+     "hour": "辛亥"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-008",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-009",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-010",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳",
+     "hour": "庚子"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-011",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳",
+     "hour": "庚子"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-012",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁巳",
+     "hour": "辛丑"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-013",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丙寅"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-014",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "乙丑",
+     "hour": "丙子"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-015",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "乙丑"
+    }
+   }
+  },
+  {
+   "test_id": "G-ZI-016",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "乙丑",
+     "hour": "丙子"
+    }
+   }
+  },
+  {
+   "test_id": "G-SOLAR-001",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "壬辰",
+     "hour": "甲辰"
+    },
+    "pillar_time_diff_s": 0.0
+   }
+  },
+  {
+   "test_id": "G-SOLAR-002",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "壬辰",
+     "hour": "癸卯"
+    },
+    "pillar_time_diff_s": 2.824972
+   }
+  },
+  {
+   "test_id": "G-SOLAR-003",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "戊辰",
+     "hour": "丙辰"
+    },
+    "pillar_time_diff_s": 0.0
+   }
+  },
+  {
+   "test_id": "G-SOLAR-004",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "戊辰",
+     "hour": "丙辰"
+    },
+    "pillar_time_diff_s": 2.417451
+   }
+  },
+  {
+   "test_id": "G-SOLAR-005",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "己亥",
+     "hour": "庚午"
+    },
+    "pillar_time_diff_s": 0.0
+   }
+  },
+  {
+   "test_id": "G-SOLAR-006",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "己亥",
+     "hour": "庚午"
+    },
+    "pillar_time_diff_s": 0.822232
+   }
+  },
+  {
+   "test_id": "G-SOLAR-007",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "甲辰",
+     "hour": "辛未"
+    },
+    "pillar_time_diff_s": 0.0
+   }
+  },
+  {
+   "test_id": "G-SOLAR-008",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "甲辰",
+     "hour": "辛未"
+    },
+    "pillar_time_diff_s": 0.138588
+   }
+  },
+  {
+   "test_id": "G-SOLAR-009",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丙午",
+     "hour": "丁酉"
+    },
+    "pillar_time_diff_s": 0.0
+   }
+  },
+  {
+   "test_id": "G-SOLAR-010",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丙午",
+     "hour": "丁酉"
+    },
+    "pillar_time_diff_s": 1.455284
+   }
+  },
+  {
+   "test_id": "G-SOLAR-011",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁卯",
+     "hour": "壬寅"
+    },
+    "pillar_time_diff_s": 0.0
+   }
+  },
+  {
+   "test_id": "G-SOLAR-012",
+   "status": "PASS",
+   "detail": {
+    "got": {
+     "day": "丁卯",
+     "hour": "壬寅"
+    },
+    "pillar_time_diff_s": 0.54526
+   }
+  },
+  {
+   "test_id": "G-TZ-001",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 600.0
+   }
+  },
+  {
+   "test_id": "G-TZ-002",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 600.0
+   }
+  },
+  {
+   "test_id": "G-TZ-003",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 540.0
+   }
+  },
+  {
+   "test_id": "G-TZ-004",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 510.0
+   }
+  },
+  {
+   "test_id": "G-TZ-005",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 570.0
+   }
+  },
+  {
+   "test_id": "G-TZ-006",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 510.0
+   }
+  },
+  {
+   "test_id": "G-TZ-007",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 570.0
+   }
+  },
+  {
+   "test_id": "G-TZ-008",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 510.0
+   }
+  },
+  {
+   "test_id": "G-TZ-009",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 540.0
+   }
+  },
+  {
+   "test_id": "G-TZ-010",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 600.0
+   }
+  },
+  {
+   "test_id": "G-TZ-011",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 600.0
+   }
+  },
+  {
+   "test_id": "G-TZ-012",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 600.0
+   }
+  },
+  {
+   "test_id": "G-TZ-013",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 540.0
+   }
+  },
+  {
+   "test_id": "G-TZ-014",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 600.0
+   }
+  },
+  {
+   "test_id": "G-TZ-015",
+   "status": "PASS",
+   "detail": {
+    "got_offset": 540.0
+   }
+  },
+  {
+   "test_id": "G-TZ-016",
+   "status": "PASS",
+   "detail": {
+    "raised": "해당 지역시간에 존재하지 않는 시각입니다(서머타임 건너뜀 구간): 1988-05-08T02:30:00 Asia/Seoul"
+   }
+  },
+  {
+   "test_id": "G-TZ-017",
+   "status": "PASS",
+   "detail": {}
+  },
+  {
+   "test_id": "G-LUNAR-001",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "1990-06-23"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-002",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "1990-05-24"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-003",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2001-05-23"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-004",
+   "status": "MISMATCH_EXPLAINED",
+   "detail": {
+    "got_solar_date": "2001-04-24"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-005",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2004-03-21"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-006",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2004-02-20"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-007",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2006-08-24"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-008",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2006-07-25"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-009",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2009-06-23"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-010",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2009-05-24"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-011",
+   "status": "MISMATCH_EXPLAINED",
+   "detail": {
+    "raised": "존재하지 않는 음력 날짜입니다: 2012-04-01 (윤달)"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-012",
+   "status": "MISMATCH_EXPLAINED",
+   "detail": {
+    "got_solar_date": "2012-05-21"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-013",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2014-10-24"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-014",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2014-09-24"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-015",
+   "status": "MISMATCH_EXPLAINED",
+   "detail": {
+    "raised": "존재하지 않는 음력 날짜입니다: 2017-06-01 (윤달)"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-016",
+   "status": "MISMATCH_EXPLAINED",
+   "detail": {
+    "got_solar_date": "2017-07-23"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-017",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2020-05-23"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-018",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2020-04-23"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-019",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2023-03-22"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-020",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2023-02-20"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-021",
+   "status": "PASS",
+   "detail": {
+    "raised": "존재하지 않는 음력 날짜입니다: 2021-04-01 (윤달)"
+   }
+  },
+  {
+   "test_id": "G-LUNAR-022",
+   "status": "PASS",
+   "detail": {
+    "got_solar_date": "2000-02-05"
+   }
+  },
+  {
+   "test_id": "G-DAEUN-001",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "forward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-002",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "backward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-003",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "backward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-004",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "forward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-005",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "backward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-006",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "forward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-007",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "forward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-008",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "backward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-009",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "backward",
+    "start_day_diff": 0
+   }
+  },
+  {
+   "test_id": "G-DAEUN-010",
+   "status": "PASS",
+   "detail": {
+    "got_direction": "backward",
+    "start_day_diff": 0
+   }
+  }
+ ],
+ "sources": {
+  "KASI": {
+   "status": "OBTAINED",
+   "license": "UNVERIFIED (재배포 조건 미확인 — 원문 파일은 저장하지 않고 사실만 추출)"
+  },
+  "sxtwl": {
+   "status": "OBTAINED",
+   "license": "BSD-3-Clause (upstream GitHub yuangu/sxtwl_cpp LICENSE 원문 확인; PyPI sdist 에는 LICENSE 파일 없음)"
+  },
+  "lunar-python": {
+   "status": "OBTAINED",
+   "license": "MIT (PyPI 메타데이터; 원문 재확인 필요)"
+  },
+  "HKO": {
+   "status": "OBTAINED",
+   "license": "UNVERIFIED (HKO 이용약관 확인 전 — 원문 전체를 저장하지 않고 날짜·시각 사실만 추출해 저장)"
+  },
+  "Skyfield/DE421": {
+   "status": "ENGINE",
+   "license": "MIT / JPL 공개 천체력"
+  },
+  "Meeus EoT": {
+   "status": "OBTAINED",
+   "license": null
+  },
+  "IANA tzdata": {
+   "status": "OBTAINED",
+   "license": null
+  },
+  "astronomical-derivation": {
+   "status": "OBTAINED",
+   "license": null
+  }
+ },
+ "term_error": {
+  "vs_lunar_python_max_s": 44.035786,
+  "vs_lunar_python_max_abs_s_by_decade": {
+   "1900": 44.0,
+   "1910": 32.7,
+   "1920": 21.8,
+   "1930": 20.6,
+   "1940": 18.6,
+   "1950": 14.9,
+   "1960": 11.1,
+   "1970": 3.9,
+   "1980": 2.1,
+   "1990": 2.4,
+   "2000": 2.5,
+   "2010": 2.3,
+   "2020": 2.6,
+   "2030": 2.4,
+   "2040": 4.9
+  },
+  "vs_hko_minutes_max_s": 29.785895,
+  "hko_date_mismatches": 8
+ }
+}

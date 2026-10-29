@@ -1,0 +1,112 @@
+{
+ "_note": "추적되는 backend/golden/* 파일의 출처·분류·재배포 판단. 새 파일은 반드시 여기에 분류해야 한다(tools/check_distribution.py, tests/test_distribution.py).",
+ "files": {
+  "cases.json": {
+   "class": "SYNTHETIC",
+   "origins": [
+    "lunar-python(MIT)",
+    "Meeus 근사식",
+    "공개 연혁/IANA"
+   ],
+   "redistribution": "ok",
+   "note": "가상 입력 125건. HKO/KASI 파생 기대값 없음"
+  },
+  "judgements.json": {
+   "class": "SELF_AUTHORED",
+   "redistribution": "ok"
+  },
+  "sources.json": {
+   "class": "SELF_AUTHORED",
+   "redistribution": "ok",
+   "note": "자료 레지스트리(출처·범위·한계·라이선스 상태)"
+  },
+  "report.json": {
+   "class": "SELF_GENERATED",
+   "redistribution": "ok",
+   "note": "골든 실행 집계. 외부 파생 범주는 집계 수치만(케이스별 결과는 data_private)"
+  },
+  "sxtwl_report.json": {
+   "class": "SELF_GENERATED",
+   "redistribution": "ok"
+  },
+  "classical_verification.json": {
+   "class": "SELF_AUTHORED",
+   "redistribution": "ok",
+   "note": "고전 원문 짧은 발췌(40자 이하)와 출처 URL, 판단. 고전 원문은 저작권 보호기간 만료 저작이나 전사본 사이트 이용 조건은 대량 복제를 하지 않는 것으로 대응"
+  },
+  "classical_differences.json": {
+   "class": "SELF_AUTHORED",
+   "redistribution": "ok"
+  },
+  "eval_trackA_report.json": {
+   "class": "SELF_GENERATED",
+   "redistribution": "ok",
+   "note": "합성 명식 평가 결과"
+  },
+  "eval_human_template.csv": {
+   "class": "SELF_AUTHORED",
+   "redistribution": "ok"
+  },
+  "lunar_check.json": {
+   "class": "EXTERNAL_AGGREGATE",
+   "origins": [
+    "HKO",
+    "KASI 달력자료",
+    "korean_lunar_calendar",
+    "천문 유도"
+   ],
+   "row_level": false,
+   "redistribution": "facts_only_terms_unverified",
+   "note": "일치/불일치 집계와 소수 연도 윤달 날짜"
+  },
+  "term_analysis.json": {
+   "class": "EXTERNAL_AGGREGATE",
+   "origins": [
+    "HKO",
+    "lunar-python"
+   ],
+   "row_level": false,
+   "redistribution": "facts_only_terms_unverified",
+   "note": "오차 요약 수치. 행 단위 값은 data_private"
+  },
+  "kasi_official_check.json": {
+   "class": "EXTERNAL_AGGREGATE",
+   "origins": [
+    "KASI 월력요항(2004~2017 HTML 표)"
+   ],
+   "row_level": false,
+   "redistribution": "facts_only_terms_unverified",
+   "note": "대조 집계와 윤달 5건의 시작일"
+  },
+  "kasi_service_check.json": {
+   "class": "EXTERNAL_AGGREGATE",
+   "origins": [
+    "KASI 음양력 변환 서비스 응답"
+   ],
+   "row_level": false,
+   "redistribution": "facts_only_terms_unverified",
+   "note": "대조 집계와 6개 날짜의 개별 사실"
+  },
+  "tz_history_check.json": {
+   "class": "EXTERNAL_FACTS",
+   "origins": [
+    "ko.wikipedia 한국 표준시",
+    "namu.wiki 서머타임 표(사실만; 라이선스 CC BY-NC-SA 계열 가능성 — 상업적 재사용 확인 필요)",
+    "en.wikipedia Time in South Korea",
+    "tzdata"
+   ],
+   "row_level": "facts_small",
+   "redistribution": "facts_only_terms_unverified",
+   "note": "표준시·서머타임 전환 30개 사실의 일치 여부. 문장/표 복제 없음"
+  },
+  "independent_pillars_check.json": {
+   "class": "EXTERNAL_AGGREGATE",
+   "origins": [
+    "독립 만세력 라이브러리/KASI 변환 서비스"
+   ],
+   "row_level": false,
+   "redistribution": "facts_only_terms_unverified",
+   "note": "독립 구현(korean-saju, bazi 등 임시 가상환경 실행)과의 대조 집계. 해당 패키지는 서비스 의존성이 아님"
+  }
+ }
+}
