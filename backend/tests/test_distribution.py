@@ -33,3 +33,23 @@ def test_sxtwl_and_unknown_license_dependencies_are_flagged(monkeypatch, tmp_pat
     (tmp_path / "golden").mkdir()
     probs = CD.check(files=[], manifest=man)
     assert any("sxtwl" in p for p in probs) and any("mystery-lib" in p for p in probs)
+
+
+def test_history_scanner_detects_forbidden_paths_and_birth_data(tmp_path, monkeypatch):
+    import subprocess
+
+    from tools import scan_history as SH
+    r = tmp_path
+    run = lambda *a: subprocess.run(["git", *a], cwd=r, check=True, capture_output=True)
+    run("init", "-q")
+    run("config", "user.email", "t@example.com")
+    run("config", "user.name", "t")
+    (r / "backend" / "data_private").mkdir(parents=True)
+    (r / "backend" / "data_private" / "x.json").write_text("{}", encoding="utf-8")
+    (r / "notes.md").write_text("생일 1990-05-05 10:30 입니다", encoding="utf-8")  # 의도적 탐지 대상(예시 표시 없음)
+    run("add", "-A")
+    run("commit", "-q", "-m", "x")
+    monkeypatch.setattr(SH, "ROOT", r)
+    res = SH.scan("HEAD")
+    text = " ".join(res["problems"])
+    assert "금지 경로" in text and "possible_birth_datetime" in text

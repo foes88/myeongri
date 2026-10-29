@@ -4,164 +4,324 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>명리 상담 (개발 연결 화면)</title>
-<style>
-:root{--ivory:#F7F6F1;--ink:#242F30;--teal:#1F6760;--gold:#BE9864;--line:#d9d5c8}
-*{box-sizing:border-box}body{margin:0;background:var(--ivory);color:var(--ink);font:16px/1.7 system-ui,"Noto Sans KR",sans-serif}
-main{max-width:900px;margin:0 auto;padding:16px}h1{font-size:1.3rem;margin:.4rem 0}h2{font-size:1.05rem;color:var(--teal);margin:1.1rem 0 .3rem}
-.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
-.warn{border-left:4px solid var(--gold);background:#fffaf0}.small{font-size:.85rem;color:#556}.bad{color:#8a2d2d}
-label{display:block;margin:.5rem 0 .15rem;font-size:.9rem}input,select,textarea,button{font:inherit;padding:.5rem .6rem;border:1px solid var(--line);border-radius:8px;width:100%;background:#fff}
-.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.chk label{display:inline-flex;gap:.3rem;align-items:center;margin:.2rem .8rem .2rem 0}.chk input{width:auto}
-button{background:var(--teal);color:#fff;border:0;cursor:pointer;margin-top:.7rem}button.sec{background:#fff;color:var(--teal);border:1px solid var(--teal)}
-ul{padding-left:1.1rem}details{margin:.35rem 0}summary{cursor:pointer;color:var(--teal)}
-.badge{display:inline-block;border-radius:99px;padding:0 .6rem;font-size:.8rem;margin:.1rem;background:#eef3f1;color:var(--teal)}.badge.off{background:#f6e9e9;color:#8a2d2d}
-.para{margin:.5rem 0}.cid{font-size:.75rem;color:#566070}
-nav a{margin-right:1rem;color:var(--teal)}
-:focus-visible{outline:3px solid #BE9864;outline-offset:2px}
-button:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-</style>
+<meta name="mingli-mode" content="static-preview">
+<title>상담 의뢰 · 명리 明理</title>
+<link rel="stylesheet" href="assets/mingli.css">
 </head>
 <body>
-<main>
-<h1>명리 상담 — 개발 연결 화면</h1>
-<div class="card warn small">전통 명리학의 구조 해석이며 미래를 예측하거나 결과를 보장하지 않습니다. 계산 검증과 고전 원문 대조가 모두 끝나지 않았습니다(아래 “검증 상태” 참고). 건강·투자·승진 확정 등은 답하지 않습니다. 개발용 화면이며 입력은 아래 API 서버로만 전송됩니다. 외부 공개 배포는 하지 않습니다.</div>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="masthead">
+  <a class="brand" href="index.html"><span class="seal" aria-hidden="true">明</span>명리 明理</a>
+  <nav class="mastnav" aria-label="주요 메뉴"><a href="index.html">서재</a><a href="index.html#example">예시 리포트</a><a href="consult.html" aria-current="page">상담 의뢰</a></nav>
+</header>
+<hr class="rule">
+<main id="main">
+  <div id="staticbanner" class="note" role="note" hidden><b>정적 미리보기(디자인 확인용).</b> 이 화면은 서버에 연결되어 있지 않으며, 입력란은 비활성화되어 있습니다. 어떤 내용도 전송되거나 저장되지 않습니다. 아래 “합성 샘플” 버튼으로 합성 명식(실제 출생 정보 아님)의 리포트 디자인을 확인할 수 있습니다.</div>
+  <p class="kicker" style="margin-top:28px">상담 의뢰서</p>
+  <h1>해석을 의뢰합니다</h1>
+  <p class="lead muted">출생 정보와 살펴볼 범위를 적어 주시면, 명식의 구조와 선택한 시기의 흐름을 한 권의 해설 문서로 정리해 드립니다.</p>
+  <ol class="steps" aria-label="진행 단계"><li data-n="1" aria-current="step">의뢰서 작성</li><li data-n="2">해석 리포트</li><li data-n="3">상담 기록</li></ol>
 
-<div class="card">
-  <label for="api">API 주소</label><input id="api" placeholder="http://127.0.0.1:8000">
-  <div class="small">로컬: <code>cd backend; uvicorn app.main:app --port 8000</code> · 이 페이지는 정적 파일입니다.</div>
-</div>
+  <div class="note" role="note" id="intronote"><b>의뢰 전 안내.</b> 이 문서는 전통 명리학의 해석이며, 미래를 예측하거나 결과를 보장하지 않습니다. 명식 계산의 검증 범위와 고전 원문 대조 상태를 리포트 안에 함께 표시합니다. 건강·투자·승진 확정과 같은 질문에는 답하지 않습니다. 합성 예시는 <a href="index.html#example">예시 리포트</a>에서 확인할 수 있으며, 이 화면의 결과는 입력하신 출생 정보로 계산한 것입니다.</div>
 
-<form id="f" class="card">
-  <h2>1. 출생 정보</h2>
-  <div class="row">
-    <div><label for="date">생년월일</label><input id="date" type="date" required></div>
-    <div><label for="time">출생 시각 (모르면 비움)</label><input id="time" type="time"></div>
-    <div><label for="cal">달력</label><select id="cal"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
-    <div><label for="leap">음력 윤달</label><select id="leap"><option value="false">평달</option><option value="true">윤달</option></select></div>
-    <div><label for="gender">성별</label><select id="gender"><option value="male">남</option><option value="female">여</option></select></div>
-    <div><label for="prof">시간 보정</label><select id="prof"><option value="standard">시계 시각</option><option value="mean_solar">평균태양시</option><option value="apparent_solar">진태양시</option></select></div>
-  </div>
-  <h2>2. 분석 기간</h2>
-  <div class="row">
-    <div><label for="pk">기간 종류</label><select id="pk"><option value="year">특정 연도</option><option value="r5">5년 범위</option><option value="r10">10년 범위</option><option value="cmp">두 연도 비교</option></select></div>
-    <div><label for="y1">연도(시작 연도)</label><input id="y1" type="number" min="1901" max="2049" value="2030"></div>
-    <div id="y2w" hidden><label for="y2">비교할 연도</label><input id="y2" type="number" min="1901" max="2049" value="2031"></div>
-  </div>
-  <div class="small" id="pdesc"></div>
-  <h2>3. 운세 분야 (복수 선택)</h2>
-  <div class="chk" id="doms" role="group" aria-label="운세 분야 복수 선택">
-    <label><input type="checkbox" value="overall" checked>종합운</label><label><input type="checkbox" value="wealth">재물운</label>
-    <label><input type="checkbox" value="career">직업·승진운</label><label><input type="checkbox" value="business">사업운</label>
-    <label><input type="checkbox" value="docs_realestate">문서·계약운</label><label><input type="checkbox" value="real_estate">부동산운</label>
-    <label><input type="checkbox" value="job_change">이직·취업운</label><label><input type="checkbox" value="love_marriage">연애·결혼운</label>
-    <label><input type="checkbox" value="family">가족·인간관계운</label><label><input type="checkbox" value="health_traditional">건강 관련 전통 해석(진단 아님)</label>
-    <label><input type="checkbox" value="luck">대운·세운</label>
-  </div>
-  <div class="row"><div><label for="depth">분석 깊이</label><select id="depth"><option value="summary">요약</option><option value="detailed" selected>상세</option><option value="expert">전문가</option></select></div></div>
-  <label for="q">자유 질문 (선택)</label><textarea id="q" rows="2" maxlength="500" placeholder="예: 2030년에 이직을 생각 중인데 재물과 직업 흐름이 궁금해요"></textarea>
-  <label class="small"><input type="checkbox" id="store" style="width:auto"> 출생 원문을 서버에 저장 (기본: 저장 안 함)</label>
-  <button type="submit">사전 분석 기록을 만들고 상담 시작</button>
-</form>
+  <div class="devline"><label for="api">연결 설정(개발용) · API 주소</label>
+    <input id="api" placeholder="http://127.0.0.1:8000" aria-describedby="apihelp"> <span id="apihelp" class="small muted">로컬 실행: <code>uvicorn app.main:app --port 8000</code> (backend 폴더)</span></div>
 
-<div id="variants" class="card" hidden role="status" aria-live="polite"></div>
-<div id="status" class="card" hidden role="region" aria-label="검증 상태" aria-live="polite"></div>
-<div id="out" role="region" aria-label="상담 결과" aria-live="polite"></div>
+  <form id="f" class="request" novalidate>
+    <fieldset>
+      <legend><span class="no">一</span>출생 정보</legend>
+      <div class="grid">
+        <div><label for="date">생년월일</label><input id="date" type="date" required></div>
+        <div><label for="time">출생 시각<span class="hint">모르면 비워 두세요</span></label><input id="time" type="time"></div>
+        <div><label for="cal">달력</label><select id="cal"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
+        <div><label for="leap">음력 윤달 여부</label><select id="leap"><option value="false">평달</option><option value="true">윤달</option></select></div>
+        <div><label for="gender">성별</label><select id="gender"><option value="male">남</option><option value="female">여</option></select></div>
+        <div><label for="place">출생지</label><select id="place"><option>서울특별시</option><option>부산광역시</option><option>대구광역시</option><option>인천광역시</option><option>광주광역시</option><option>대전광역시</option><option>울산광역시</option><option>제주특별자치도</option></select></div>
+        <div><label for="prof">시간 보정<span class="hint">시주 판단에 쓰는 기준</span></label><select id="prof"><option value="standard">시계 시각</option><option value="mean_solar">평균태양시</option><option value="apparent_solar">진태양시</option></select></div>
+      </div>
+      <p class="small muted">시간 보정에 따라 시주가 달라지면 명식을 여러 개로 나누어 보여 드리며, 하나를 정답으로 확정하지 않습니다.</p>
+    </fieldset>
 
-<section id="session" class="card" hidden>
-  <h2>후속 질문</h2>
-  <label for="q2">질문</label><input id="q2" placeholder="예: 사업은 어떨까요?" maxlength="500">
-  <button type="button" id="askb">질문하기</button>
-  <h2>현실 사건 기록 <span class="small">(해석을 바꾸지 않고 분류만 합니다)</span></h2>
-  <div class="row"><div><label for="evt">사건 유형</label><select id="evt"></select></div><div><label for="evy">연도</label><input id="evy" type="number" value="2030"></div></div>
-  <button type="button" class="sec" id="evb">기록하고 분류</button><div id="evr" class="small" role="status" aria-live="polite"></div>
-  <h2>상담 이력</h2><button type="button" class="sec" id="hist">이력 새로고침</button><div id="histout" aria-live="polite"></div>
-  <h2>재분석(규칙 버전·학파 프로필 변경) <span class="small">원본 기록은 보존되고 새 기록이 추가됩니다</span></h2>
-  <div class="row"><div><label for="pap">破 표 프로필</label><select id="pap"><option value="modern_6">현대 통용 6쌍</option><option value="sanmyeongtonghoe_4">三命通會 4쌍(寅亥·巳申 제외)</option></select></div></div>
-  <button type="button" class="sec" id="reb">재분석 기록 추가</button><div id="rer" class="small" role="status" aria-live="polite"></div>
-</section>
+    <fieldset>
+      <legend><span class="no">二</span>살펴볼 범위</legend>
+      <div class="grid">
+        <div><label for="pk">기간 종류</label><select id="pk"><option value="year">특정 연도</option><option value="r5">5년 범위</option><option value="r10">10년 범위</option><option value="cmp">두 연도 비교</option></select></div>
+        <div><label for="y1">연도(시작 연도)</label><input id="y1" type="number" min="1901" max="2049" value="2030"></div>
+        <div id="y2w" hidden><label for="y2">비교할 연도</label><input id="y2" type="number" min="1901" max="2049" value="2031"></div>
+      </div>
+      <p class="small muted" id="pdesc" role="status"></p>
+      <div role="group" id="doms" aria-label="관심 분야(복수 선택)" class="checks">
+        <label><input type="checkbox" value="overall" checked>종합운</label><label><input type="checkbox" value="wealth">재물운</label>
+        <label><input type="checkbox" value="career">직업·승진운</label><label><input type="checkbox" value="business">사업운</label>
+        <label><input type="checkbox" value="docs_realestate">문서·계약운</label><label><input type="checkbox" value="real_estate">부동산운</label>
+        <label><input type="checkbox" value="job_change">이직·취업운</label><label><input type="checkbox" value="love_marriage">연애·결혼운</label>
+        <label><input type="checkbox" value="family">가족·인간관계운</label><label><input type="checkbox" value="health_traditional">건강 관련 전통 해석(진단 아님)</label>
+        <label><input type="checkbox" value="luck">대운·세운</label>
+      </div>
+      <div class="grid" style="margin-top:.6rem"><div>
+        <label for="depth">해설의 깊이</label>
+        <select id="depth" aria-describedby="depthnote"><option value="summary">요약</option><option value="detailed" selected>상세</option><option value="expert">전문가</option></select>
+        <p class="depth-note" id="depthnote"></p></div></div>
+    </fieldset>
 
-<section class="card">
-  <h2>이전 상담 다시 열기</h2>
-  <div class="row"><div><label for="rt">상담 번호</label><input id="rt" maxlength="32"></div><div><label for="rk">접근 토큰</label><input id="rk" type="password" autocomplete="off"></div></div>
-  <button type="button" class="sec" id="reopen">재열람</button>
-</section>
+    <fieldset>
+      <legend><span class="no">三</span>묻고 싶은 것</legend>
+      <label for="q">자유 질문<span class="hint">선택 사항 · 예: 2030년에 이직을 생각 중인데 재물과 직업의 흐름이 궁금합니다</span></label>
+      <textarea id="q" rows="3" maxlength="500"></textarea>
+      <label class="inline" style="margin-top:.8rem"><input type="checkbox" id="store"> 출생 원문을 서버에 저장합니다 (기본: 저장하지 않음)</label>
+    </fieldset>
+    <p style="margin-top:1.4rem"><button type="submit">해석 리포트 받기</button></p>
+  </form>
+
+  <section id="demo" class="doc" hidden aria-label="합성 샘플 시연">
+    <p class="kicker">합성 샘플</p>
+    <h2>샘플 리포트로 디자인 확인</h2>
+    <p class="small muted">합성 명식(간지 4쌍)으로 엔진이 만든 해설입니다. 실제 사람의 정보가 아니며 만세력 검증 대상이 아닙니다.</p>
+    <div class="grid"><div><label for="demodepth">해설의 깊이</label><select id="demodepth"><option value="summary">요약</option><option value="detailed" selected>상세</option><option value="expert">전문가</option></select></div></div>
+    <p><button type="button" id="demobtn" class="primary">합성 샘플 리포트 보기</button></p>
+  </section>
+
+  <div id="variants" class="doc" hidden aria-live="polite"></div>
+
+  <article id="report" hidden aria-label="해석 리포트">
+    <section id="cover" class="doc cover" aria-live="polite"></section>
+    <section id="status" class="chapter" aria-live="polite" hidden></section>
+    <div id="out" aria-live="polite"></div>
+  </article>
+
+  <section id="session" class="session-form" hidden aria-label="상담 기록 추가">
+    <p class="kicker">상담 기록</p>
+    <h2>기록 추가</h2>
+    <label for="q2">이어서 묻기</label>
+    <input id="q2" placeholder="예: 사업 쪽은 어떻게 보이나요?" maxlength="500">
+    <p><button type="button" class="sec" id="askb">기록에 추가</button> <button type="button" class="sec" id="demoask" hidden>합성 기록 예시 추가</button></p>
+
+    <h3>현실 사건 기록</h3>
+    <p class="small muted">실제로 있었던 일을 적어 두면 처음 작성한 해석과 비교해 ‘부합 · 불일치 · 판단 안 함 · 조건 변경’으로만 분류합니다. 처음 해석은 바뀌지 않습니다.</p>
+    <div class="grid"><div><label for="evt">사건 유형</label><select id="evt"></select></div><div><label for="evy">연도</label><input id="evy" type="number" value="2030"></div></div>
+    <p><button type="button" class="sec" id="evb">기록하고 분류</button></p><p id="evr" class="small" aria-live="polite"></p>
+
+    <h3>기록 목록</h3>
+    <p><button type="button" class="sec" id="hist">목록 새로고침</button></p><div id="histout" aria-live="polite"></div>
+
+    <h3>재분석</h3>
+    <p class="small muted">규칙 버전이나 학파 기준이 달라졌을 때 새 기록을 덧붙입니다. 원본 기록은 그대로 보존됩니다.</p>
+    <div class="grid"><div><label for="pap">破 표 기준</label><select id="pap"><option value="modern_6">현대 통용 6쌍</option><option value="sanmyeongtonghoe_4">三命通會 4쌍(寅亥·巳申 제외)</option></select></div></div>
+    <p><button type="button" class="sec" id="reb">재분석 기록 추가</button></p><p id="rer" class="small" aria-live="polite"></p>
+  </section>
+
+  <section class="doc" id="reopenbox" aria-label="기존 상담 다시 열기">
+    <p class="kicker">재열람</p>
+    <h2>이전 상담 다시 열기</h2>
+    <p class="small muted">상담 번호와 접근 토큰을 알고 계실 때만 열 수 있습니다. 토큰은 이 화면의 메모리에만 두며 주소창이나 저장소에 남기지 않습니다.</p>
+    <div class="grid"><div><label for="rt">상담 번호</label><input id="rt" maxlength="32" autocomplete="off"></div><div><label for="rk">접근 토큰</label><input id="rk" type="password" autocomplete="off"></div></div>
+    <p><button type="button" class="sec" id="reopen">다시 열기</button></p>
+  </section>
 </main>
+<footer class="colophon">명리학은 과학적으로 검증된 미래 예측 방법이 아닙니다. 이 문서는 전통 해석의 구조와 근거를 정리한 참고 자료이며, 건강·재정·법률·결혼 같은 중요한 결정은 해당 전문가와 상의하세요.</footer>
+
 <script>
 const $=id=>document.getElementById(id);
-let thread=null,token=null;
-try{$('api').value=localStorage.getItem('api')||'http://127.0.0.1:8000'}catch(e){$('api').value='http://127.0.0.1:8000'}
+const STATIC=(document.querySelector('meta[name="mingli-mode"]')||{}).content==='static-preview';
+let thread=null,token=null,recordNo=0;
+if(!STATIC){try{$('api').value=localStorage.getItem('api')||'http://127.0.0.1:8000'}catch(e){$('api').value='http://127.0.0.1:8000'}}
 const base=()=>{const v=$('api').value.replace(/\/$/,'');try{localStorage.setItem('api',v)}catch(e){}return v};
 const el=(t,txt,cls)=>{const e=document.createElement(t);if(txt!==undefined&&txt!==null)e.textContent=txt;if(cls)e.className=cls;return e};
+const kids=(p,...c)=>{c.flat().forEach(x=>{if(x)p.append(x)});return p};
 const hdr=()=>({'Content-Type':'application/json','X-Consult-Token':token});
-async function call(path,opt){try{const r=await fetch(base()+path,opt);let j=null;try{j=await r.json()}catch(e){}return {ok:r.ok,status:r.status,j}}catch(e){return {ok:false,status:0,j:{detail:'API 서버에 연결할 수 없습니다: '+e.message}}}}
-function errText(r){const d=r.j&&r.j.detail;return typeof d==='string'?d:JSON.stringify(d)}
-function list(title,arr,h3){const d=el('div');if(title)d.append(el(h3?'h3':'h2',title));const u=el('ul');arr.forEach(x=>u.append(el('li',x)));d.append(u);return d}
+async function call(path,opt){if(STATIC)return {ok:false,status:0,j:{detail:'정적 미리보기에서는 서버에 연결하지 않습니다.'}};try{const r=await fetch(base()+path,opt);let j=null;try{j=await r.json()}catch(e){}return {ok:r.ok,status:r.status,j}}catch(e){return {ok:false,status:0,j:{detail:'API 서버에 연결할 수 없습니다: '+e.message}}}}
+const errText=r=>{const d=r.j&&r.j.detail;return typeof d==='string'?d:JSON.stringify(d)};
+const ul=(arr,cls)=>{const u=el('ul',null,cls||'plain');arr.forEach(x=>u.append(el('li',x)));return u};
+
+const STEM={'甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계'};
+const BR={'子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'};
+const DEPTH_KO={summary:'요약',detailed:'상세',expert:'전문가'};
+const DEPTH_NOTE={summary:'핵심 해석과 근거의 요약입니다. 학파별 차이는 접어 둡니다.',detailed:'분야별 근거와 학파별 차이까지 설명합니다.',expert:'규칙 ID, 고전 대조, 원문과 구현의 차이를 함께 보여 드립니다.'};
+const KIND_KO={month:'태어난 달(월령)',deukryeong:'월령이 일간에 주는 도움',strength:'힘의 균형',gyeokguk:'격국 후보',tonggeun:'뿌리 내림(통근)',structure:'뚜렷한 생극제화 구조',relations:'간지 관계'};
+const DOM_KO={overall:'종합운',wealth:'재물운',career:'직업·승진운',business:'사업운',docs_realestate:'문서·계약운',real_estate:'부동산운',job_change:'이직·취업운',love_marriage:'연애·결혼운',family:'가족·인간관계운',health_traditional:'건강 관련 전통 해석',luck:'대운·세운'};
+const EVENTS=['취업·이직','직무 변화','평가·승진 관련 변화','자산 취득','수입 변화','재무 손실','사업 시작','사업 확장·축소','계약·문서 변화','부동산 거래','연애·결혼 관련 변화','가족·관계 변화'];
+EVENTS.forEach(e=>{const o=el('option',e);o.value=e;$('evt').append(o)});
 
 function years(){const y=parseInt($('y1').value,10);const k=$('pk').value;if(!y)return [];
   if(k==='year')return [y];if(k==='r5')return Array.from({length:5},(_,i)=>y+i);if(k==='r10')return Array.from({length:10},(_,i)=>y+i);
   const y2=parseInt($('y2').value,10);return y2?[y,y2]:[y]}
-function pdesc(){const k=$('pk').value;$('y2w').hidden=k!=='cmp';const ys=years();$('pdesc').textContent='분석 대상 연도: '+ys.join(', ')+' · 각 해는 입춘과 대운 교체일로 구간이 나뉩니다.'}
+function pdesc(){$('y2w').hidden=$('pk').value!=='cmp';$('pdesc').textContent='분석 대상 연도: '+years().join(', ')+' · 각 해는 입춘과 대운 교체일로 구간이 나뉩니다.'}
 ['pk','y1','y2'].forEach(i=>$(i).addEventListener('input',pdesc));pdesc();
+function depthNote(){$('depthnote').textContent=DEPTH_NOTE[$('depth').value]}
+$('depth').addEventListener('input',depthNote);depthNote();
 
-const EVENTS=['취업·이직','직무 변화','평가·승진 관련 변화','자산 취득','수입 변화','재무 손실','사업 시작','사업 확장·축소','계약·문서 변화','부동산 거래','연애·결혼 관련 변화','가족·관계 변화'];
-EVENTS.forEach(e=>{const o=el('option',e);o.value=e;$('evt').append(o)});
+/* ---------- 리포트 구성 ---------- */
+function chapter(no,title,...c){const s=el('section',null,'chapter');s.setAttribute('aria-labelledby','ch'+no);s.append(el('span','제'+no+'장','no'));const h=el('h2',title);h.id='ch'+no;s.append(h);return kids(s,c)}
+function pillarTable(pil){if(!pil)return null;const w=el('div',null,'tw');const t=el('table',null,'pillars');t.append(el('caption','명식(네 기둥)'));
+  const order=[['hour','시주'],['day','일주'],['month','월주'],['year','연주']];
+  const hr=el('tr');order.forEach(o=>hr.append(el('th',o[1])));const head=el('thead');head.append(hr);t.append(head);
+  const b=el('tbody');[0,1].forEach(i=>{const r=el('tr');order.forEach(o=>{const v=pil[o[0]];const td=el('td');if(v){const ch=v[i];td.className='g han';td.textContent=ch;td.append(el('span',(i===0?STEM[ch]:BR[ch])+(i===0?' · 천간':' · 지지'),'k'))}else{td.textContent='미상';td.className='muted'}r.append(td)});b.append(r)});t.append(b);w.append(t);return w}
+const T=t=>String(t).replace(/'([^']+)'\(([^()]*)\(([^()]*)\)\)/g,"'$1' — $2, $3").replace(/'([^']+)'\(([^()]*)\)/g,"'$1'($2)");
+function firstSentence(t){const m=t.match(/^.*?[.!?](\s|$)/);return m?m[0].trim():t}
 
-function showStatus(pre){
-  const s=$('status');s.hidden=false;s.textContent='';const v=pre.verification;
-  s.append(el('h2','검증 상태'));
-  const line=el('p','', 'small');line.textContent='판정: '+v.status+' · 계산 프로필: '+pre.calculation_profile_id+' · 사전 분석 기록 해시: '+pre.content_hash.slice(0,12)+'… ('+pre.generated_at+') · 규칙 버전 '+pre.ruleset_version;s.append(line);
-  const sc=v.scope||{};const row=el('div');
-  [['CORE_VALIDATED',sc.CORE_VALIDATED&&sc.CORE_VALIDATED.granted],['TIME_PROFILE_VALIDATED',sc.TIME_PROFILE_VALIDATED&&sc.TIME_PROFILE_VALIDATED.granted],['DAEUN_PROFILE_VALIDATED',sc.DAEUN_PROFILE_VALIDATED&&sc.DAEUN_PROFILE_VALIDATED.granted]].forEach(([k,g])=>row.append(el('span',k+(g?' ✓':' ✗'),'badge'+(g?'':' off'))));
-  if(sc.LUNAR_KR_PENDING)row.append(el('span','LUNAR_KR: '+sc.LUNAR_KR_PENDING.state,'badge'));
-  if(sc.CLASSICAL_RULES_PENDING)row.append(el('span','고전 원문 대조 전 규칙 '+sc.CLASSICAL_RULES_PENDING.pending+'/'+sc.CLASSICAL_RULES_PENDING.total,'badge off'));
+function renderCover(a,pre){
+  const c=$('cover');c.textContent='';
+  c.append(el('p',STATIC?'제1장 · 표지 요약 — 합성 데모(실제 분석 결과가 아닙니다)':'제1장 · 표지 요약 — 입력하신 출생 정보로 계산한 결과','kicker'));
+  c.append(el('h1','명식과 흐름에 대한 해설'));
+  const m=el('p',null,'meta');
+  const add=(k,v)=>{const s=el('span');s.append(el('b',k+' '));s.append(document.createTextNode(v));m.append(s)};
+  add('분석 시기',a.years.length?a.years.join(' · ')+'년':'원국');add('살펴본 분야',(a.domains||[]).map(d=>DOM_KO[d]||d).join(', '));add('해설의 깊이',DEPTH_KO[a.depth]||a.depth);
+  c.append(m);
+  const st=(a.natal_feature_items||[]).find(f=>f.kind==='structure');
+  c.append(el('p',(st?T(st.text)+' ':'')+'분야별 근거와 선택한 시기의 흐름은 아래 장에서 차례로 이어집니다. 구조가 있다는 것과 실제로 일어난다는 것은 다릅니다.','lead'));
+  const v=pre.verification;
+  c.append(el('p','계산 검증: '+(v.unverified_notice&&v.unverified_notice.length?'일부 범위는 아직 검증 전입니다 — 3장에서 범위를 확인하세요.':'표시된 범위에서 검증됨')+' · 이 해설은 예측이나 보장이 아닙니다.','note'));
+}
+function renderStatus(pre,reopened){
+  const s=$('status');s.hidden=false;s.textContent='';s.append(el('span','제3장','no'));const h=el('h2','명식 및 검증 상태');h.id='ch3';s.append(h);
+  const v=pre.verification;
+  s.append(pillarTable(pre.pillars));
+  s.append(el('p',(reopened?'재열람 · ':'')+'판정: '+v.status+' · 계산 프로필: '+pre.calculation_profile_id+' · 기록 해시: '+pre.content_hash.slice(0,12)+'… ('+pre.generated_at+') · 규칙 버전 '+pre.ruleset_version,'status-line number'));
+  const sc=v.scope||{};const row=el('p');
+  [['핵심 간지(연·월·일주)','CORE_VALIDATED',sc.CORE_VALIDATED&&sc.CORE_VALIDATED.granted],['시주·시간 보정','TIME_PROFILE_VALIDATED',sc.TIME_PROFILE_VALIDATED&&sc.TIME_PROFILE_VALIDATED.granted],['대운 기산','DAEUN_PROFILE_VALIDATED',sc.DAEUN_PROFILE_VALIDATED&&sc.DAEUN_PROFILE_VALIDATED.granted]].forEach(([k,code,g])=>{const sp=el('span',k+(g?' 검증됨':' 검증 전')+' · ','pill badge '+(g?'on':'off'));sp.append(el('span',code,'code'));row.append(sp)});
+  if(sc.LUNAR_KR_PENDING)row.append(el('span','LUNAR_KR: '+sc.LUNAR_KR_PENDING.state,'pill badge'));
+  if(sc.CLASSICAL_RULES_PENDING)row.append(el('span','고전 원문 대조 전 규칙 '+sc.CLASSICAL_RULES_PENDING.pending+'/'+sc.CLASSICAL_RULES_PENDING.total,'pill badge off'));
   s.append(row);
-  if(v.unverified_notice&&v.unverified_notice.length)s.append(list('미검증 안내',v.unverified_notice));
-  if(pre.variants_count>1)s.append(el('p','시간 보정·23시 규칙에 따라 명식이 '+pre.variants_count+'개로 갈립니다. 선택한 명식: '+pre.variant_id,'bad'));
+  if(pre.variants_count>1)s.append(el('p','시간 보정·23시 규칙에 따라 명식이 '+pre.variants_count+'개로 갈립니다. 선택한 명식: '+pre.variant_id+'. 다른 명식으로 읽으면 시주와 일부 해석이 달라질 수 있습니다.','note'));
+  if(v.unverified_notice&&v.unverified_notice.length){const d=el('details');d.open=true;d.append(el('summary','검증이 끝나지 않은 범위'));d.append(ul(v.unverified_notice));s.append(d)}
 }
 
-function render(a){
-  const c=el('section','', 'card');
-  if(a.refused){c.append(el('p',a.message,'bad'),el('p',a.alternative));$('out').prepend(c);return}
-  c.append(el('h2','쉬운 설명'));
-  (a.paragraphs||[]).forEach(p=>{const d=el('p',p.text,'para');if(p.claim_ids&&p.claim_ids.length)d.append(el('span',' 근거: '+p.claim_ids.join(', '),'cid'));c.append(d)});
-  if(a.consistency&&!a.consistency.ok)c.append(el('p','일부 문단은 근거·모순 검사에서 제외되었습니다: '+a.consistency.problems.join(' / '),'bad small'));
-  const det=el('details');det.append(el('summary','원국 특징 상세'));(a.natal_feature_items||[]).forEach(f=>{const d=el('p',f.text);d.append(el('span',' ['+f.claim_ids.join(', ')+']','cid'));det.append(d)});c.append(det);
-  (a.blocks||[]).forEach(b=>{const d=el('details');d.append(el('summary',b.name+' — 찬성·반대 근거'));d.append(list('찬성 근거',b.evidence_for.length?b.evidence_for:['(없음)'],true),list('반대·한계 근거',b.evidence_against.length?b.evidence_against:['(없음)'],true));c.append(d)});
-  (a.periods||[]).forEach(p=>{const d=el('details');d.open=true;d.append(el('summary',p.year+'년 대운·세운'+(p.split?' (구간 분리)':'')+(p.precommitted?'':' · 사전 기록 밖')));p.segments.forEach(s=>d.append(el('p',s.text)));c.append(d)});
-  if(a.school_view){const d=el('details');d.append(el('summary','학파별 해석(점수로 합치지 않음)'));d.append(list('',a.school_view.per_school.concat(a.school_view.relations)));c.append(d)}
-  if(a.expert){const d=el('details');d.append(el('summary','전문가: 규칙 ID·고전 대조'));d.append(el('p','규칙: '+a.expert.rule_ids.join(', ')));
-    (a.expert.classical_conflicts||[]).forEach(x=>d.append(el('p','['+x.kind+'] '+x.rule_id+' — '+x.note+' (원문 상태: '+x.classical_status+')','small')));c.append(d)}
-  if(a.followup_questions&&a.followup_questions.length){c.append(list('확인하고 싶은 현실 정보(조언에만 사용)',a.followup_questions),el('p',a.followup_note,'small'))}
-  c.append(list(a.life_advice.label,a.life_advice.items));
-  const g=Object.entries(a.glossary||{});if(g.length){const d=el('details');d.append(el('summary','용어 펼쳐보기'));g.forEach(([k,v])=>d.append(el('p',k+': '+v)));c.append(d)}
-  if(a.llm&&a.llm.status!=='disabled')c.append(el('p','LLM 서술: '+a.llm.status,'small'));
-  c.append(list('한계와 고지',a.limits));$('out').prepend(c)}
+function evidenceTwo(b){const w=el('div',null,'two');
+  const p=el('div',null,'positive');p.append(el('h4','긍정 근거'),ul(b.evidence_for.length?b.evidence_for:['(해당 없음)']));
+  const c=el('div',null,'caution');c.append(el('h4','주의 근거'),ul(b.evidence_against.length?b.evidence_against:['(해당 없음)']));w.append(p,c);return w}
+function periodChapter(a,no){
+  const ch=chapter(no,'선택한 시기의 해석');
+  if(!a.periods.length){ch.append(el('p','선택한 연도가 없어 원국만 살펴보았습니다.','muted'));return ch}
+  ch.append(el('p','한 해는 입춘(세운이 바뀌는 때)과 대운 교체일에 따라 구간으로 나뉩니다. 아래 표는 구간별로 어떤 대운·세운이 적용되는지 보여 줍니다.','muted'));
+  a.periods.forEach(pe=>{
+    ch.append(el('h3',pe.year+'년'+(pe.split?' — 구간 분리':'')+(pe.precommitted?'':' (처음 작성한 기록 밖의 기간)')));
+    const w=el('div',null,'tw');const t=el('table');t.append(el('caption',pe.year+'년 대운·세운 구간'));
+    const th=el('thead');const hr=el('tr');['기간','대운','세운','경계'].forEach(x=>hr.append(el('th',x)));th.append(hr);t.append(th);const tb=el('tbody');
+    pe.segments.forEach(s=>{const r=el('tr');[s.from+' ~ '+s.to,s.luck||'첫 대운 시작 전',s.sewun,(s.boundaries||[]).join(', ')||'—'].forEach((x,i)=>{const td=el('td',x);if(i===1||i===2)td.className='han';r.append(td)});tb.append(r)});
+    t.append(tb);w.append(t);ch.append(w);
+    const d=el('details');d.append(el('summary','구간별 설명 보기'));pe.segments.forEach(s=>d.append(el('p',s.text)));ch.append(d);
+  });
+  if(a.procedure&&a.procedure.length){const d=el('details');d.append(el('summary','분석 절차 기록'));d.append(ul(a.procedure.map(s=>s.step+(s.year?' ('+s.year+'년)':'')+' — '+s.detail)));ch.append(d)}
+  return ch}
+function classicalChapter(a,no){
+  const ch=chapter(no,'고전 근거');
+  ch.append(el('p','고전 원문은 이 장의 상세 영역에서 열람합니다. 규칙마다 원문 확인 상태를 표시하며, ‘원문 위치만 확인’이나 ‘구현자 규약’은 고전의 결론으로 쓰지 않습니다.','muted'));
+  (a.classical_basis||[]).forEach(r=>{const d=el('details');d.append(el('summary',r.name+' — '+r.status_ko));
+    const dl=el('dl',null,'facts');const row=(k,v)=>{if(v){dl.append(el('dt',k),el('dd',v))}};
+    row('출처',r.work?r.work+' · '+r.section:'고전 출처를 주장하지 않는 구현자 규약'); row('원문 발췌(짧게)',r.excerpt?'「'+r.excerpt+'」':null); row('확인한 범위',r.scope_note);
+    row('원문과 구현의 차이',r.engine_difference?r.engine_difference.note:null); row('적용 학파',r.school); row('인용한 근거 번호',r.claim_ids.join(', '));
+    d.append(dl);if(r.url){const p=el('p',null,'small');const aEl=el('a','원문 페이지(외부 전사본) 열기');aEl.href=r.url;aEl.rel='noopener noreferrer';aEl.target='_blank';p.append(aEl);d.append(p)}ch.append(d)});
+  if(a.expert){const d=el('details');d.append(el('summary','전문가: 규칙 ID·고전 대조'));const x=el('div',null,'expert-only');
+    x.append(el('p','규칙: '+a.expert.rule_ids.join(', ')));(a.expert.classical_conflicts||[]).forEach(c=>x.append(el('p','['+c.kind+'] '+c.rule_id+' — '+c.note+' (원문 상태: '+c.classical_status+')','small')));
+    if(a.expert.profiles)x.append(el('p','학파 프로필: '+JSON.stringify(a.expert.profiles),'small'));d.append(x);ch.append(d)}
+  return ch}
 
-function begin(j){thread=j.thread_id;token=j.access_token;$('session').hidden=false;showStatus(j.precommit);render(j.answer);
-  $('out').prepend(el('p','상담 번호: '+thread+' · 접근 토큰은 이 화면에만 표시됩니다. 재열람하려면 번호와 토큰을 보관하세요.','small'));
-  $('evy').value=(j.precommit.years||[2030])[0]}
+function renderReport(a,pre,reopened){
+  $('report').hidden=false;
+  renderCover(a,pre);renderStatus(pre,reopened);
+  const out=$('out');out.textContent='';
+  const keys=el('section',null,'chapter');keys.append(el('span','제2장','no'));const h2=el('h2','핵심 해석');h2.id='ch2';keys.append(h2);
+  const pts=[];(a.question_context&&a.question_context.items||[]).forEach(i=>pts.push(i.text));(a.blocks||[]).forEach(b=>{const names=(b.structures||[]).filter(x=>x.label!=='없음').map(x=>x.structure);pts.push(b.name+' — '+(names.length?names.join(', ')+' 구조가 참고됩니다. 근거와 반대 근거는 7장에서 확인하세요.':T(firstSentence(b.easy_text))))});
+  keys.append(ul(pts.length?pts:[firstSentence(a.summary_easy)]));
+  const old=$('keypoints');if(old)old.remove();keys.id='keypoints';$('report').insertBefore(keys,$('status'));
+  const c4=chapter(4,'원국의 주요 특징');const dl=el('dl',null,'facts');(a.natal_feature_items||[]).forEach(f=>{dl.append(el('dt',KIND_KO[f.kind]||f.kind));const dd=el('dd',T(f.text));if(f.claim_ids.length)dd.append(el('span','근거 '+f.claim_ids.join(', '),'cid'));dl.append(dd)});c4.append(dl);
+  const c5=periodChapter(a,5);
+  const c6=chapter(6,'분야별 상세 해석');
+  (a.question_context&&a.question_context.items||[]).forEach(i=>c6.append(el('p',i.text,'note plain')));
+  (a.blocks||[]).forEach(b=>{c6.append(el('h3',b.name),el('p',T(b.easy_text)));
+    (a.paragraphs||[]).filter(p=>p.kind==='domain_period'&&p.text.includes(b.name)).forEach(p=>c6.append(el('p',p.text,'para muted')))});
+  (a.paragraphs||[]).filter(p=>p.kind==='cross').forEach(p=>c6.append(el('p',p.text,'note plain')));
+  const c7=chapter(7,'긍정 근거와 주의 근거');(a.blocks||[]).forEach(b=>{c7.append(el('h3',b.name),evidenceTwo(b))});
+  const c8=chapter(8,'학파별 차이');
+  if(a.school_view){c8.append(el('p','같은 명식도 어떤 질문을 먼저 보느냐에 따라 읽는 방향이 달라집니다. 하나의 점수나 결론으로 합치지 않고 관점별로 적습니다.','muted'));c8.append(ul(a.school_view.per_school.concat(a.school_view.relations)))}
+  else c8.append(el('p','요약 모드에서는 학파별 차이를 접어 둡니다. ‘상세’ 또는 ‘전문가’ 깊이로 다시 의뢰하면 관점별 해석을 볼 수 있습니다.','muted'));
+  const c9=classicalChapter(a,9);
+  const c10=chapter(10,'종합 소견');
+  const st2=(a.natal_feature_items||[]).find(f=>f.kind==='structure');
+  c10.append(el('p',(st2?T(st2.text)+' ':'')+'선택한 시기에는 구간마다 새로 생기는 관계 후보가 있으나, 이는 구조가 달라질 수 있다는 뜻일 뿐 특정 사건을 예측하지 않습니다. 학파마다 읽는 방향이 달라 하나의 결론으로 합치지 않았습니다.'));
+  (a.paragraphs||[]).filter(p=>p.kind==='closing').forEach(p=>c10.append(el('p',p.text,'muted')));
+  c10.append(el('h3',a.life_advice.label),ul(a.life_advice.items));
+  const g=Object.entries(a.glossary||{});if(g.length){const d=el('details');d.append(el('summary','용어 풀이'));const l=el('dl',null,'facts');g.forEach(([k,v])=>l.append(el('dt',k),el('dd',v)));d.append(l);c10.append(d)}
+  c10.append(el('h3','해석의 범위'),ul(a.limits));
+  if(a.consistency&&!a.consistency.ok)c10.append(el('p','일부 문단은 근거·모순 검사에서 제외되었습니다: '+a.consistency.problems.join(' / '),'note'));
+  if(a.llm&&a.llm.status!=='disabled')c10.append(el('p','문장 다듬기 계층: '+a.llm.status,'small muted'));
+  const c11=chapter(11,'이어서 살펴볼 질문');
+  c11.append(ul(a.followup_questions&&a.followup_questions.length?a.followup_questions:['더 살펴보고 싶은 분야나 연도를 아래 ‘기록 추가’에 적어 주세요.']));
+  c11.append(el('p',a.followup_note||'답해 주신 현실 정보는 조언에만 쓰이며 처음 작성한 해석을 바꾸지 않습니다.','small muted'));
+  [c4,c5,c6,c7,c8,c9,c10,c11].forEach(c=>out.append(c));
+}
+function renderRecord(a,question){
+  recordNo+=1;
+  const s=el('section',null,'record');s.setAttribute('aria-label','상담 기록 '+recordNo);
+  const hd=el('div',null,'head');hd.append(el('span','기록 '+recordNo),el('span','처음 작성한 해석에 덧붙인 기록'));s.append(hd);
+  s.append(el('p',question||'(질문 없음)','q'));
+  if(a.refused){s.append(el('p',a.message,'note'),el('p',a.alternative,'muted'));$('out').append(s);s.scrollIntoView({block:'nearest'});return}
+  (a.paragraphs||[]).filter(p=>p.kind!=='closing'&&p.kind!=='features'&&p.kind!=='schools').forEach(p=>{const d=el('p',T(p.text),'para');if(p.claim_ids&&p.claim_ids.length)d.append(el('span',' 근거 '+p.claim_ids.join(', '),'cid'));s.append(d)});
+  if(a.school_view){const d=el('details');d.append(el('summary','학파별 해석(합치지 않고 관점별로)'));d.append(ul(a.school_view.per_school.concat(a.school_view.relations)));s.append(d)}
+  (a.blocks||[]).forEach(b=>{const d=el('details');d.append(el('summary',b.name+' — 긍정·주의 근거'));d.append(evidenceTwo(b));s.append(d)});
+  (a.periods||[]).forEach(p=>{const d=el('details');d.append(el('summary',p.year+'년 구간 설명'));p.segments.forEach(g=>d.append(el('p',g.text)));s.append(d)});
+  if(a.expert){const d=el('details');d.append(el('summary','전문가: 규칙 ID·고전 대조'));d.append(el('p','규칙: '+a.expert.rule_ids.join(', '),'small'));s.append(d)}
+  if(a.followup_questions&&a.followup_questions.length)s.append(el('p','이어서 확인하면 좋은 질문: '+a.followup_questions.join(' / '),'small muted'));
+  s.append(el('p',a.life_advice.label+': '+a.life_advice.items.join(' '),'small muted'));
+  $('out').append(s);s.scrollIntoView({block:'nearest'});
+}
+
+function begin(j){thread=j.thread_id;token=j.access_token;recordNo=0;$('session').hidden=false;
+  const prev=$('keypoints');if(prev)prev.remove();
+  renderReport(j.answer,Object.assign({},j.precommit),false);
+  const n=el('p','상담 번호: '+thread+' · 접근 토큰은 이 화면에만 표시되며 새로고침하면 사라집니다. 다시 열려면 번호와 토큰을 보관하세요.','small muted');$('cover').append(n);
+  $('evy').value=(j.precommit.years||[2030])[0];$('report').scrollIntoView({behavior:'auto',block:'start'});
+  document.querySelector('.steps li:nth-child(1)').removeAttribute('aria-current');document.querySelector('.steps li:nth-child(2)').setAttribute('aria-current','step')}
 
 $('f').addEventListener('submit',async e=>{e.preventDefault();$('out').textContent='';$('variants').hidden=true;
   const doms=[...document.querySelectorAll('#doms input:checked')].map(i=>i.value);
-  const body={birth_date:$('date').value,birth_time:$('time').value||null,calendar:$('cal').value,is_leap_month:$('leap').value==='true',gender:$('gender').value,calculation_profile:$('prof').value,years:years(),domains:doms.length?doms:['overall'],depth:$('depth').value,store_birth:$('store').checked,first_question:$('q').value};
+  const body={birth_date:$('date').value,birth_time:$('time').value||null,calendar:$('cal').value,is_leap_month:$('leap').value==='true',gender:$('gender').value,birth_place:$('place').value,calculation_profile:$('prof').value,years:years(),domains:doms.length?doms:['overall'],depth:$('depth').value,store_birth:$('store').checked,first_question:$('q').value};
   const send=b=>call('/api/v1/consultations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
   const r=await send(body);
-  if(r.status===409&&r.j&&r.j.detail&&r.j.detail.code==='VARIANT_REQUIRED'){const v=$('variants');v.hidden=false;v.textContent='';v.append(el('p','시간 보정·23시 규칙에 따라 명식이 여러 개로 갈립니다. 하나를 직접 선택해야 합니다(자동 선택하지 않음).'));
-    r.j.detail.variants.forEach(x=>{const b=el('button',x.variant_id+': '+Object.values(x.pillars).join(' ')+(x.is_primary?' (입력 프로필 기준)':''));b.type='button';b.className='sec';b.onclick=async()=>{const r2=await send(Object.assign({},body,{variant_id:x.variant_id}));v.hidden=true;if(r2.ok)begin(r2.j);else $('out').append(el('p','오류: '+errText(r2),'bad'))};v.append(b)});return}
-  if(!r.ok){$('out').append(el('p','오류: '+errText(r),'bad'));return}
+  if(r.status===409&&r.j&&r.j.detail&&r.j.detail.code==='VARIANT_REQUIRED'){const v=$('variants');v.hidden=false;v.textContent='';
+    v.append(el('p','명식 선택','kicker'),el('h2','명식이 여러 개로 갈립니다'));
+    v.append(el('p','시간 보정·23시 규칙에 따라 명식이 여러 개로 갈립니다. 하나를 직접 선택해야 합니다(자동 선택하지 않음).'));
+    r.j.detail.variants.forEach(x=>{const b=el('button',x.variant_id+': '+Object.values(x.pillars).join(' ')+(x.is_primary?' (입력한 기준)':''));b.type='button';b.className='sec';b.style.margin='.2rem .4rem .2rem 0';b.onclick=async()=>{const r2=await send(Object.assign({},body,{variant_id:x.variant_id}));v.hidden=true;if(r2.ok)begin(r2.j);else $('out').append(el('p',errText(r2),'bad'))};v.append(b)});return}
+  if(!r.ok){$('report').hidden=false;$('cover').textContent='';$('status').hidden=true;$('out').append(el('p',errText(r),'bad'));return}
   begin(r.j)});
-$('askb').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread+'/ask',{method:'POST',headers:hdr(),body:JSON.stringify({question:$('q2').value,years:years()})});if(r.ok)render(r.j);else $('out').prepend(el('p','오류: '+errText(r),'bad'))};
+$('askb').onclick=async()=>{const qv=$('q2').value;const r=await call('/api/v1/consultations/'+thread+'/ask',{method:'POST',headers:hdr(),body:JSON.stringify({question:qv,years:years()})});if(r.ok){renderRecord(r.j,qv);$('q2').value=''}else $('out').append(el('p',errText(r),'bad'))};
 $('evb').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread+'/reality',{method:'POST',headers:hdr(),body:JSON.stringify({kind:'event',type:$('evt').value,year:parseInt($('evy').value,10)})});$('evr').textContent=r.ok?('분류: '+r.j.outcome+' — '+r.j.explanation):'오류 '+errText(r)};
 $('reb').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread+'/reanalyze',{method:'POST',headers:hdr(),body:JSON.stringify({reason:'화면에서 재분석',pa_profile:$('pap').value})});$('rer').textContent=r.ok?('재분석 기록 #'+r.j.revision+' 추가. 원본 해시 유지: '+r.j.original_hash.slice(0,12)+'… 변경: '+JSON.stringify(r.j.diff)):'오류 '+errText(r)};
-$('hist').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread,{headers:hdr()});const o=$('histout');o.textContent='';if(!r.ok){o.append(el('p','오류 '+errText(r),'bad'));return}
-  r.j.turns.forEach(t=>{const d=el('details');const lab={answer:'답변',reality_input:'현실 사건',revision:'재분석'}[t.kind]||t.kind;d.append(el('summary','#'+t.turn_no+' '+lab+(t.question?': '+t.question.slice(0,40):'')));
+$('hist').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread,{headers:hdr()});const o=$('histout');o.textContent='';if(!r.ok){o.append(el('p',errText(r),'bad'));return}
+  r.j.turns.forEach(t=>{const d=el('details');const lab={answer:'답변',reality_input:'현실 사건',revision:'재분석'}[t.kind]||t.kind;d.append(el('summary','기록 #'+t.turn_no+' · '+lab+(t.question?' · '+t.question.slice(0,40):'')));
     if(t.kind==='reality_input')d.append(el('p',t.classification.outcome+' — '+t.classification.explanation));else if(t.kind==='revision')d.append(el('p',t.reason+' · '+JSON.stringify(t.diff)));else if(t.answer&&t.answer.narrative)d.append(el('p',t.answer.narrative));o.append(d)})};
 $('reopen').onclick=async()=>{thread=$('rt').value.trim();token=$('rk').value.trim();const r=await call('/api/v1/consultations/'+thread,{headers:hdr()});
-  if(!r.ok){$('out').prepend(el('p','재열람 실패: '+errText(r),'bad'));return}
-  $('session').hidden=false;$('status').hidden=false;$('status').textContent='';const s=r.j.precommit_summary;$('status').append(el('h2','검증 상태(재열람)'),el('p','판정 '+s.verification.status+' · '+s.calculation_profile_id+' · 기록 해시 '+s.content_hash.slice(0,12)+'…','small'));
-  if(s.verification.unverified_notice)$('status').append(list('미검증 안내',s.verification.unverified_notice));
+  if(!r.ok){$('report').hidden=false;$('out').append(el('p','재열람 실패: '+errText(r),'bad'));return}
+  recordNo=0;$('session').hidden=false;const pre=Object.assign({variants_count:1},r.j.precommit_summary);
+  const first=r.j.turns.find(t=>t.kind==='answer'&&t.answer&&t.answer.paragraphs);
+  if(first){renderReport(first.answer,pre,true)}
+  else{$('report').hidden=false;renderStatus(pre,true)}
   $('hist').click()};
+
+/* ---------- 정적 미리보기 모드: 전송·저장 없이 합성 샘플만 시연 ---------- */
+if(STATIC){
+  $('staticbanner').hidden=false;
+  document.querySelectorAll('#f fieldset').forEach(f=>f.disabled=true);
+  $('f').querySelector('button[type=submit]').disabled=true;
+  $('f').addEventListener('submit',e=>e.preventDefault());
+  document.querySelector('.devline').hidden=true;$('reopenbox').hidden=true;
+  ['q2','evt','evy','pap'].forEach(i=>$(i).disabled=true);['askb','evb','reb'].forEach(i=>$(i).disabled=true);$('demoask').hidden=false;
+  $('demo').hidden=false;/*demoposition*/$('f').before($('demo'));
+  $('intronote').innerHTML='<b>의뢰 전 안내.</b> 이 문서는 전통 명리학의 해석이며, 미래를 예측하거나 결과를 보장하지 않습니다. 명식 계산의 검증 범위와 고전 원문 대조 상태를 리포트 안에 함께 표시합니다. 아래 의뢰서는 실제 서비스의 입력 화면 디자인이며, 이 미리보기에서는 사용할 수 없습니다.';
+  let D=null;
+  const sc=document.createElement('script');sc.src='assets/demo_consult.js';sc.onload=()=>{D=window.MINGLI_DEMO};document.head.append(sc);
+  $('demobtn').onclick=()=>{
+    if(!D){return}
+    recordNo=0;$('session').hidden=false;
+    renderReport(D.answers[$('demodepth').value],D.precommit,false);
+    $('cover').append(el('p','합성 데모입니다. 상담 번호·접근 토큰은 발급되지 않았고 어떤 내용도 저장되지 않았습니다.','small muted'));
+    $('report').scrollIntoView({behavior:'auto',block:'start'});
+    document.querySelector('.steps li:nth-child(1)').removeAttribute('aria-current');document.querySelector('.steps li:nth-child(2)').setAttribute('aria-current','step');
+    $('histout').textContent='';D.turns.forEach(t=>{const d=el('details');d.append(el('summary','기록 #'+t.turn_no+' · 답변 · '+t.question.slice(0,40)));d.append(el('p',t.answer.narrative));$('histout').append(d)});
+  };
+  $('demoask').onclick=()=>{if(D&&!$('report').hidden){renderRecord(D.record.answer,D.record.question)}};
+  $('hist').onclick=()=>{};
+}
 </script>
 </body>
 </html>

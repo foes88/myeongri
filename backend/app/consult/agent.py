@@ -207,6 +207,7 @@ def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years
         bad = {int(re.match(r"문단(\d+)", x).group(1)) for x in probs if x.startswith("문단")}
         out["paragraphs"] = [q for i, q in enumerate(out["paragraphs"]) if i not in bad]
     out["consistency"] = {"ok": not probs, "problems": probs}
+    out["classical_basis"] = compose.classical_basis(pre, out["paragraphs"])
     out["procedure"] = compose.analysis_procedure(pre, periods, doms, not probs, len(out["paragraphs"]))
     out["narrative"] = "\n\n".join(q["text"] for q in out["paragraphs"])
     if depth == "expert":
