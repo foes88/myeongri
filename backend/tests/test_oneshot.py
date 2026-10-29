@@ -60,3 +60,25 @@ def test_no_birth_data_in_logs(caplog):
 
 def test_stored_consultation_endpoints_remain_separate():
     assert c.post("/api/v1/consultations/" + "a" * 32 + "/ask", json={"question": "x"}).status_code in (403, 422)
+
+
+def test_birth_places_cover_nationwide_and_custom_longitude():
+    from app.places import PLACES
+    for need in ("경기도 수원시", "경기도 성남시", "강원특별자치도 강릉시", "충청북도 청주시", "전라남도 여수시", "경상북도 포항시", "경상남도 창원시", "제주특별자치도 서귀포시", "세종특별자치시"):
+        assert need in PLACES, need
+    assert len(PLACES) >= 150
+    a = c.post("/api/v1/oneshot/analyze", json={**B, "birth_place": "경기도 수원시", "calculation_profile": "mean_solar"}).json()
+    b = c.post("/api/v1/oneshot/analyze", json={**B, "birth_place": "경상북도 울릉군", "calculation_profile": "mean_solar"}).json()
+    assert a["precommit"]["calculation_profile_id"] == b["precommit"]["calculation_profile_id"]
+    custom = c.post("/api/v1/oneshot/analyze", json={**B, "longitude": 127.5, "calculation_profile": "mean_solar"})
+    assert custom.status_code == 200
+    assert c.post("/api/v1/oneshot/analyze", json={**B, "longitude": 140.0}).status_code == 422  # 국내 범위 밖
+    assert c.post("/api/v1/oneshot/analyze", json={**B, "birth_place": "화성 올림푸스"}).status_code == 422
+
+
+def test_longitude_changes_time_correction():
+    from app.astro_core import calculate_chart
+    seoul = calculate_chart(year=1990, month=5, day=5, hour=12, minute=0, gender="male", place="서울특별시", time_profile=__import__("app.astro_core", fromlist=["x"]).TimeProfile.LOCAL_MEAN_SOLAR_TIME)
+    ulleung = calculate_chart(year=1990, month=5, day=5, hour=12, minute=0, gender="male", place="경상북도 울릉군", time_profile=__import__("app.astro_core", fromlist=["x"]).TimeProfile.LOCAL_MEAN_SOLAR_TIME)
+    d = ulleung.time_profile["difference_vs_civil_minutes"] - seoul.time_profile["difference_vs_civil_minutes"]
+    assert 15 < d < 20  # 경도 차 약 4°×4분

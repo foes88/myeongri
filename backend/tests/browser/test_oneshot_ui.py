@@ -119,3 +119,23 @@ def test_oneshot_responsive_and_captures(browser, one, size):
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     p.screenshot(path=str(cap / f"result_{size}.png"), full_page=True)
     ctx.close()
+
+
+def test_place_list_has_cities_and_custom_longitude(browser, one):
+    ctx, p, reqs, console = open_page(browser, one)
+    vals = p.eval_on_selector_all("#place option", "els=>els.map(e=>e.value)")
+    assert len(vals) >= 150 and "경기도 수원시" in vals and "강원특별자치도 강릉시" in vals and "__custom__" in vals
+    assert p.is_hidden("#lon")
+    p.select_option("#place", "경기도 수원시")
+    fill(p)
+    p.click("#f button[type=submit]")
+    p.wait_for_selector("#session:not([hidden])", timeout=60000)
+    body = next(__import__("json").loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
+    assert body["birth_place"] == "경기도 수원시" and body["longitude"] is None
+    p.select_option("#place", "__custom__")
+    p.fill("#lon", "127.5")
+    p.click("#f button[type=submit]")
+    p.wait_for_function("document.querySelectorAll('#out section').length>0")
+    body2 = [__import__("json").loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze")][-1]
+    assert body2["longitude"] == 127.5
+    ctx.close()
