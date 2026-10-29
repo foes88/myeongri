@@ -1,5 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "exit 0",
-  "_note": "v6.8: 정적 디자인 미리보기 브랜치에서 backend 프로젝트 빌드를 건너뛴다(ignoreCommand 종료코드 0 = 빌드 건너뜀). backend 프로젝트의 Root Directory 가 backend 일 때만 적용되며 Vercel 대시보드에서 확인되지 않았다."
+  "ignoreCommand": "exit 0"
 }
