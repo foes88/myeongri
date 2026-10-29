@@ -24,6 +24,8 @@ class BirthInput(BaseModel):
     gender: Literal['male','female']
     is_leap_month: bool = False
     calculation_profile: Literal['standard','mean_solar','apparent_solar'] = 'standard'
+    longitude: float | None = Field(default=None, ge=124.0, le=132.0, description='출생지 경도(동경, 도). 목록에 없는 지역에서 직접 입력')
+    latitude: float | None = Field(default=None, ge=33.0, le=39.0)
 
 app.add_middleware(CORSMiddleware, allow_origins=[o for o in os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',') if o],
                    allow_methods=['GET', 'POST', 'DELETE'], allow_headers=['Content-Type', 'X-Consult-Token'])
@@ -44,7 +46,7 @@ def calendar(b: BirthInput):
         if b.birth_time:
             hh, mm = (int(x) for x in b.birth_time.split(':'))
         return calculate_chart(year=y, month=m, day=d, hour=hh, minute=mm or 0, gender=b.gender, calendar=b.calendar,
-                               is_leap_month=b.is_leap_month, place=b.birth_place,
+                               is_leap_month=b.is_leap_month, place=b.birth_place, longitude=b.longitude, latitude=(b.latitude if b.latitude is not None else (36.5 if b.longitude is not None else None)),
                                time_profile=_TIME_PROFILE[b.calculation_profile]).to_dict()
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))

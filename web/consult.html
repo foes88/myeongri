@@ -36,7 +36,8 @@
         <div><label for="cal">달력</label><select id="cal"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
         <div><label for="leap">음력 윤달 여부</label><select id="leap"><option value="false">평달</option><option value="true">윤달</option></select></div>
         <div><label for="gender">성별</label><select id="gender"><option value="male">남</option><option value="female">여</option></select></div>
-        <div><label for="place">출생지</label><select id="place"><option>서울특별시</option><option>부산광역시</option><option>대구광역시</option><option>인천광역시</option><option>광주광역시</option><option>대전광역시</option><option>울산광역시</option><option>제주특별자치도</option></select></div>
+        <div><label for="place">출생지<span class="hint">시·군 단위</span></label><select id="place"><option>서울특별시</option></select></div>
+        <div id="lonw" hidden><label for="lon">경도(동경)<span class="hint">124~132, 예: 127.50</span></label><input id="lon" type="number" step="0.01" min="124" max="132" value="127.00"></div>
         <div><label for="prof">시간 보정<span class="hint">시주 판단에 쓰는 기준</span></label><select id="prof"><option value="standard">시계 시각</option><option value="mean_solar">평균태양시</option><option value="apparent_solar">진태양시</option></select></div>
       </div>
       <p class="small muted">시간 보정에 따라 시주가 달라지면 명식을 여러 개로 나누어 보여 드리며, 하나를 정답으로 확정하지 않습니다.</p>
@@ -120,6 +121,7 @@
 </main>
 <footer class="colophon">명리학은 과학적으로 검증된 미래 예측 방법이 아닙니다. 이 문서는 전통 해석의 구조와 근거를 정리한 참고 자료이며, 건강·재정·법률·결혼 같은 중요한 결정은 해당 전문가와 상의하세요.</footer>
 
+<script src="assets/places.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const MODE=(document.querySelector('meta[name="mingli-mode"]')||{}).content;
@@ -152,6 +154,12 @@ function pdesc(){$('y2w').hidden=$('pk').value!=='cmp';$('pdesc').textContent='�
 ['pk','y1','y2'].forEach(i=>$(i).addEventListener('input',pdesc));pdesc();
 function depthNote(){$('depthnote').textContent=DEPTH_NOTE[$('depth').value]}
 $('depth').addEventListener('input',depthNote);depthNote();
+
+
+/* ---------- 출생지 목록(전국 시·군) + 직접 입력 ---------- */
+(function(){const sel=$('place');sel.textContent='';(window.MINGLI_PLACES||[]).forEach(g=>{const og=document.createElement('optgroup');og.label=g.group;g.items.forEach(([n,v])=>{const o=document.createElement('option');o.value=v;o.textContent=n;og.append(o)});sel.append(og)});
+  const og=document.createElement('optgroup');og.label='목록에 없는 곳';const o=document.createElement('option');o.value='__custom__';o.textContent='직접 입력(경도)';og.append(o);sel.append(og);
+  sel.value='서울특별시';sel.addEventListener('input',()=>{$('lonw').hidden=sel.value!=='__custom__'})})();
 
 /* ---------- 리포트 구성 ---------- */
 function chapter(no,title,...c){const s=el('section',null,'chapter');s.setAttribute('aria-labelledby','ch'+no);s.append(el('span','제'+no+'장','no'));const h=el('h2',title);h.id='ch'+no;s.append(h);return kids(s,c)}
@@ -278,7 +286,7 @@ function begin(j){thread=ONESHOT?'oneshot':j.thread_id;token=ONESHOT?'':j.access
 
 $('f').addEventListener('submit',async e=>{e.preventDefault();$('out').textContent='';$('variants').hidden=true;
   const doms=[...document.querySelectorAll('#doms input:checked')].map(i=>i.value);
-  const body={question:$('q').value,birth_date:$('date').value,birth_time:$('time').value||null,calendar:$('cal').value,is_leap_month:$('leap').value==='true',gender:$('gender').value,birth_place:$('place').value,calculation_profile:$('prof').value,years:years(),domains:doms.length?doms:['overall'],depth:$('depth').value,store_birth:$('store').checked,first_question:$('q').value};
+  const body={question:$('q').value,birth_date:$('date').value,birth_time:$('time').value||null,calendar:$('cal').value,is_leap_month:$('leap').value==='true',gender:$('gender').value,birth_place:$('place').value==='__custom__'?'서울특별시':$('place').value,longitude:$('place').value==='__custom__'?parseFloat($('lon').value):null,calculation_profile:$('prof').value,years:years(),domains:doms.length?doms:['overall'],depth:$('depth').value,store_birth:$('store').checked,first_question:$('q').value};
   const send=b=>{lastBody=b;return call(ONESHOT?'/api/v1/oneshot/analyze':'/api/v1/consultations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})};
   const r=await send(body);
   if(r.status===409&&r.j&&r.j.detail&&r.j.detail.code==='VARIANT_REQUIRED'){const v=$('variants');v.hidden=false;v.textContent='';
