@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from app import privacy_scan as ps
-from tools.check_distribution import FORBIDDEN
+from tools.check_distribution import is_forbidden
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -28,7 +28,7 @@ def scan(rev="HEAD", forbidden_commits=()):
             meta, path = line.split("\t", 1)
             sha = meta.split()[2]
             path = path.strip('"')
-            if FORBIDDEN.search(path):
+            if is_forbidden(path):
                 problems.append(f"{c[:7]} 금지 경로: {path}")
             if (sha, path) in seen or Path(path).suffix.lower() not in ps.TEXT_SUFFIX:
                 continue

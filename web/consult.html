@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<meta name="mingli-mode" content="static-preview">
+<meta name="mingli-mode" content="oneshot">
 <title>상담 의뢰 · 명리 明理</title>
 <link rel="stylesheet" href="assets/mingli.css">
 </head>
@@ -122,10 +122,13 @@
 
 <script>
 const $=id=>document.getElementById(id);
-const STATIC=(document.querySelector('meta[name="mingli-mode"]')||{}).content==='static-preview';
+const MODE=(document.querySelector('meta[name="mingli-mode"]')||{}).content;
+const STATIC=MODE==='static-preview';
+const ONESHOT=MODE==='oneshot';
+let lastBody=null;const localRecords=[];
 let thread=null,token=null,recordNo=0;
-if(!STATIC){try{$('api').value=localStorage.getItem('api')||'http://127.0.0.1:8000'}catch(e){$('api').value='http://127.0.0.1:8000'}}
-const base=()=>{const v=$('api').value.replace(/\/$/,'');try{localStorage.setItem('api',v)}catch(e){}return v};
+if(!STATIC&&!ONESHOT){try{$('api').value=localStorage.getItem('api')||'http://127.0.0.1:8000'}catch(e){$('api').value='http://127.0.0.1:8000'}}
+const base=()=>{if(ONESHOT)return '';const v=$('api').value.replace(/\/$/,'');try{localStorage.setItem('api',v)}catch(e){}return v};
 const el=(t,txt,cls)=>{const e=document.createElement(t);if(txt!==undefined&&txt!==null)e.textContent=txt;if(cls)e.className=cls;return e};
 const kids=(p,...c)=>{c.flat().forEach(x=>{if(x)p.append(x)});return p};
 const hdr=()=>({'Content-Type':'application/json','X-Consult-Token':token});
@@ -266,17 +269,17 @@ function renderRecord(a,question){
   $('out').append(s);s.scrollIntoView({block:'nearest'});
 }
 
-function begin(j){thread=j.thread_id;token=j.access_token;recordNo=0;$('session').hidden=false;
+function begin(j){thread=ONESHOT?'oneshot':j.thread_id;token=ONESHOT?'':j.access_token;recordNo=0;localRecords.length=0;$('session').hidden=false;
   const prev=$('keypoints');if(prev)prev.remove();
   renderReport(j.answer,Object.assign({},j.precommit),false);
-  const n=el('p','상담 번호: '+thread+' · 접근 토큰은 이 화면에만 표시되며 새로고침하면 사라집니다. 다시 열려면 번호와 토큰을 보관하세요.','small muted');$('cover').append(n);
+  const n=ONESHOT?el('p','저장되지 않는 일회성 분석입니다. 이 화면을 닫거나 새로고침하면 내용이 사라지며, 다시 보려면 같은 정보를 다시 입력해야 합니다.','small muted'):el('p','상담 번호: '+thread+' · 접근 토큰은 이 화면에만 표시되며 새로고침하면 사라집니다. 다시 열려면 번호와 토큰을 보관하세요.','small muted');$('cover').append(n);
   $('evy').value=(j.precommit.years||[2030])[0];$('report').scrollIntoView({behavior:'auto',block:'start'});
   document.querySelector('.steps li:nth-child(1)').removeAttribute('aria-current');document.querySelector('.steps li:nth-child(2)').setAttribute('aria-current','step')}
 
 $('f').addEventListener('submit',async e=>{e.preventDefault();$('out').textContent='';$('variants').hidden=true;
   const doms=[...document.querySelectorAll('#doms input:checked')].map(i=>i.value);
-  const body={birth_date:$('date').value,birth_time:$('time').value||null,calendar:$('cal').value,is_leap_month:$('leap').value==='true',gender:$('gender').value,birth_place:$('place').value,calculation_profile:$('prof').value,years:years(),domains:doms.length?doms:['overall'],depth:$('depth').value,store_birth:$('store').checked,first_question:$('q').value};
-  const send=b=>call('/api/v1/consultations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  const body={question:$('q').value,birth_date:$('date').value,birth_time:$('time').value||null,calendar:$('cal').value,is_leap_month:$('leap').value==='true',gender:$('gender').value,birth_place:$('place').value,calculation_profile:$('prof').value,years:years(),domains:doms.length?doms:['overall'],depth:$('depth').value,store_birth:$('store').checked,first_question:$('q').value};
+  const send=b=>{lastBody=b;return call(ONESHOT?'/api/v1/oneshot/analyze':'/api/v1/consultations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})};
   const r=await send(body);
   if(r.status===409&&r.j&&r.j.detail&&r.j.detail.code==='VARIANT_REQUIRED'){const v=$('variants');v.hidden=false;v.textContent='';
     v.append(el('p','명식 선택','kicker'),el('h2','명식이 여러 개로 갈립니다'));
@@ -284,10 +287,10 @@ $('f').addEventListener('submit',async e=>{e.preventDefault();$('out').textConte
     r.j.detail.variants.forEach(x=>{const b=el('button',x.variant_id+': '+Object.values(x.pillars).join(' ')+(x.is_primary?' (입력한 기준)':''));b.type='button';b.className='sec';b.style.margin='.2rem .4rem .2rem 0';b.onclick=async()=>{const r2=await send(Object.assign({},body,{variant_id:x.variant_id}));v.hidden=true;if(r2.ok)begin(r2.j);else $('out').append(el('p',errText(r2),'bad'))};v.append(b)});return}
   if(!r.ok){$('report').hidden=false;$('cover').textContent='';$('status').hidden=true;$('out').append(el('p',errText(r),'bad'));return}
   begin(r.j)});
-$('askb').onclick=async()=>{const qv=$('q2').value;const r=await call('/api/v1/consultations/'+thread+'/ask',{method:'POST',headers:hdr(),body:JSON.stringify({question:qv,years:years()})});if(r.ok){renderRecord(r.j,qv);$('q2').value=''}else $('out').append(el('p',errText(r),'bad'))};
-$('evb').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread+'/reality',{method:'POST',headers:hdr(),body:JSON.stringify({kind:'event',type:$('evt').value,year:parseInt($('evy').value,10)})});$('evr').textContent=r.ok?('분류: '+r.j.outcome+' — '+r.j.explanation):'오류 '+errText(r)};
+$('askb').onclick=async()=>{const qv=$('q2').value;const r=ONESHOT?await call('/api/v1/oneshot/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({},lastBody,{question:qv}))}):await call('/api/v1/consultations/'+thread+'/ask',{method:'POST',headers:hdr(),body:JSON.stringify({question:qv,years:years()})});if(r.ok){renderRecord(r.j,qv);localRecords.push({kind:'answer',question:qv,narrative:r.j.narrative||''});$('q2').value=''}else $('out').append(el('p',errText(r),'bad'))};
+$('evb').onclick=async()=>{const ev={kind:'event',type:$('evt').value,year:parseInt($('evy').value,10)};const r=ONESHOT?await call('/api/v1/oneshot/reality',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({},lastBody,{event:ev}))}):await call('/api/v1/consultations/'+thread+'/reality',{method:'POST',headers:hdr(),body:JSON.stringify(ev)});if(ONESHOT&&r.ok)localRecords.push({kind:'reality',text:ev.type+' '+ev.year+'년 → '+r.j.outcome});$('evr').textContent=r.ok?('분류: '+r.j.outcome+' — '+r.j.explanation):'오류 '+errText(r)};
 $('reb').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread+'/reanalyze',{method:'POST',headers:hdr(),body:JSON.stringify({reason:'화면에서 재분석',pa_profile:$('pap').value})});$('rer').textContent=r.ok?('재분석 기록 #'+r.j.revision+' 추가. 원본 해시 유지: '+r.j.original_hash.slice(0,12)+'… 변경: '+JSON.stringify(r.j.diff)):'오류 '+errText(r)};
-$('hist').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread,{headers:hdr()});const o=$('histout');o.textContent='';if(!r.ok){o.append(el('p',errText(r),'bad'));return}
+$('hist').onclick=async()=>{const o=$('histout');o.textContent='';if(ONESHOT){if(!localRecords.length)o.append(el('p','이 화면에서 추가한 기록이 아직 없습니다.','small muted'));localRecords.forEach((t,i)=>{const d=el('details');d.append(el('summary','기록 #'+(i+1)+' · '+(t.kind==='answer'?'질문 · '+t.question.slice(0,40):'현실 사건')));d.append(el('p',t.kind==='answer'?t.narrative:t.text));o.append(d)});return}const r=await call('/api/v1/consultations/'+thread,{headers:hdr()});if(!r.ok){o.append(el('p',errText(r),'bad'));return}
   r.j.turns.forEach(t=>{const d=el('details');const lab={answer:'답변',reality_input:'현실 사건',revision:'재분석'}[t.kind]||t.kind;d.append(el('summary','기록 #'+t.turn_no+' · '+lab+(t.question?' · '+t.question.slice(0,40):'')));
     if(t.kind==='reality_input')d.append(el('p',t.classification.outcome+' — '+t.classification.explanation));else if(t.kind==='revision')d.append(el('p',t.reason+' · '+JSON.stringify(t.diff)));else if(t.answer&&t.answer.narrative)d.append(el('p',t.answer.narrative));o.append(d)})};
 $('reopen').onclick=async()=>{thread=$('rt').value.trim();token=$('rk').value.trim();const r=await call('/api/v1/consultations/'+thread,{headers:hdr()});
@@ -321,6 +324,17 @@ if(STATIC){
   };
   $('demoask').onclick=()=>{if(D&&!$('report').hidden){renderRecord(D.record.answer,D.record.question)}};
   $('hist').onclick=()=>{};
+}
+
+/* ---------- 일회성 모드: 서버에 저장하지 않고 그 자리에서 분석 ---------- */
+if(ONESHOT){
+  $('staticbanner').hidden=false;
+  $('staticbanner').innerHTML='<b>저장하지 않는 일회성 분석.</b> 입력하신 출생 정보와 질문은 서버에 저장되지 않으며 내용을 기록(로그)하지 않습니다. 계산을 위해 이 사이트의 서버로 HTTPS 전송되고, 분석이 끝나면 서버에는 남지 않습니다. 이 화면을 닫거나 새로고침하면 결과가 사라집니다. (호스팅 사업자의 일반 접속 기록에는 요청 주소·시각 등이 남을 수 있으며 입력 내용은 포함되지 않습니다.)';
+  document.querySelector('.devline').hidden=true;$('reopenbox').hidden=true;
+  $('store').closest('label').hidden=true;$('reb').closest('p').hidden=true;$('pap').closest('.grid').hidden=true;
+  document.querySelectorAll('#session h3').forEach(h=>{if(h.textContent==='재분석')h.hidden=true});
+  document.querySelectorAll('#session > p.small.muted').forEach(x=>{if(x.textContent.indexOf('규칙 버전')>=0)x.hidden=true});
+  $('intronote').innerHTML='<b>의뢰 전 안내.</b> 이 문서는 전통 명리학의 해석이며, 미래를 예측하거나 결과를 보장하지 않습니다. 명식 계산의 검증 범위와 고전 원문 대조 상태를 리포트 안에 함께 표시합니다. 건강·투자·승진 확정과 같은 질문에는 답하지 않습니다.';
 }
 </script>
 </body>
