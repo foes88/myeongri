@@ -6,4 +6,8 @@ node_modules/
 __pycache__/
 .pytest_cache/
 *.sqlite3
-web/index.html
+
+# 개인 출생정보/평가용 원본은 절대 커밋하지 않는다
+data/private/
+eval_private/
+*.private.*

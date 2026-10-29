@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>명리 아틀리에</title>
+<meta name="description" content="전통 명리학 해석을 쉬운 말로 풀어 주는 상담형 화면 시안. 합성 예시 데이터만 사용합니다.">
+<style>
+:root{--bg:#faf7f2;--card:#fff;--ink:#2a2420;--sub:#6b625a;--line:#e6ddd0;--accent:#8a3b2e;--soft:#f3ebe0;--warn-bg:#fff4d6;--warn-ink:#6b4a00;--ok:#2f6b4a}
+@media (prefers-color-scheme:dark){:root{--bg:#171412;--card:#211d1a;--ink:#efe8df;--sub:#b3a99d;--line:#3a332d;--accent:#e0907f;--soft:#2a2420;--warn-bg:#3a2f12;--warn-ink:#f2d98d;--ok:#7fcf9f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 system-ui,-apple-system,"Malgun Gothic","Noto Sans KR",sans-serif}
+a{color:var(--accent)}header{padding:20px 16px 8px;max-width:820px;margin:0 auto}
+.brand{font-size:1.25rem;font-weight:700}.brand span{color:var(--accent)}
+main{max-width:820px;margin:0 auto;padding:0 16px 64px}
+.banner{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:12px 14px;margin:12px 0;font-size:.95rem}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}nav a{font-size:.85rem;padding:4px 10px;border:1px solid var(--line);border-radius:99px;text-decoration:none;color:var(--sub);background:var(--card)}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 8px;margin:16px 0}
+h2{font-size:1.15rem;margin:0 0 6px}.num{color:var(--accent);margin-right:6px}
+.one{font-weight:600;background:var(--soft);padding:10px 12px;border-radius:10px;margin:8px 0 12px}
+.part h3{font-size:.9rem;color:var(--sub);margin:12px 0 2px}.part p{margin:0}
+.tag{display:inline-block;font-size:.75rem;color:var(--sub);border:1px solid var(--line);border-radius:6px;padding:0 6px;margin:2px 4px 0 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.box{border:1px solid var(--line);border-radius:10px;padding:8px 12px}.box.pos{border-left:4px solid var(--ok)}.box.cau{border-left:4px solid #c08a00}
+body{overflow-wrap:anywhere}.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.95rem;margin:8px 0}th,td{border:1px solid var(--line);padding:6px 8px;text-align:center}th{background:var(--soft);font-weight:600}
+.big{font-size:1.2rem;font-weight:700}small.h{display:block;color:var(--sub);font-size:.72rem;font-weight:400}
+details{margin:12px 0}summary{cursor:pointer;color:var(--accent);font-weight:600}
+.basis{font-size:.88rem;color:var(--sub);margin:6px 0 10px}.basis li{margin:2px 0}
+.badge{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--warn-bg);color:var(--warn-ink);font-size:.85rem;font-weight:600}
+footer{max-width:820px;margin:0 auto;padding:0 16px 40px;color:var(--sub);font-size:.85rem}
+dl{margin:6px 0}dt{font-weight:600}dd{margin:0 0 8px}
+@media print{nav{display:none}}
+</style>
+</head>
+<body>
+<header><div class="brand"><span>命</span> 명리 아틀리에</div></header>
+<main>
+<div class="banner" id="notice" role="note"></div>
+<nav id="toc" aria-label="목차"></nav>
+<div id="app"></div>
+</main>
+<footer id="foot"></footer>
+<script id="report-data" type="application/json">__REPORT_JSON__</script>
+<script>
+(function(){
+var R=JSON.parse(document.getElementById('report-data').textContent);
+var STEM_KO={'甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계'};
+var BR_KO={'子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'};
+var EL={'甲':'나무','乙':'나무','丙':'불','丁':'불','戊':'흙','己':'흙','庚':'쇠','辛':'쇠','壬':'물','癸':'물'};
+var TG_KO={'比肩':'비견','劫財':'겁재','食神':'식신','傷官':'상관','偏財':'편재','正財':'정재','七殺':'편관(칠살)','正官':'정관','偏印':'편인','正印':'정인'};
+var POS_KO={year:'연주',month:'월주',day:'일주',hour:'시주'};
+var LEVEL_KO={visible:'겉에 드러남',hidden:'속에만 있음',absent:'없음'};
+var STANCE_KO={favorable:'무난',neutral:'중립',caution:'확인 필요',deferred:'보류'};
+function h(tag,attrs,kids){var e=document.createElement(tag);for(var k in (attrs||{})){if(k==='text')e.textContent=attrs[k];else e.setAttribute(k,attrs[k]);}(kids||[]).forEach(function(c){e.appendChild(typeof c==='string'?document.createTextNode(c):c)});return e}
+function part(title,text){return h('div',{'class':'part'},[h('h3',{text:title}),h('p',{text:text})])}
+function pillarTable(){var P=R.chart.pillars,order=['hour','day','month','year'];
+ var t=h('table',{'aria-label':'네 기둥'});
+ t.appendChild(h('tr',{},order.map(function(p){return h('th',{text:POS_KO[p]})})));
+ t.appendChild(h('tr',{},order.map(function(p){return h('td',{'class':'big'},[STEM_KO[P[p].stem],h('small',{'class':'h',text:EL[P[p].stem]})])})));
+ t.appendChild(h('tr',{},order.map(function(p){return h('td',{'class':'big'},[BR_KO[P[p].branch]+'']);})));
+ return t}
+function detailTable(){var A=R.analysis,P=R.chart.pillars,order=['year','month','day','hour'];
+ var t=h('table',{'aria-label':'상세 명식표'});
+ t.appendChild(h('tr',{},['기둥','한자','천간 십성','지지 속 글자'].map(function(x){return h('th',{text:x})})));
+ order.forEach(function(p){var hs=A.hidden[p].stems.map(function(s){return s.stem+'('+TG_KO[s.ten_god]+')'}).join(' ');
+  t.appendChild(h('tr',{},[POS_KO[p],P[p].stem+P[p].branch,p==='day'?'일간(나)':TG_KO[A.ten_gods[p]],hs].map(function(x){return h('td',{text:x})})))});
+ return t}
+function groupTable(){var G=R.analysis.groups;var t=h('table',{'aria-label':'십성 묶음 요약'});
+ t.appendChild(h('tr',{},['묶음','겉(투출)','속(지장간)','판정'].map(function(x){return h('th',{text:x})})));
+ Object.keys(G).forEach(function(g){t.appendChild(h('tr',{},[g,String(G[g].visible),String(G[g].hidden),LEVEL_KO[G[g].level]].map(function(x){return h('td',{text:x})})))});return t}
+function basicExtra(){var i=R.input,v=R.chart.verification;
+ return h('div',{},[
+  h('p',{},[h('span',{'class':'badge',text:'명식 검증: '+v.label}),' ',v.detail]),
+  pillarTable(),
+  h('p',{'class':'basis',text:'가상 입력: '+(i.calendar==='solar'?'양력':'음력')+' '+i.date+' '+i.time+' '+i.place+' · '+i.gender+'. '+i.note}),
+  h('details',{},[h('summary',{text:'한자와 십성 상세표 보기'}),h('div',{'class':'tw'},[detailTable()]),h('div',{'class':'tw'},[groupTable()]),h('p',{'class':'basis',text:'속 글자 표는 판본에 따라 다를 수 있는 한 가지 기준표입니다. 신강·신약은 점수 없이 후보로만 표시합니다: '+(R.analysis.strength_candidate==='strong_candidate'?'강한 쪽 후보':R.analysis.strength_candidate==='weak_candidate'?'약한 쪽 후보':'판단 보류')+'.'})])]) }
+function luckExtra(){var L=R.luck;var t=h('table',{'aria-label':'향후 5년'});
+ t.appendChild(h('tr',{},['시기','세운 글자','상태'].map(function(x){return h('th',{text:x})})));
+ L.years.forEach(function(y){t.appendChild(h('tr',{},[y.label,'표시 보류','검산 전'].map(function(x){return h('td',{text:x})})))});
+ return h('div',{},[h('p',{},[h('span',{'class':'badge',text:'대운 시작 나이: 미산출'}),' 계산 방식을 확정하고 검산하기 전에는 숫자를 보여 드리지 않습니다.']),t])}
+function sourcesExtra(){var Y=R.yongshin;
+ var dl=h('dl',{},[]);['pattern','balance','climate'].forEach(function(k){dl.appendChild(h('dt',{text:Y[k].name+' ('+Y[k].school+')'}));dl.appendChild(h('dd',{text:Y[k].text}))});
+ var st=h('table',{'aria-label':'학파 비교'});st.appendChild(h('tr',{},['관점','먼저 보는 것','이 사주에서','판단'].map(function(x){return h('th',{text:x})})));
+ R.schools.forEach(function(s){st.appendChild(h('tr',{},[s.name,s.focus,s.reading,STANCE_KO[s.stance]].map(function(x){return h('td',{text:x})})))});
+ var ul=h('ul',{},R.sources.map(function(s){return h('li',{},[h('a',{href:s.url,rel:'noopener',target:'_blank',text:s.name}),' · 등급 '+s.grade])}));
+ return h('div',{},[h('h3',{text:'세 가지 용신 후보 (따로 읽습니다)'}),dl,h('h3',{text:'관점별 비교'}),h('div',{'class':'tw'},[st]),h('p',{'class':'one',text:R.conflict_note}),h('h3',{text:'참고한 원전 (공개 전사본)'}),ul])}
+var EXTRA={basic:basicExtra,luck:luckExtra,sources:sourcesExtra};
+document.getElementById('notice').textContent=R.meta.notice;
+var toc=document.getElementById('toc'),app=document.getElementById('app');
+R.sections.forEach(function(s,i){
+ toc.appendChild(h('a',{href:'#'+s.id,text:(i+1)+' '+s.title.split(/[,과와]/)[0]}));
+ var c=h('section',{'class':'card',id:s.id,'aria-labelledby':'h-'+s.id});
+ c.appendChild(h('h2',{id:'h-'+s.id},[h('span',{'class':'num',text:String(i+1)}),s.title]));
+ c.appendChild(h('div',{'class':'tags'},s.label.split(' ').map(function(l){return h('span',{'class':'tag',text:l})})));
+ c.appendChild(h('p',{'class':'one',text:s.summary}));
+ if(EXTRA[s.id])c.appendChild(EXTRA[s.id]());
+ c.appendChild(part('자세한 풀이',s.detail));
+ c.appendChild(h('div',{'class':'grid2'},[h('div',{'class':'box pos'},[part('긍정적 가능성',s.positive)]),h('div',{'class':'box cau'},[part('주의할 점',s.caution)])]));
+ c.appendChild(part('일상에서 참고할 내용',s.daily));
+ var d=h('details',{},[h('summary',{text:'적용된 이론과 근거'}),h('ul',{'class':'basis'},s.basis.map(function(b){return h('li',{text:b})}))]);
+ if(s.quotes)s.quotes.forEach(function(q){d.appendChild(h('p',{'class':'basis',text:'원문 짧은 인용: 「'+q+'」'}))});
+ c.appendChild(d);app.appendChild(c)});
+document.getElementById('foot').textContent=R.disclaimer+' '+R.status_notice;
+})();
+</script>
+</body>
+</html>
