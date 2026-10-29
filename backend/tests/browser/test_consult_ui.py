@@ -36,7 +36,7 @@ def test_01_birth_input_and_status_panel(sess, results):
     st = sess.page.inner_text("#status")
     assert "검증 상태" in st and "판정: V" in st and "계산 프로필" in st and "기록 해시" in st
     assert "CORE_VALIDATED" in st and "TIME_PROFILE_VALIDATED" in st and "LUNAR_KR" in st and "고전 원문 대조 전 규칙" in st
-    assert "미검증 안내" in st
+    assert "검증이 끝나지 않은 범위" in st
     results["01_status_panel"] = "pass"
 
 
@@ -85,7 +85,7 @@ def test_03_all_domains_and_depths(sess, results):
     out = sess.page.inner_text("#out")
     for name in ["재물운", "직업·승진운", "사업운", "연애·결혼운", "가족·인간관계운", "건강 관련 전통 해석", "이직·취업운", "부동산운"]:
         assert name in out, name
-    assert "전문가: 규칙 ID·고전 대조" in out and "학파별 해석" in out
+    assert "전문가: 규칙 ID·고전 대조" in out and "학파별 차이" in out
     assert "의료진과 상담" in out  # 건강 전통 해석의 의료 고지
     results["03_all_domains_expert"] = "pass"
     for d in ("summary", "detailed"):
@@ -145,7 +145,7 @@ def test_06_token_and_access(sess, env, results):
     sess.fill_birth()
     sess.set_domains(["overall"])
     sess.start()
-    txt = sess.page.inner_text("#out")
+    txt = sess.page.inner_text("#cover")
     tid = re.search(r"상담 번호: (\w{32})", txt).group(1)
     # 토큰은 화면에 표시되지 않고(번호만 표시), JS 변수에만 있다
     tok = sess.page.evaluate("token")

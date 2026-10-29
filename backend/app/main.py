@@ -125,7 +125,7 @@ def consult_create(b: ConsultCreate):
     consult_store.append_turn(tid, {'kind': 'answer', 'question': b.first_question, 'answer': first})
     consult_log.info('consult.create thread=%s depth=%s domains=%d years=%d', tid, b.depth, len(b.domains), len(b.years))
     return {'thread_id': tid, 'access_token': token, 'precommit': {k: pre[k] for k in ('content_hash', 'generated_at', 'ruleset_version', 'engine_version',
-            'model_version', 'calculation_profile_id', 'variant_id', 'variants_count', 'verification', 'domains', 'years', 'depth')}, 'answer': first}
+            'model_version', 'calculation_profile_id', 'variant_id', 'variants_count', 'verification', 'domains', 'years', 'depth')} | {'pillars': pre['natal_structure']['pillars']}, 'answer': first}
 
 
 @app.post('/api/v1/consultations/{tid}/ask')
@@ -157,7 +157,7 @@ def consult_get(tid: str, x_consult_token: str | None = Header(default=None)):
     _auth(tid, x_consult_token)
     pre = consult_store.read_precommit(tid)
     return {'thread_id': tid, 'precommit_summary': {k: pre[k] for k in ('content_hash', 'generated_at', 'ruleset_version', 'calculation_profile_id', 'variant_id',
-            'verification', 'domains', 'years', 'depth', 'disclaimer')}, 'turns': consult_store.read_turns(tid)}
+            'verification', 'domains', 'years', 'depth', 'disclaimer')} | {'pillars': pre['natal_structure']['pillars']}, 'turns': consult_store.read_turns(tid)}
 
 
 class ReanalyzeBody(BaseModel):

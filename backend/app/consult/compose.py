@@ -154,3 +154,32 @@ def analysis_procedure(pre: dict, periods: list[dict], doms: list[str], consiste
     steps.append({"step": "쉬운 설명 작성", "detail": f"문단 {n_paragraphs}개"})
     steps.append({"step": "검증 상태 고지", "detail": f"판정 {v['status']}, 미검증 안내 {len(v.get('unverified_notice', []))}건 — 미검증 계산은 확정값으로 표시하지 않음"})
     return steps
+
+
+STATUS_KO = {"text_confirmed": "원문 확인(표시한 범위)", "location_confirmed": "원문 위치만 확인", "implementer_convention": "구현자 규약(고전 근거 아님)", "pending": "확인 전"}
+
+
+def classical_basis(pre: dict, paragraphs: list[dict]) -> list[dict]:
+    """답변이 인용한 근거 노드의 규칙별 고전 출처. 확인되지 않은 규칙은 상태를 그대로 드러내고 고전 근거처럼 쓰지 않는다."""
+    from ..mingli.rules import RULES
+    node_rule = {n["claim_id"]: n["rule_id"] for n in pre["natal_structure"]["graph"]["nodes"]}
+    seen: dict[str, dict] = {}
+    for p in paragraphs:
+        for c in p["claim_ids"]:
+            rid = node_rule.get(c)
+            if not rid or rid in seen:
+                continue
+            r = RULES[rid]
+            loc = next((x for x in r["sources"] if x.get("type") == "classical_text"), None)
+            ev = r.get("engine_vs_classical")
+            seen[rid] = {"rule_id": rid, "name": r["name"], "status": r["classical_status"], "status_ko": STATUS_KO[r["classical_status"]], "claim_ids": [],
+                         "work": loc and loc["work"], "section": loc and loc["section"], "url": loc and loc["url"], "excerpt": loc and loc.get("original_excerpt"),
+                         "scope_note": loc and loc.get("scope_note"), "school": r.get("school_id"), "engine_difference": ev and {"kind": ev["kind"], "note": ev["note"]},
+                         "knowledge_file": next((x["file"] for x in r["sources"] if x.get("type") == "repo_knowledge"), None)}
+        # 같은 규칙을 인용한 claim 을 모아 둔다
+    for p in paragraphs:
+        for c in p["claim_ids"]:
+            rid = node_rule.get(c)
+            if rid in seen and c not in seen[rid]["claim_ids"]:
+                seen[rid]["claim_ids"].append(c)
+    return list(seen.values())

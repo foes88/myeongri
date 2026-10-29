@@ -54,6 +54,7 @@ def synthetic_cycles(pillars: dict[str, str], gender: str, first_year: int = 200
 def synthetic_precommit(pillars: dict[str, str], *, gender: str = "male", years=(2030,), domains=("wealth", "career"), depth="expert",
                         cycles: dict | None = None, ruleset_tag: str = "eval") -> dict:
     scope = vl.scope_status("solar")
+    scope["CORE_VALIDATED"] = dict(scope["CORE_VALIDATED"], granted=False, blockers=["합성 명식 — 실제 출생 정보로 계산한 결과가 아니며 검증 대상이 아님"])
     chart = {"variants": [{"variant_id": "v1", "pillars": dict(pillars), "is_primary": True, "produced_by": []}],
              "verification": {"status": "V2", "reasons": ["synthetic_eval"], "may_claim_verified": False, "scope": scope, "unverified_notice": ["합성 명식 — 평가 전용(실제 출생정보와 무관)"] + vl.unverified_notice(scope)},
              "calculation_profile_id": "synthetic/eval", "zi_profile": "n/a", "pillars": dict(pillars), "libraries": {}, "warnings": [],
