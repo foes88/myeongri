@@ -1,0 +1,50 @@
+{
+ "_note": "기대값(HKO)은 변경하지 않았다. 천문 유도로 원인은 설명되나 KASI 공식 자료로 확인하지 못했으므로 미해결(UNRESOLVED_OFFICIAL) 상태를 유지한다.",
+ "judgements": {
+  "G-LUNAR-004": {
+   "verdict": "EXPLAINED_BY_DERIVATION_OFFICIAL_UNRESOLVED",
+   "reason": "HKO·lunar-python(중국 음력, UTC+8)은 2001-04-23을 4월 1일로, 한국 음력(KST, UTC+9)은 04-24로 봄. 삭(朔) 순간이 자정 부근이라 표준시 차이로 날짜가 갈림(삭 시각 미검산).",
+   "needs": "KASI 공식 월력요항 2012/2017 (2001은 대상 아님)",
+   "evidence": {
+    "astronomical_derivation": "golden/lunar_check.json: 천문 유도(삭·중기) UTC+9 결과 = korean_lunar_calendar (1963~2049, 2033 제외 일치), UTC+8 결과 = HKO (동일 범위 일치). 즉 한·중 음력 차이는 표준시 자오선 차이로 재현됨.",
+    "official_kasi": "KASI 월력요항: 2001=목록 범위 밖(2004+), 2012·2017=목록에 hwp 있으나 서버가 '파일을 찾을 수 없습니다' 반환(2026-10-29). 공식 확인 불가 → UNRESOLVED_OFFICIAL"
+   }
+  },
+  "G-LUNAR-011": {
+   "verdict": "EXPLAINED_BY_DERIVATION_OFFICIAL_UNRESOLVED",
+   "reason": "HKO·lunar-python은 2012 윤4월, 한국 음력 라이브러리는 윤3월. 한·중 음력의 윤달 배치 차이(중기 배치/삭 시각 기준 상이)로 추정.",
+   "needs": "KASI 공식 월력요항 2012/2017 (2001은 대상 아님)",
+   "evidence": {
+    "astronomical_derivation": "golden/lunar_check.json: 천문 유도(삭·중기) UTC+9 결과 = korean_lunar_calendar (1963~2049, 2033 제외 일치), UTC+8 결과 = HKO (동일 범위 일치). 즉 한·중 음력 차이는 표준시 자오선 차이로 재현됨.",
+    "official_kasi": "KASI 월력요항: 2001=목록 범위 밖(2004+), 2012·2017=목록에 hwp 있으나 서버가 '파일을 찾을 수 없습니다' 반환(2026-10-29). 공식 확인 불가 → UNRESOLVED_OFFICIAL"
+   }
+  },
+  "G-LUNAR-012": {
+   "verdict": "EXPLAINED_BY_DERIVATION_OFFICIAL_UNRESOLVED",
+   "reason": "011과 동일 원인(2012 윤달 위치)",
+   "needs": "KASI 공식 월력요항 2012/2017 (2001은 대상 아님)",
+   "evidence": {
+    "astronomical_derivation": "golden/lunar_check.json: 천문 유도(삭·중기) UTC+9 결과 = korean_lunar_calendar (1963~2049, 2033 제외 일치), UTC+8 결과 = HKO (동일 범위 일치). 즉 한·중 음력 차이는 표준시 자오선 차이로 재현됨.",
+    "official_kasi": "KASI 월력요항: 2001=목록 범위 밖(2004+), 2012·2017=목록에 hwp 있으나 서버가 '파일을 찾을 수 없습니다' 반환(2026-10-29). 공식 확인 불가 → UNRESOLVED_OFFICIAL"
+   }
+  },
+  "G-LUNAR-015": {
+   "verdict": "EXPLAINED_BY_DERIVATION_OFFICIAL_UNRESOLVED",
+   "reason": "HKO·lunar-python은 2017 윤6월, 한국 라이브러리는 윤5월",
+   "needs": "KASI 공식 월력요항 2012/2017 (2001은 대상 아님)",
+   "evidence": {
+    "astronomical_derivation": "golden/lunar_check.json: 천문 유도(삭·중기) UTC+9 결과 = korean_lunar_calendar (1963~2049, 2033 제외 일치), UTC+8 결과 = HKO (동일 범위 일치). 즉 한·중 음력 차이는 표준시 자오선 차이로 재현됨.",
+    "official_kasi": "KASI 월력요항: 2001=목록 범위 밖(2004+), 2012·2017=목록에 hwp 있으나 서버가 '파일을 찾을 수 없습니다' 반환(2026-10-29). 공식 확인 불가 → UNRESOLVED_OFFICIAL"
+   }
+  },
+  "G-LUNAR-016": {
+   "verdict": "EXPLAINED_BY_DERIVATION_OFFICIAL_UNRESOLVED",
+   "reason": "015와 동일 원인(2017 윤달 위치)",
+   "needs": "KASI 공식 월력요항 2012/2017 (2001은 대상 아님)",
+   "evidence": {
+    "astronomical_derivation": "golden/lunar_check.json: 천문 유도(삭·중기) UTC+9 결과 = korean_lunar_calendar (1963~2049, 2033 제외 일치), UTC+8 결과 = HKO (동일 범위 일치). 즉 한·중 음력 차이는 표준시 자오선 차이로 재현됨.",
+    "official_kasi": "KASI 월력요항: 2001=목록 범위 밖(2004+), 2012·2017=목록에 hwp 있으나 서버가 '파일을 찾을 수 없습니다' 반환(2026-10-29). 공식 확인 불가 → UNRESOLVED_OFFICIAL"
+   }
+  }
+ }
+}

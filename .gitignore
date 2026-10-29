@@ -11,3 +11,9 @@ __pycache__/
 data/private/
 eval_private/
 *.private.*
+
+backend/data/*.bsp
+
+# sxtwl WSL 교차검산 중간 산출물
+backend/golden/_wsl/
+backend/data/*.bsp

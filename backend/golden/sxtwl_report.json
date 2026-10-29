@@ -1,0 +1,16 @@
+{
+ "sxtwl_version": "sxtwl 2.0.7",
+ "terms_compared": 3300,
+ "terms_max_abs_s_vs_skyfield": 58.992034,
+ "terms_mean_abs_s": 15.597902895454544,
+ "worst": [
+  58.992034,
+  [
+   2050,
+   0
+  ]
+ ],
+ "pillar_fields_agree_with_lunar_python": 194,
+ "pillar_fields_disagree": 0,
+ "disagreements": []
+}

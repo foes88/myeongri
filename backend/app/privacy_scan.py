@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
@@ -36,7 +37,7 @@ def tracked_and_staged_files(root: Path = ROOT) -> list[Path]:
         return [p for p in root.rglob("*") if p.is_file()]
 
 
-def scan_text(text: str, name: str = "") -> list[str]:
+def scan_text(text: str, name: str = "", check_birth: bool = True) -> list[str]:
     hits = []
     for i, line in enumerate(text.splitlines(), 1):
         for label, pat in SECRET_PATTERNS.items():
@@ -44,10 +45,43 @@ def scan_text(text: str, name: str = "") -> list[str]:
                 hits.append(f"{name}:{i}: secret/{label}")
         if EMAIL.search(line):
             hits.append(f"{name}:{i}: email")
-        m = BIRTH_DATETIME.search(line)
+        m = BIRTH_DATETIME.search(line) if check_birth else None
         if m and SYNTHETIC_DATE not in m.group(0) and not SYNTHETIC_MARK.search(line):
             hits.append(f"{name}:{i}: possible_birth_datetime")
     return hits
+
+
+# 골든 디렉터리는 날짜+시각 형태가 본질적으로 많아 'possible_birth_datetime' 줄 검사만 구조 검증으로 대체한다.
+# 비밀키·이메일 검사는 그대로 적용하고, cases.json 은 validate_golden_cases() 로 가상 표시·허용 필드·출처를 검증한다.
+SYNTHETIC_DATA_DIRS = (("backend", "golden"),)
+ALLOWED_INPUT_KEYS = {"calendar", "year", "month", "day", "hour", "minute", "gender", "place", "is_leap_month", "ordinal_in_year"}
+ALLOWED_PLACES = {"서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "제주특별자치도"}
+ALLOWED_REF_TOOLS = ("lunar-python", "HKO", "KASI", "IANA", "Meeus", "공개 연혁")
+
+
+def _in_synthetic_dir(f: Path, root: Path) -> bool:
+    parts = f.relative_to(root).parts
+    return any(parts[:len(d)] == d for d in SYNTHETIC_DATA_DIRS)
+
+
+def validate_golden_cases(cases: list[dict]) -> list[str]:
+    """골든 케이스가 실제 개인 출생정보를 담지 않았는지 구조적으로 검사한다."""
+    problems = []
+    for c in cases:
+        cid = c.get("test_id", "?")
+        if c.get("synthetic_input") is not True:
+            problems.append(f"{cid}: synthetic_input 이 true 가 아님")
+        extra = set(c.get("input", {})) - ALLOWED_INPUT_KEYS
+        if extra:
+            problems.append(f"{cid}: 허용되지 않은 입력 필드 {sorted(extra)}")
+        if c.get("input", {}).get("place", "서울특별시") not in ALLOWED_PLACES:
+            problems.append(f"{cid}: 허용되지 않은 출생지")
+        if not c.get("references") or not all(any(t in r.get("tool", "") for t in ALLOWED_REF_TOOLS) for r in c["references"]):
+            problems.append(f"{cid}: 출처 불명 케이스")
+        text = json.dumps(c, ensure_ascii=False)
+        if EMAIL.search(text) or re.search(r"0\d{1,2}-\d{3,4}-\d{4}", text):
+            problems.append(f"{cid}: 이메일/전화번호 형태")
+    return problems
 
 
 def scan_files(files: list[Path], root: Path = ROOT) -> list[str]:
@@ -59,7 +93,10 @@ def scan_files(files: list[Path], root: Path = ROOT) -> list[str]:
             text = f.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
-        hits += scan_text(text, str(f.relative_to(root)))
+        golden = _in_synthetic_dir(f, root)
+        hits += scan_text(text, str(f.relative_to(root)), check_birth=not golden)
+        if golden and f.name == "cases.json":
+            hits += [f"{f.relative_to(root)}: {m}" for m in validate_golden_cases(json.loads(text)["cases"])]
     return hits
 
 

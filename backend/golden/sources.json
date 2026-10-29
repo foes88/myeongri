@@ -1,0 +1,81 @@
+{
+  "_note": "검증 자료 레지스트리. status: OBTAINED=실제 대조에 사용 / NOT_OBTAINED=접근 불가 / NOT_RUN=실행 불가. 라이선스는 확인 전이면 UNVERIFIED로 둔다. 어떤 자료도 명리학 학파 규칙의 정답이 아니다(역법 사실만 검증).",
+  "KASI": {
+    "name": "한국천문연구원 천문우주지식정보 / 공공데이터포털 특일·음양력 정보 API",
+    "url": "https://astro.kasi.re.kr  /  https://www.data.go.kr (월력요항·음양력 정보 OpenAPI)",
+    "status": "PARTIAL_UNOFFICIAL",
+    "reason": "OpenAPI 키 없이 공개 '달력자료'(음력 월 시작일·대소·월건·일진·24절기 KST 분 단위) 2023~2028을 취득. KASI 스스로 '공식 발표 자료가 아니며 월력요항이 공식'이라고 명시. 2021·2022 파일은 404. 공식 월력요항: 2004년 이후만 제공, 2012·2017 hwp 는 목록에 있으나 다운로드 '파일을 찾을 수 없습니다', 2001은 범위 밖.",
+    "accessed": "2026-10-29",
+    "version": "달력자료 2023~2028 (생성 V1.0a)",
+    "license": "UNVERIFIED (재배포 조건 미확인 — 원문 파일은 저장하지 않고 사실만 추출)",
+    "scope_if_obtained": "공식 24절기 날짜·시각(분), 음양력 변환(윤달 포함)",
+    "limits": "공식 월력요항이 아님. 연·월·시주 미제공. 2023~2028만.",
+    "lineage": "KASI",
+    "scope": "절기 144건(분 단위), 음력 월 초하루 75건, 초하루 일진(=일주) 약 75건"
+  },
+  "sxtwl": {
+    "name": "sxtwl (寿星天文历 C++ 확장, PyPI sxtwl 2.0.7)",
+    "url": "https://pypi.org/project/sxtwl/",
+    "status": "OBTAINED",
+    "reason": "WSL(Ubuntu 22.04, Python 3.10) virtualenv 에서 sdist 빌드 설치 성공. Windows Python 3.12 용 사전 빌드 wheel 은 PyPI 에 없음(확인함).",
+    "accessed": "2026-10-29",
+    "version": "2.0.7",
+    "license": "BSD-3-Clause (upstream GitHub yuangu/sxtwl_cpp LICENSE 원문 확인; PyPI sdist 에는 LICENSE 파일 없음)",
+    "dependency_policy": "서비스 런타임 의존성으로 추가하지 않음(개발·검증 전용, WSL 에서만 실행). 라이선스 원문은 upstream 에서 BSD-3-Clause 확인; 재배포 의무(고지문) 검토는 서비스 배포 시점에 별도 수행.",
+    "lineage": "shouxing",
+    "role": "개발·검증 전용(서비스 런타임 의존성 아님, requirements.txt 미포함)",
+    "scope": "절기 시각 1901~2050 전체, 연·월·일·시 간지",
+    "independence_note": "lunar-python 과 sxtwl 은 모두 허수성(寿星) 계열 알고리즘으로 추정되며 입춘 2000 이 20:40:24 로 동일. 서로 독립 검증으로 세지 않음(동일 계열 1표).",
+    "crosscheck_report": "golden/sxtwl_report.json"
+  },
+  "lunar-python": {
+    "name": "lunar-python (6tail)",
+    "url": "https://pypi.org/project/lunar-python/",
+    "status": "OBTAINED",
+    "accessed": "2026-10-29",
+    "version": "1.4.8",
+    "license": "MIT (PyPI 메타데이터; 원문 재확인 필요)",
+    "scope": "연·월·일·시 간지, 절기 시각(북경시 초 단위), 대운(Yun, 시진 단위)",
+    "limits": "절기는 근사 급수 기반 — 1900년대 초 최대 약 44초, 1970년 이후 5초 이내로 DE421 직접 계산과 차이. 대운 기산은 2시간 단위 반올림. 23시대 시주 천간은 엔진과 학파 규칙이 다를 수 있어 비교 제외.",
+    "lineage": "shouxing",
+    "lineage_note": "6tail 의 lunar-python 은 寿星万年历 데이터/알고리즘 계열로 추정(입춘 2000 이 sxtwl 과 20:40:24 로 동일). 확정 아님"
+  },
+  "HKO": {
+    "name": "홍콩천문대(HKO) 양력-음력 변환표 및 24절기 일시",
+    "url": "https://www.hko.gov.hk/en/gts/time/calendar/text/files/T{year}e.txt  /  https://www.hko.gov.hk/en/gts/astronomy/data/files/24SolarTerms_{year}.xml",
+    "status": "OBTAINED",
+    "accessed": "2026-10-29",
+    "version": "공개 시점 자료(연도별 sha256 은 golden/sources/hko_lunar_terms.json)",
+    "license": "UNVERIFIED (HKO 이용약관 확인 전 — 원문 전체를 저장하지 않고 날짜·시각 사실만 추출해 저장)",
+    "scope": "음양력 변환(1901~2050, 윤달 포함), 24절기 날짜(1901~2050, 홍콩시), 24절기 시각 분 단위(2026~2028만 제공)",
+    "limits": "과거 연도는 날짜 단위뿐이라 초 단위 정답이 아님. 분 단위 자료는 미래 3개년뿐. 간지·시주·대운은 제공하지 않음.",
+    "lineage": "HKO"
+  },
+  "Skyfield/DE421": {
+    "name": "Skyfield 1.55 + JPL DE421",
+    "status": "ENGINE",
+    "version": "skyfield 1.55 / de421.bsp",
+    "license": "MIT / JPL 공개 천체력",
+    "basis": "지구중심 겉보기 태양 황경(황도 of date, 광행차·편향·IAU2000B 장동), almanac_east_asia.solar_terms, UTC→TT 윤초 + 내장 ΔT",
+    "lineage": "JPL DE421"
+  },
+  "Meeus EoT": {
+    "name": "Astronomical Algorithms ch.28 균시차 근사식",
+    "status": "OBTAINED",
+    "scope": "엔진 균시차(GAST−RA)와의 독립 교차",
+    "limits": "약 ±0.5분"
+  },
+  "IANA tzdata": {
+    "name": "python zoneinfo/tzdata 2024.1",
+    "status": "OBTAINED",
+    "scope": "역사적 시간대·서머타임",
+    "limits": "엔진이 쓰는 자료와 동일 → 독립 검증이 아님(연혁 정합성 점검용)"
+  },
+  "astronomical-derivation": {
+    "name": "삭·중기 천문 유도 (tools/lunar_astro.py)",
+    "status": "OBTAINED",
+    "lineage": "JPL DE421",
+    "scope": "음력 월 초하루·윤달 (UTC+8 / UTC+9) 1963~2049",
+    "limits": "공식 자료가 아님. 2033년 등 예외 규칙 미구현. 1954~61 UTC+8:30 구간 제외"
+  }
+}
