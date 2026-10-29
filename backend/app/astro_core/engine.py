@@ -385,11 +385,13 @@ def calculate_chart(
         status, reasons = "V2", reasons + ["golden_suite_incomplete"]
     if len(variants) > 1 and status == "V1":
         status, reasons = "V3", reasons + ["chart_variants"]
+    _scope = vlevels.scope_status(calendar, year if calendar == "lunar" else None)
     verification = {"status": status, "reasons": reasons, "may_claim_verified": status == "V1" and GOLDEN_SUITE_COMPLETE,
                     "independent_crosscheck": cc, "golden_suite_complete": GOLDEN_SUITE_COMPLETE,
                     "nearest_jie_minutes": term_min, "ambiguity": {"ambiguous": ambiguous, "nearest_jie_seconds": nearest_s,
                                                                     "window_seconds": amb_s},
-                    "levels": {k: v["granted"] for k, v in vlevels.levels().items()}, "v1_blockers": v1_blockers}
+                    "levels": {k: v["granted"] for k, v in vlevels.levels().items()}, "v1_blockers": v1_blockers,
+                    "scope": _scope, "unverified_notice": vlevels.unverified_notice(_scope)}
 
     tinfo = dict(tinfo, pillar_time_local=pt.isoformat())
     profile_id = f"{CALC_VERSION}/{time_profile.value}/{zi_profile.value}/dst:{dst_policy}/{daeun_profile.profile_id}"

@@ -47,3 +47,12 @@
 - 레벨: ASTRO 부여(HKO·KASI·寿星 3계열). PILLARS/PROFILE/DAEUN/LUNAR 미부여. 필드별 독립 계열: 연·월·시 = 寿星 1, 일 = 寿星 + KASI. **V1 차단 유지**.
 - Mingli Layer 3(생극제화)·4(격국·성패·조후 방향·용신 3종 분리)·5(대운 교체·입춘 구간, 특정/복수 연도). 궁통보감 개별 표·건록/양인 성패·월운·소운은 미구현.
 - v6.3 상용화 설계: `docs/v6.3/`.
+
+## v6.4 결정·현황
+- **KASI 실시간 API 연동은 필수 개발 조건이 아니다.** 기본 천문 엔진은 Skyfield + DE421 로 유지한다. 확보한 KASI 자료(달력자료 2023~2028, 비공식)는 검증 자료로만 쓴다.
+- **KASI 공식 자료와의 전체 일치는 확인하지 않았다.** 공식 월력요항은 2004년 이후만 제공되고, 2012·2017 파일은 다운로드가 되지 않았으며 2001 은 범위 밖이다. 해당 불일치 5건은 `UNRESOLVED_OFFICIAL` 로 유지하고 기대값은 바꾸지 않았다.
+- **검증 범위 표기**(`verification.scope`, V1/V2/V3 와 병행): CORE_VALIDATED(양력 연·월·일주만) / TIME_PROFILE_VALIDATED / LUNAR_KR_PENDING(양력 입력은 해당 없음, 음력 입력은 연도별 상태) / DAEUN_PROFILE_VALIDATED / CLASSICAL_RULES_PENDING(원문 대조 전 규칙 수). 미검증 항목은 `unverified_notice` 로 결과에 표시하되 개발·테스트를 막지 않는다.
+- **공개 데이터 분리**: `docs/08_DATA_LICENSE_AUDIT.md` 참조. HKO·KASI 원자료와 대량 파생 케이스는 `backend/data_private/`(gitignored)로 옮겼다. 원격 공개 이력에는 `943ea23` 에 이미 노출되어 있다.
+- **Multi-School**: 격국론·억부론·조후론 독립 평가기 + 공통·충돌 설명(`app/mingli/schools.py`). 기세론·통관병약론·신살은 미구현.
+- **Consult-Agent**(결정론적 템플릿, LLM 미사용): 사전 분석 기록(write-once, 해시), 분야·연도·깊이 선택, 정·반 근거, 현실 사건 분류(부합/불일치/미판단/조건변경, 적중률 계산 없음). API `/api/v1/consultations*`, 화면 `web/consult.html`.
+- 저장은 파일 기반 개발용이다(암호화·백업·감사 없음). 실서비스 전 `docs/v6.3/02` 요건 구현 필요.

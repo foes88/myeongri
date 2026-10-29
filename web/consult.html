@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>명리 상담 (개발 연결 화면)</title>
+<style>
+:root{--ivory:#F7F6F1;--ink:#242F30;--teal:#1F6760;--gold:#BE9864;--line:#d9d5c8}
+*{box-sizing:border-box}body{margin:0;background:var(--ivory);color:var(--ink);font:16px/1.65 system-ui,"Noto Sans KR",sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}h1{font-size:1.3rem;margin:.4rem 0}h2{font-size:1.05rem;color:var(--teal);margin:1.2rem 0 .3rem}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
+.warn{border-left:4px solid var(--gold);background:#fffaf0}
+label{display:block;margin:.5rem 0 .15rem;font-size:.9rem}input,select,textarea,button{font:inherit;padding:.5rem .6rem;border:1px solid var(--line);border-radius:8px;width:100%;background:#fff}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.chk label{display:inline-flex;gap:.3rem;align-items:center;margin:.2rem .8rem .2rem 0}.chk input{width:auto}
+button{background:var(--teal);color:#fff;border:0;cursor:pointer;margin-top:.7rem}button.sec{background:#fff;color:var(--teal);border:1px solid var(--teal)}
+ul{padding-left:1.1rem}.pill{display:inline-block;background:#eef3f1;color:var(--teal);border-radius:99px;padding:0 .6rem;font-size:.85rem;margin:.1rem}
+details{margin:.3rem 0}summary{cursor:pointer;color:var(--teal)}.small{font-size:.85rem;color:#556}
+.bad{color:#8a2d2d}
+</style>
+</head>
+<body>
+<main>
+<h1>명리 상담 — 개발 연결 화면</h1>
+<div class="card warn small">전통 명리학의 구조 해석이며 미래를 예측하거나 결과를 보장하지 않습니다. 명식 계산 검증과 고전 원문 대조가 끝나지 않았습니다(아래 결과의 “검증 상태” 참고). 건강·투자·승진 확정 등은 답하지 않습니다. 이 화면은 개발용이며 출생정보는 입력한 API 서버로만 전송됩니다.</div>
+
+<div class="card">
+  <label for="api">API 주소</label>
+  <input id="api" placeholder="http://127.0.0.1:8000">
+  <div class="small">로컬: <code>uvicorn app.main:app --port 8000</code> (backend 폴더). 이 페이지는 정적 파일이라 API 서버가 따로 필요합니다.</div>
+</div>
+
+<form id="f" class="card">
+  <h2>1. 출생 정보 · 분석 범위</h2>
+  <div class="row">
+    <div><label for="date">생년월일</label><input id="date" type="date" required></div>
+    <div><label for="time">출생 시각 (모르면 비움)</label><input id="time" type="time"></div>
+    <div><label for="cal">달력</label><select id="cal"><option value="solar">양력</option><option value="lunar">음력</option></select></div>
+    <div><label for="leap">음력 윤달</label><select id="leap"><option value="false">평달</option><option value="true">윤달</option></select></div>
+    <div><label for="gender">성별</label><select id="gender"><option value="male">남</option><option value="female">여</option></select></div>
+    <div><label for="prof">시간 보정</label><select id="prof"><option value="standard">시계 시각</option><option value="mean_solar">평균태양시</option><option value="apparent_solar">진태양시</option></select></div>
+  </div>
+  <label for="years">분석 연도 (쉼표로 구분, 최대 10개, 예: 2030)</label><input id="years" value="2030">
+  <label>운세 분야 (복수 선택)</label>
+  <div class="chk" id="doms">
+    <label><input type="checkbox" value="overall" checked>종합운</label><label><input type="checkbox" value="wealth">재물운</label>
+    <label><input type="checkbox" value="career">직업·승진운</label><label><input type="checkbox" value="business">사업운</label>
+    <label><input type="checkbox" value="docs_realestate">문서·부동산운</label><label><input type="checkbox" value="luck">대운·세운</label>
+  </div>
+  <div class="row"><div><label for="depth">분석 깊이</label><select id="depth"><option value="summary">요약</option><option value="detailed">상세</option><option value="expert">전문가</option></select></div></div>
+  <label for="q">첫 질문 (선택)</label><input id="q" placeholder="예: 2030년 재물과 직업이 궁금해요">
+  <label class="small"><input type="checkbox" id="store" style="width:auto"> 출생 원문을 서버에 저장 (기본: 저장 안 함)</label>
+  <button type="submit">사전 분석 기록 만들고 상담 시작</button>
+</form>
+
+<div id="variants" class="card" hidden></div>
+<div id="out"></div>
+
+<form id="ask" class="card" hidden>
+  <h2>후속 질문</h2>
+  <label for="q2">질문</label><input id="q2" placeholder="예: 사업은 어떨까요?">
+  <button type="submit">질문하기</button>
+  <h2>현실 사건 기록 (해석을 바꾸지 않고 분류만 합니다)</h2>
+  <div class="row"><div><label for="evt">사건 유형</label><input id="evt" placeholder="예: 취업·이직"></div><div><label for="evy">연도</label><input id="evy" type="number" value="2030"></div></div>
+  <button type="button" class="sec" id="evb">기록하고 분류</button>
+  <div id="evr" class="small"></div>
+</form>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let thread=null,token=null;
+try{$('api').value=localStorage.getItem('api')||'http://127.0.0.1:8000'}catch(e){$('api').value='http://127.0.0.1:8000'}
+const base=()=>{const v=$('api').value.replace(/\/$/,'');try{localStorage.setItem('api',v)}catch(e){}return v};
+const el=(t,txt,cls)=>{const e=document.createElement(t);if(txt!==undefined)e.textContent=txt;if(cls)e.className=cls;return e};
+async function call(path,opt){const r=await fetch(base()+path,opt);let j=null;try{j=await r.json()}catch(e){}return {ok:r.ok,status:r.status,j}}
+function list(title,arr){const d=el('div');d.append(el('h2',title));const u=el('ul');arr.forEach(x=>u.append(el('li',x)));d.append(u);return d}
+function render(a,pre){
+  const o=$('out');const c=el('section','', 'card');
+  if(a.refused){c.append(el('p',a.message,'bad'),el('p',a.alternative));o.prepend(c);return}
+  if(pre){const v=pre.verification;const p=el('p','', 'small');p.textContent='검증 상태: '+v.status+' / 계산 프로필: '+pre.calculation_profile_id+' / 사전 분석 기록 해시: '+pre.content_hash.slice(0,12)+'… ('+pre.generated_at+')';c.append(p)}
+  c.append(el('h2','쉬운 설명'),el('p',a.summary_easy));
+  a.blocks.forEach(b=>{const d=el('details');d.append(el('summary',b.name+' 구조 근거'));d.append(list('찬성 근거',b.evidence_for.length?b.evidence_for:['(없음)']),list('반대·한계 근거',b.evidence_against.length?b.evidence_against:['(없음)']));c.append(d)});
+  a.periods.forEach(p=>{const d=el('details');d.open=true;d.append(el('summary',p.year+'년'+(p.split?' (구간 분리)':'')+(p.precommitted?'':' · 사전 기록 밖')));p.segments.forEach(s=>d.append(el('p',s.text)));c.append(d)});
+  if(a.school_view){c.append(list('학파별 관점(점수로 합치지 않음)',a.school_view.per_school.concat(a.school_view.relations)))}
+  if(a.followup_questions.length){c.append(list('확인하고 싶은 현실 정보(조언에만 사용)',a.followup_questions))}
+  c.append(list(a.life_advice.label,a.life_advice.items));
+  const g=Object.entries(a.glossary);if(g.length){const d=el('details');d.append(el('summary','용어 펼쳐보기'));g.forEach(([k,v])=>d.append(el('p',k+': '+v)));c.append(d)}
+  c.append(list('한계와 고지',a.limits));o.prepend(c)}
+$('f').addEventListener('submit',async e=>{e.preventDefault();$('out').textContent='';$('variants').hidden=true;
+  const doms=[...document.querySelectorAll('#doms input:checked')].map(i=>i.value);
+  const years=$('years').value.split(',').map(s=>parseInt(s,10)).filter(Boolean);
+  const body={birth_date:$('date').value,birth_time:$('time').value||null,calendar:$('cal').value,is_leap_month:$('leap').value==='true',gender:$('gender').value,calculation_profile:$('prof').value,years,domains:doms.length?doms:['overall'],depth:$('depth').value,store_birth:$('store').checked,first_question:$('q').value};
+  const r=await call('/api/v1/consultations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(r.status===409&&r.j&&r.j.detail.code==='VARIANT_REQUIRED'){const v=$('variants');v.hidden=false;v.textContent='';v.append(el('p','시간 보정·23시 규칙에 따라 명식이 여러 개로 갈립니다. 하나를 직접 선택해야 합니다(자동 선택하지 않음).'));
+    r.j.detail.variants.forEach(x=>{const b=el('button',x.variant_id+': '+Object.values(x.pillars).join(' ')+(x.is_primary?' (입력 프로필 기준)':''));b.type='button';b.className='sec';b.onclick=()=>{body.variant_id=x.variant_id;fetch(base()+'/api/v1/consultations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json()).then(j=>{v.hidden=true;start(j)})};v.append(b)});return}
+  if(!r.ok){$('out').append(el('p','오류: '+(typeof r.j.detail==='string'?r.j.detail:JSON.stringify(r.j.detail)),'bad'));return}
+  start(r.j)});
+function start(j){thread=j.thread_id;token=j.access_token;$('ask').hidden=false;render(j.answer,j.precommit);const n=el('p','상담 번호와 접근 토큰은 이 화면을 닫으면 사라집니다(재열람: GET /api/v1/consultations/{번호}, 헤더 X-Consult-Token). 번호: '+thread,'small');$('out').prepend(n);try{sessionStorage.setItem('consult',JSON.stringify({thread,token}))}catch(e){}}
+$('ask').addEventListener('submit',async e=>{e.preventDefault();const r=await call('/api/v1/consultations/'+thread+'/ask',{method:'POST',headers:{'Content-Type':'application/json','X-Consult-Token':token},body:JSON.stringify({question:$('q2').value})});if(r.ok)render(r.j)});
+$('evb').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread+'/reality',{method:'POST',headers:{'Content-Type':'application/json','X-Consult-Token':token},body:JSON.stringify({kind:'event',type:$('evt').value,year:parseInt($('evy').value,10)})});$('evr').textContent=r.ok?('분류: '+r.j.outcome+' — '+r.j.explanation):'오류 '+r.status};
+</script>
+</body>
+</html>

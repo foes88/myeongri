@@ -10,9 +10,9 @@ from lunar_python import Solar
 
 from app.astro_core import ephemeris as eph
 
-G = Path(__file__).resolve().parents[1] / "golden"
+from tools.paths import EXT_TERM_ANALYSIS, GOLDEN as G, HKO_FILE
 HKT = timezone(timedelta(hours=8))
-HKO = json.loads((G / "sources" / "hko_lunar_terms.json").read_text(encoding="utf-8"))
+HKO = json.loads(HKO_FILE.read_text(encoding="utf-8"))
 
 
 def lp_times(y):
@@ -65,7 +65,12 @@ def main():
                                      "within_60s": sum(abs(r["diff_seconds"]) <= 60 for r in hm), "rows": hm},
         "vs_hko_date_1901_2050": {"hko_terms": sum(len(v["terms"]) for v in HKO["lunar"].values()), "date_mismatches": date_miss},
     }
-    (G / "term_analysis.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    EXT_TERM_ANALYSIS.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")  # 행 단위 HKO 파생 값 포함 → 비공개
+    pub = json.loads(json.dumps(out))
+    pub["vs_hko_minutes_2026_2028"].pop("rows")
+    pub["vs_hko_date_1901_2050"] = {"hko_terms": out["vs_hko_date_1901_2050"]["hko_terms"], "count": len(out["vs_hko_date_1901_2050"]["date_mismatches"]),
+                                     "note": "모두 홍콩 자정 6분 이내 경계 사례. 행 단위 값은 비공개"}
+    (G / "term_analysis.json").write_text(json.dumps(pub, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps({k: {kk: vv for kk, vv in v.items() if kk != "rows"} for k, v in out.items()}, ensure_ascii=False, indent=1)[:3500])
 
 

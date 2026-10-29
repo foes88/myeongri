@@ -7,7 +7,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.request import urlopen
 
-OUT = Path(__file__).resolve().parents[1] / "golden" / "sources"
+from tools.paths import EXTERNAL as OUT
 LUNAR_URL = "https://www.hko.gov.hk/en/gts/time/calendar/text/files/T{y}e.txt"
 TERM_URL = "https://www.hko.gov.hk/en/gts/astronomy/data/files/24SolarTerms_{y}.xml"
 ORD = {"1st": 1, "2nd": 2, "3rd": 3}

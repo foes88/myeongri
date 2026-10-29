@@ -140,3 +140,76 @@ def v1_allowed() -> tuple[bool, list[str]]:
 def summary() -> dict:
     ok, blockers = v1_allowed()
     return {"levels": levels(), "pillar_coverage": pillar_coverage(), "v1_allowed": ok, "v1_blockers": blockers}
+
+
+# ---------------------------------------------------------------------------------------------
+# v6.4 범위 표기: V1/V2/V3 는 그대로 두고, '무엇이 검증되었고 무엇이 미검증인가'를 결과마다 따로 표시한다.
+# 각 상태는 실제 요건이 충족된 경우에만 granted=True. 미검증이라고 개발·테스트를 막지 않는다.
+KR_CN_LUNAR_DIFF_YEARS = (2001, 2012, 2017)  # 한·중 음력 불일치가 확인된 해(골든) — 더 있을 수 있음
+KASI_UNOFFICIAL_YEARS = range(2023, 2029)
+
+
+def _classical_counts() -> dict:
+    """고전 원문 대조 현황. 'pending' = 원문 내용 확인(text_confirmed)이 끝나지 않은 고전 근거 주장 규칙 수(구현 규약 제외)."""
+    try:
+        from ..mingli import classical
+        c = classical.summary()
+        bs = c.get("by_status", {})
+        return {"total": c["total"], "pending": c.get("classical_rules_pending", c["total"]), "by_status": bs,
+                "text_confirmed": bs.get("text_confirmed", 0), "location_confirmed": bs.get("location_confirmed", 0),
+                "implementation_convention": bs.get("implementation_convention", 0)}
+    except Exception:  # 모듈/검증 파일이 없으면 fail-closed: 전부 pending
+        from ..mingli.rules import RULES
+        return {"total": len(RULES), "pending": len(RULES), "by_status": {}, "text_confirmed": 0, "location_confirmed": 0, "implementation_convention": 0}
+
+
+def scope_status(calendar: str = "solar", lunar_year: int | None = None) -> dict:
+    rep, src, sx = _load()
+    lv = levels()
+    cov = pillar_coverage()
+    core_blockers = []
+    if not lv["ASTRO_VERIFIED"]["granted"]:
+        core_blockers.append("절기 시각 독립 3계열 검증 미충족")
+    if len(cov["day"]) < 2:
+        core_blockers.append("일주 독립 2계열 미충족")
+    if not _all_pass(rep, "GEN", "TERM"):
+        core_blockers.append("연·월·일주 골든 불일치/미실행")
+    if not sx or sx.get("pillar_fields_disagree", 1) != 0:
+        core_blockers.append("sxtwl 교차검산 불일치/미실행")
+    cc = _classical_counts()
+    if calendar == "lunar":
+        if lunar_year in KR_CN_LUNAR_DIFF_YEARS:
+            lunar = {"state": "PENDING_KR_CN_DIFFERENCE", "detail": f"{lunar_year}년은 한·중 음력이 다른 해로 확인됨 — KASI 공식 월력요항 미확보"}
+        elif lunar_year in KASI_UNOFFICIAL_YEARS:
+            lunar = {"state": "PARTIAL_UNOFFICIAL_MATCH", "detail": "KASI 달력자료(비공식)와 일치, 공식 월력요항 확인은 아님"}
+        else:
+            lunar = {"state": "PENDING", "detail": "한국 음력 공식 자료 미대조(천문 유도 및 라이브러리 일치만 있음)"}
+    else:
+        lunar = {"state": "NOT_APPLICABLE_SOLAR_INPUT", "detail": "양력 입력은 음력 변환을 거치지 않음(간지는 절기 기준)"}
+    out = {
+        "CORE_VALIDATED": {"granted": not core_blockers, "blockers": core_blockers,
+                           "scope": "양력 입력의 연·월·일주(절기 경계 포함). 시주·대운·음력 제외",
+                           "requirement": "절기 독립 3계열 + 일주 독립 2계열 + 연·월·일주 골든 전건 + sxtwl 불일치 0"},
+        "TIME_PROFILE_VALIDATED": {"granted": lv["PROFILE_VERIFIED"]["granted"], "blockers": lv["PROFILE_VERIFIED"]["blockers"]},
+        "LUNAR_KR_PENDING": lunar,
+        "DAEUN_PROFILE_VALIDATED": {"granted": lv["DAEUN_VERIFIED"]["granted"], "blockers": lv["DAEUN_VERIFIED"]["blockers"]},
+        "CLASSICAL_RULES_PENDING": {"pending": cc["pending"], "total": cc["total"], "counts": cc,
+                                    "detail": "고전 원문 대조가 끝나지 않은 규칙 수. 이 수가 0 이 아니면 해석을 고전의 결론이라고 표현하지 않는다"},
+    }
+    return out
+
+
+def unverified_notice(scope: dict) -> list[str]:
+    n = []
+    if not scope["CORE_VALIDATED"]["granted"]:
+        n.append("핵심 간지(연·월·일주) 독립 검증이 완료되지 않았습니다.")
+    if not scope["TIME_PROFILE_VALIDATED"]["granted"]:
+        n.append("시주와 시간 보정 프로필은 독립 검증이 완료되지 않았습니다.")
+    if not scope["DAEUN_PROFILE_VALIDATED"]["granted"]:
+        n.append("대운 기산은 단일 계산원과만 대조되었습니다.")
+    st = scope["LUNAR_KR_PENDING"]["state"]
+    if st.startswith("PENDING") or st.startswith("PARTIAL"):
+        n.append("한국 음력 변환은 공식 자료와 대조되지 않았습니다: " + scope["LUNAR_KR_PENDING"]["detail"])
+    if scope["CLASSICAL_RULES_PENDING"]["pending"]:
+        n.append(f"해석 규칙 {scope['CLASSICAL_RULES_PENDING']['pending']}/{scope['CLASSICAL_RULES_PENDING']['total']}개가 고전 원문 대조 전입니다.")
+    return n

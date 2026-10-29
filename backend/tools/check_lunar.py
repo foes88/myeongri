@@ -7,8 +7,9 @@ from korean_lunar_calendar import KoreanLunarCalendar
 from tools.lunar_astro import lunar_year_months
 
 G = Path(__file__).resolve().parents[1] / "golden"
-HKO = json.loads((G / "sources" / "hko_lunar_terms.json").read_text(encoding="utf-8"))["lunar"]
-KASI = json.loads((G / "sources" / "kasi_calendar.json").read_text(encoding="utf-8"))["years"]
+from tools.paths import HKO_FILE, KASI_FILE
+HKO = json.loads(HKO_FILE.read_text(encoding="utf-8"))["lunar"]
+KASI = json.loads(KASI_FILE.read_text(encoding="utf-8"))["years"]
 
 
 def klc_month_starts(Y):

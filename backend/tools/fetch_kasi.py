@@ -11,7 +11,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parents[1] / "golden" / "sources" / "kasi_calendar.json"
+from tools.paths import KASI_FILE as OUT
 PAGE = "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year={y}&bbs_uniq_id=calendarData"
 FILE = "https://astro.kasi.re.kr/file/{f}"
 

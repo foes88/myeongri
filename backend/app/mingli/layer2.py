@@ -141,6 +141,8 @@ def analyze_layer2(pillars: dict[str, str], g: EvidenceGraph, vid: str = "v1") -
                 adj = _adjacent(p1, p2)
                 conds = [_cond("인접", "satisfied" if adj else "unsatisfied"),
                          _cond("월지 관여", "satisfied" if "month" in (p1, p2) else "unsatisfied")]
+                if rtype == "파" and frozenset((branches[p1], branches[p2])) in (frozenset("寅亥"), frozenset("巳申")):
+                    conds.append(_cond("원문 대조", "contested", "三命通會는 寅亥·巳申을 합으로 보아 破로 취하지 않음(docs/09)"))
                 n = add(rule_id, rtype, [p1, p2], f"{rtype} 존재(작용 정도 미확정)", conds, f"{branches[p1]}{branches[p2]} {rtype}",
                         attrs={"damages_hidden_stems": "unconfirmed"} if rtype == "충" else None)
                 out.append((p1, p2, n.claim_id))

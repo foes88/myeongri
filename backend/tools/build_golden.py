@@ -17,17 +17,21 @@ from lunar_python import Solar
 from app.astro_core import ephemeris as eph
 
 G = Path(__file__).resolve().parents[1] / "golden"
-HKO = json.loads((G / "sources" / "hko_lunar_terms.json").read_text(encoding="utf-8"))
+from tools.paths import EXT_CASES, HKO_FILE, KASI_FILE
+# 이용 조건이 불명확한 HKO/KASI 자료는 data_private/ (gitignored)에만 둔다. 공개 cases.json 에는 이 자료에서 파생한 기대값을 넣지 않는다.
+HKO = json.loads(HKO_FILE.read_text(encoding="utf-8")) if HKO_FILE.exists() else None
 HKT, KST, BJ = timezone(timedelta(hours=8)), ZoneInfo("Asia/Seoul"), timezone(timedelta(hours=8))
 LP = {"tool": "lunar-python", "version": "1.4.8"}
-HKO_REF = {"tool": "HKO", "version": "accessed " + HKO["meta"]["accessed"]}
+HKO_REF = {"tool": "HKO", "version": "accessed " + HKO["meta"]["accessed"]} if HKO else None
 cases = []
+ext_cases = []  # 비공개(외부 자료 파생)
+_target = cases
 seq = {}
 
 
 def add(cat, desc, inp, profile, expect, refs, fields, tol, note=""):
     seq[cat] = seq.get(cat, 0) + 1
-    cases.append({"test_id": f"G-{cat}-{seq[cat]:03d}", "category": cat, "description": desc, "synthetic_input": True,
+    _target.append({"test_id": f"G-{cat}-{seq[cat]:03d}", "category": cat, "description": desc, "synthetic_input": True,
                   "input": inp, "profile": profile, "expect": expect, "references": refs, "fields_checked": fields,
                   "tolerance": tol, "note": note})
 
@@ -71,23 +75,19 @@ while n < 24:
     add("GEN", "일반 날짜(가상 입력)", inp(d, rng.choice(["male", "female"])), CIVIL,
         {"pillars": lp_pillars(u, d, CIVIL["zi_profile"])}, [LP], ["year", "month", "day", "hour"], "exact")
 
-# 2) 절기 시각 72 (HKO 분 단위) + 절입 전후 24 (HKO 2027 12절 × 전/후 3분)
-for ys, rows in HKO["terms_hm"].items():
-    for i, (mo, dd, hh, mi) in enumerate(rows):
-        add("TERMTIME", f"HKO 공식 절기 시각 {ys}#{i}", {"year": int(ys), "ordinal_in_year": i}, {},
-            {"term_hkt": [int(ys), mo, dd, hh, mi]}, [HKO_REF], ["term_time"], "±60s (HKO 분 단위 표기)",
-            "HKO는 분 단위: 초 단위 정답으로 쓰지 않음")
-for i, (mo, dd, hh, mi) in enumerate(HKO["terms_hm"]["2027"]):
-    if i % 2:  # 소한(0), 입춘(2), … 짝수 위치가 월을 여는 절(節)
-        continue
-    ref = datetime(2027, mo, dd, hh, mi, tzinfo=HKT)
+# 2) 절입 전후 24 — lunar-python 2027 12절 시각 ±3분 (공개 가능: MIT 라이브러리 계산값)
+JIE_ZH = ("小寒", "立春", "惊蛰", "清明", "立夏", "芒种", "小暑", "立秋", "白露", "寒露", "立冬", "大雪")
+_tab = Solar.fromYmd(2027, 6, 1).getLunar().getJieQiTable()
+for i, nm in enumerate(JIE_ZH):
+    o = _tab[nm] if nm != "大雪" else Solar.fromYmd(2027, 12, 20).getLunar().getJieQiTable()[nm]
+    ref = datetime(o.getYear(), o.getMonth(), o.getDay(), o.getHour(), o.getMinute(), o.getSecond(), tzinfo=BJ)
     for side, delta in (("before", -3), ("after", 3)):
         u = (ref + timedelta(minutes=delta)).astimezone(timezone.utc)
         kst = u.astimezone(KST).replace(tzinfo=None)
         exp = lp_pillars(u, kst, CIVIL["zi_profile"])
-        add("TERM", f"절입 {side} 3분 (HKO 2027 #{i})", inp(kst), CIVIL,
-            {"pillars": {k: exp[k] for k in ("year", "month")}, "boundary_side": side}, [LP, HKO_REF], ["year", "month"],
-            "exact", "기대 간지=lunar-python, 경계 위치=HKO 분 단위 시각±3분")
+        add("TERM", f"절입 {side} 3분 (lunar-python 2027 {nm})", inp(kst), CIVIL,
+            {"pillars": {k: exp[k] for k in ("year", "month")}, "boundary_side": side}, [LP], ["year", "month"],
+            "exact", "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전")
 
 # 3) 자시 경계 12
 for (y, m, d) in ((2015, 6, 10), (2023, 11, 3)):
@@ -134,22 +134,19 @@ add("TZ", "가상 입력: 1988-05-08 02:30 존재하지 않는 시각", {"year":
 add("TZ", "가상 입력: 1988-10-09 02:30 중복 시각 → 경고", {"year": 1988, "month": 10, "day": 9, "hour": 2, "minute": 30, "gender": "male"},
     CIVIL, {"warning": "ambiguous_local_time"}, [TZREF], ["warning"], "exact")
 
-# 6) 음력·윤달 (HKO 월 시작일)
-leap_years = [y for y, v in HKO["lunar"].items() if any(m[2] for m in v["months"])]
+# 6) 음력·윤달 — 기대값은 lunar-python(중국 음력). 한국 음력과 다른 해(2001·2012·2017)는 judgements.json 에서 별도 판정
+from lunar_python import Lunar, LunarYear
 for ys in ("1990", "2001", "2004", "2006", "2009", "2012", "2014", "2017", "2020", "2023"):
-    assert ys in leap_years, ys
-    months = HKO["lunar"][ys]["months"]
-    leap = next(m for m in months if m[2])
-    base = {"calendar": "lunar", "year": int(ys), "month": leap[1], "day": 1, "gender": "male", "hour": 12, "minute": 0}
-    add("LUNAR", f"{ys} 윤{leap[1]}월 초하루", {**base, "is_leap_month": True}, CIVIL, {"solar_date": leap[0]}, [HKO_REF],
-        ["solar_date"], "exact")
-    plain = next(m for m in months if m[1] == leap[1] and not m[2])
-    add("LUNAR", f"{ys} {leap[1]}월(평달) 초하루", {**base, "is_leap_month": False}, CIVIL, {"solar_date": plain[0]},
-        [HKO_REF], ["solar_date"], "exact")
+    leap_m = LunarYear.fromYear(int(ys)).getLeapMonth()
+    base = {"calendar": "lunar", "year": int(ys), "month": leap_m, "day": 1, "gender": "male", "hour": 12, "minute": 0}
+    add("LUNAR", f"{ys} 윤{leap_m}월 초하루", {**base, "is_leap_month": True}, CIVIL,
+        {"solar_date": Lunar.fromYmd(int(ys), -leap_m, 1).getSolar().toYmd()}, [LP], ["solar_date"], "exact", "lunar-python(중국 음력) 기준")
+    add("LUNAR", f"{ys} {leap_m}월(평달) 초하루", {**base, "is_leap_month": False}, CIVIL,
+        {"solar_date": Lunar.fromYmd(int(ys), leap_m, 1).getSolar().toYmd()}, [LP], ["solar_date"], "exact", "lunar-python(중국 음력) 기준")
 add("LUNAR", "2021 윤4월 없음 → 오류", {"calendar": "lunar", "year": 2021, "month": 4, "day": 1, "is_leap_month": True,
-                                    "gender": "male", "hour": 12, "minute": 0}, CIVIL, {"error": "존재하지 않는"}, [HKO_REF], ["error"], "exact")
+                                    "gender": "male", "hour": 12, "minute": 0}, CIVIL, {"error": "존재하지 않는"}, [LP], ["error"], "exact")
 add("LUNAR", "2000 음력 설", {"calendar": "lunar", "year": 2000, "month": 1, "day": 1, "gender": "male", "hour": 12, "minute": 0},
-    CIVIL, {"solar_date": next(m[0] for m in HKO["lunar"]["2000"]["months"] if m[1] == 1)}, [HKO_REF], ["solar_date"], "exact")
+    CIVIL, {"solar_date": Lunar.fromYmd(2000, 1, 1).getSolar().toYmd()}, [LP], ["solar_date"], "exact")
 
 # 7) 대운 10 — 방향 exact, 시작 나이는 시진 단위 반올림 차이를 감안해 ±10일
 for (y, m, d, hh, g) in [(1984, 6, 15, 10, "male"), (1984, 6, 15, 10, "female"), (1999, 3, 3, 9, "male"), (1999, 3, 3, 9, "female"),
@@ -163,23 +160,33 @@ for (y, m, d, hh, g) in [(1984, 6, 15, 10, "male"), (1984, 6, 15, 10, "female"),
         [LP], ["direction", "start_age"], "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)")
 
 
+# ===== 비공개 외부 자료 파생 케이스 (data_private/cases_external.json, gitignored) =====
+_target = ext_cases
 HG, HZ = dict(zip("갑을병정무기경신임계", "甲乙丙丁戊己庚辛壬癸")), dict(zip("자축인묘진사오미신유술해", "子丑寅卯辰巳午未申酉戌亥"))
-# 8) KASI 달력자료(2023~2028, 비공식 '달력자료' — 공식은 월력요항): 절기 시각(KST 분 단위), 음력 월 초하루, 초하루 일진
-KASI = json.loads((G / "sources" / "kasi_calendar.json").read_text(encoding="utf-8"))["years"]
-KASI_REF = {"tool": "KASI 달력자료", "version": "accessed " + json.loads((G / "sources" / "kasi_calendar.json").read_text(encoding="utf-8"))["meta"]["accessed"]}
-for ys, v in KASI.items():
-    for i, t in enumerate(v["terms"]):
-        add("KASITERM", f"KASI 절기 시각 {ys}#{i}", {"year": int(ys), "ordinal_in_year": i}, {}, {"term_kst": t["kst"]}, [KASI_REF],
-            ["term_time"], "±60s (KASI 분 단위)", "비공식 달력자료. 분 단위 표기")
-    for m in v["months"]:
-        y, mo, d = map(int, m["solar"].split("-"))
-        add("KASILUNAR", f"KASI 음력 {ys} {m['lunar_month']}월{'(윤)' if m['is_leap'] else ''} 1일",
-            {"calendar": "lunar", "year": int(ys), "month": m["lunar_month"], "day": 1, "is_leap_month": m["is_leap"], "gender": "male",
-             "hour": 12, "minute": 0}, CIVIL, {"solar_date": m["solar"]}, [KASI_REF], ["solar_date"], "exact", "비공식 달력자료")
-        if m["day_gz"] and m["day_gz"][0] in HG:
-            add("KASIDAY", f"KASI 일진(일주) {m['solar']}", {"year": y, "month": mo, "day": d, "hour": 12, "minute": 0, "gender": "male"}, CIVIL,
-                {"pillars": {"day": HG[m["day_gz"][0]] + HZ[m["day_gz"][1]]}}, [KASI_REF], ["day"], "exact", "KASI 일진 = 일주. 연·월·시주는 제공하지 않음")
+if HKO:
+    for ys, rows in HKO["terms_hm"].items():
+        for i, (mo, dd, hh, mi) in enumerate(rows):
+            add("TERMTIME", f"HKO 절기 시각 {ys}#{i}", {"year": int(ys), "ordinal_in_year": i}, {},
+                {"term_hkt": [int(ys), mo, dd, hh, mi]}, [HKO_REF], ["term_time"], "±60s (HKO 분 단위 표기)", "분 단위: 초 단위 정답 아님")
+if KASI_FILE.exists():
+    _k = json.loads(KASI_FILE.read_text(encoding="utf-8"))
+    KASI, KASI_REF = _k["years"], {"tool": "KASI 달력자료", "version": "accessed " + _k["meta"]["accessed"]}
+    for ys, v in KASI.items():
+        for i, t in enumerate(v["terms"]):
+            add("KASITERM", f"KASI 절기 시각 {ys}#{i}", {"year": int(ys), "ordinal_in_year": i}, {}, {"term_kst": t["kst"]}, [KASI_REF],
+                ["term_time"], "±60s (KASI 분 단위)", "비공식 달력자료")
+        for m in v["months"]:
+            y, mo, d = map(int, m["solar"].split("-"))
+            add("KASILUNAR", f"KASI 음력 {ys} {m['lunar_month']}월{'(윤)' if m['is_leap'] else ''} 1일",
+                {"calendar": "lunar", "year": int(ys), "month": m["lunar_month"], "day": 1, "is_leap_month": m["is_leap"], "gender": "male",
+                 "hour": 12, "minute": 0}, CIVIL, {"solar_date": m["solar"]}, [KASI_REF], ["solar_date"], "exact", "비공식 달력자료")
+            if m["day_gz"] and m["day_gz"][0] in HG:
+                add("KASIDAY", f"KASI 일진(일주) {m['solar']}", {"year": y, "month": mo, "day": d, "hour": 12, "minute": 0, "gender": "male"}, CIVIL,
+                    {"pillars": {"day": HG[m["day_gz"][0]] + HZ[m["day_gz"][1]]}}, [KASI_REF], ["day"], "exact", "KASI 일진 = 일주")
 
 (G / "cases.json").write_text(json.dumps({"generated": datetime.now(timezone.utc).date().isoformat(), "cases": cases},
                                           ensure_ascii=False, indent=1), encoding="utf-8")
-print(len(cases), dict(Counter(c["category"] for c in cases)))
+if ext_cases:
+    EXT_CASES.parent.mkdir(parents=True, exist_ok=True)
+    EXT_CASES.write_text(json.dumps({"generated": datetime.now(timezone.utc).date().isoformat(), "cases": ext_cases}, ensure_ascii=False, indent=1), encoding="utf-8")
+print(len(cases), dict(Counter(c["category"] for c in cases)), "| private:", len(ext_cases), dict(Counter(c["category"] for c in ext_cases)))

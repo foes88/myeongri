@@ -1,0 +1,934 @@
+{
+ "accessed": "2026-10-29",
+ "failed_sources": {
+  "zp": "URLError(TimeoutError(10060, '연결된 구성원으로부터 응답이 없어 연결하지 못했거나, 호스트로부터 응답이 없어 연결이 끊어졌습니다', None, 10060, None))",
+  "zpc": "URLError(TimeoutError(10060, '연결된 구성원으로부터 응답이 없어 연결하지 못했거나, 호스트로부터 응답이 없어 연결이 끊어졌습니다', None, 10060, None))"
+ },
+ "method": "자동 위치 확인 + 사람이 읽고 확인한 발췌의 재검증. 외부 전사본은 판본 교감 전이며 짧은 발췌만 저장.",
+ "rules": {
+  "MG-L1-WOLRYEONG": {
+   "accessed": "2026-10-29",
+   "school_conditions": "공통. 월지 확정(절입 모호성 없음)이 전제.",
+   "positive_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "negative_case": null,
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "滴天髓",
+   "section": "月令=提綱 개념 확인",
+   "url": "https://zh.wikisource.org/zh-hant/滴天髓",
+   "original_excerpt": "月令提綱，譬之宅也，人元用事之神，宅之向也",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "月令提綱，譬之宅"
+   ],
+   "scope_note": "月令=提綱 개념 확인. 이 구현의 '월령 사실 기록' 범위와 일치.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L1-DEUKRYEONG-BONGI": {
+   "accessed": "2026-10-29",
+   "school_conditions": "본기 비겁/인성이면 득령. 중기·여기만 돕는 경우는 학파별 '부분득령' 논쟁.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "location_confirmed",
+   "work": "滴天髓",
+   "section": "月令論(令星得令)",
+   "url": "https://zh.wikisource.org/zh-hant/滴天髓",
+   "original_excerpt": "之向也，不可以不卜。令星，乃命之至要，宜氣象得令者吉，喜神得令者吉，故如人之家宅",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "氣象得令者吉"
+   ],
+   "scope_note": "핵심어가 해당 출처 페이지에 존재함(위치 확인). 구절이 규칙 내용을 직접 뒷받침하는지는 판단하지 않음.",
+   "notes": "본기 비겁/인성이면 득령. 중기·여기만 돕는 경우는 학파별 '부분득령' 논쟁."
+  },
+  "MG-L1-DEUKRYEONG-SEASON": {
+   "accessed": "2026-10-29",
+   "school_conditions": "계절 오행 기준. 토월 처리는 학파 차이.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "location_confirmed",
+   "work": "滴天髓",
+   "section": "寒暖論(계절 한난)",
+   "url": "https://zh.wikisource.org/zh-hant/滴天髓",
+   "original_excerpt": "二人同心，可順而不可逆也。寒暖論[編輯]天道有寒暖，發育萬物，人道得之，不可過也",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "天道有寒暖"
+   ],
+   "scope_note": "핵심어가 해당 출처 페이지에 존재함(위치 확인). 구절이 규칙 내용을 직접 뒷받침하는지는 판단하지 않음.",
+   "notes": "계절 오행 기준. 토월 처리는 학파 차이."
+  },
+  "MG-L1-HIDDEN-ROLE": {
+   "accessed": "2026-10-29",
+   "school_conditions": "지장간 표 판본 이견(knowledge/15 I07). 사령 일수 적용 여부는 학파 차이(이 구현은 미적용).",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "滴天髓",
+   "section": "寅月 한 예(戊→丙→甲, 즉 여기→중기→본기 순)만 확",
+   "url": "https://zh.wikisource.org/zh-hant/滴天髓",
+   "original_excerpt": "立春後七日前，皆值戊土用事，八日後十四日前，丙火用事，十五日後，甲木用事",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "立春後七日前，皆"
+   ],
+   "scope_note": "寅月 한 예(戊→丙→甲, 즉 여기→중기→본기 순)만 확인. 12지 전체 표와 사령 일수는 이 구현이 사용하지 않으며 확인하지 않음.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L1-TONGGEUN": {
+   "accessed": "2026-10-29",
+   "school_conditions": "엄격(같은 간)/관대(같은 오행)/십이운성 기준이 갈림(이 구현은 앞 둘만).",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "滴天髓闡微(任鐵樵 注)",
+   "section": "任氏曰(주석)",
+   "url": "https://zh.wikisource.org/zh-hant/滴天髓闡微",
+   "original_excerpt": null,
+   "commentary_excerpt": "干無壬癸，地支有寅卯以通根",
+   "keywords_found": [
+    "干無壬癸，地支有"
+   ],
+   "scope_note": "任氏曰(주석). 천간 木에 지지 寅卯=통근. 지장간 동일글자 엄격/관대 구분, 강·중·약 등급은 구현 규약. 沈孝瞻 원문은 長生·祿·旺·庫를 有根으로 봄(十二運 기준, 미구현).",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L1-TUGAN": {
+   "accessed": "2026-10-29",
+   "school_conditions": "월지 지장간이 연·월·시간에 나타나면 투출. 일간 처리·암장 가중은 학파 차이.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "투출 여부가 작용하는 글자를 바꾼다는 내용 확인",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "不透甲而透丙，則如知府不臨郡，而同知得以作主",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "不透甲而透丙，則"
+   ],
+   "scope_note": "투출 여부가 작용하는 글자를 바꾼다는 내용 확인. 연·월·시간만 보고 일간 제외하는 세부 규칙은 구현 규약.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L1-SUPPORT-ORDINAL": {
+   "accessed": "2026-10-29",
+   "school_conditions": "억부론 관점의 구현 규칙. 기세론·종격 관점에서는 달리 판정 가능.",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "convention",
+   "status": "implementation_convention",
+   "work": null,
+   "section": null,
+   "url": null,
+   "original_excerpt": null,
+   "commentary_excerpt": null,
+   "keywords_found": [],
+   "scope_note": "구현자 규약. 고전이 이렇게 말한다고 주장하지 않는다.",
+   "notes": ""
+  },
+  "MG-L2-STEM-HAP": {
+   "accessed": "2026-10-29",
+   "school_conditions": "공통(5쌍). 인접 여부와 작용은 학파 차이.",
+   "positive_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "negative_case": {
+    "year": "己亥",
+    "month": "丁巳",
+    "day": "庚戌",
+    "hour": "癸丑"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "甲己土·乙庚金·丙辛水·丁壬木·戊癸火 5쌍 확인(同節 前",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "乙庚化金次之；金生水，故丙辛化水又次之；水生木，故丁壬化木又次之",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "乙庚化金次之；金"
+   ],
+   "scope_note": "甲己土·乙庚金·丙辛水·丁壬木·戊癸火 5쌍 확인(同節 前문 甲己 포함).",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L2-HAP-HWA": {
+   "accessed": "2026-10-29",
+   "school_conditions": "인접·월령·화신 뿌리·경합·극신 조건 중 어떤 것을 필수로 보는지 학파 차이. 일간 합화 허용 여부 논쟁.",
+   "positive_case": {
+    "year": "丙辰",
+    "month": "辛酉",
+    "day": "丁未",
+    "hour": "乙未"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "location_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "論十干合而不合",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "合而不合十干化合之義，前篇既明之矣，然而亦有合而不合者，何也？蓋隔於有所間也，譬",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "亦有合而不合者"
+   ],
+   "scope_note": "핵심어가 해당 출처 페이지에 존재함(위치 확인). 구절이 규칙 내용을 직접 뒷받침하는지는 판단하지 않음.",
+   "notes": "인접·월령·화신 뿌리·경합·극신 조건 중 어떤 것을 필수로 보는지 학파 차이. 일간 합화 허용 여부 논쟁."
+  },
+  "MG-L2-BRANCH-YUKHAP": {
+   "accessed": "2026-10-29",
+   "school_conditions": "午未 합의 화신(火/土) 논쟁.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "六合 개념과 대표쌍(子丑)만 확인",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "合者，六合也，子與丑合之類是也",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "合者，六合也，子"
+   ],
+   "scope_note": "六合 개념과 대표쌍(子丑)만 확인. 6쌍 전체 나열은 이 구절에 없음.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L2-SAMHAP": {
+   "accessed": "2026-10-29",
+   "school_conditions": "완전 삼합/반합/공합 인정 범위 학파 차이.",
+   "positive_case": {
+    "year": "己巳",
+    "month": "己丑",
+    "day": "辛酉",
+    "hour": "辛丑"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "원문은 申子辰을 '三會'로 부름(평주는 三合會局으로 풀",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "會者，三會也，申子辰之類是也",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "會者，三會也，申"
+   ],
+   "scope_note": "원문은 申子辰을 '三會'로 부름(평주는 三合會局으로 풀이). 용어 차이 있음. 반합·공합의 인정 범위는 확인하지 않음.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L2-BANGHAP": {
+   "accessed": "2026-10-29",
+   "school_conditions": "2글자 방합 인정 여부 논쟁.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "location_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "論刑沖會合解法",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "是也。此皆以地支宮分而言，繫對射之意也。三方為會，朋友之意也。並對為合，比鄰之意",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "三方為會"
+   ],
+   "scope_note": "핵심어가 해당 출처 페이지에 존재함(위치 확인). 구절이 규칙 내용을 직접 뒷받침하는지는 판단하지 않음.",
+   "notes": "2글자 방합 인정 여부 논쟁."
+  },
+  "MG-L2-CHUNG": {
+   "accessed": "2026-10-29",
+   "school_conditions": "충이 지장간 손상·개고를 뜻하는지 학파 차이. 이 구현은 존재만 기록.",
+   "positive_case": {
+    "year": "戊寅",
+    "month": "辛酉",
+    "day": "壬寅",
+    "hour": "癸卯"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "六沖 개념과 대표쌍(子午·卯酉)만 확인",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "沖者，六沖也，子午卯酉之類是也",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "沖者，六沖也，子"
+   ],
+   "scope_note": "六沖 개념과 대표쌍(子午·卯酉)만 확인.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L2-HYUNG": {
+   "accessed": "2026-10-29",
+   "school_conditions": "삼형 완성 여부, 2글자 형 인정, 자형 인정이 학파 차이. 원문 저자도 三刑에 대해 闕疑(존치)라 함.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "location_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "論刑沖會合解法",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "，道理本來如此。七、論刑沖會合解法刑者，三刑也，子卯巳申之類是也。沖者，六沖也，",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "三刑也"
+   ],
+   "scope_note": "핵심어가 해당 출처 페이지에 존재함(위치 확인). 구절이 규칙 내용을 직접 뒷받침하는지는 판단하지 않음.",
+   "notes": "삼형 완성 여부, 2글자 형 인정, 자형 인정이 학파 차이. 원문 저자도 三刑에 대해 闕疑(존치)라 함."
+  },
+  "MG-L2-PA": {
+   "accessed": "2026-10-29",
+   "school_conditions": "三命通會는 寅亥·巳申을 三合/六合이라 破로 취하지 않음 → 본 구현 표(6쌍)와 불일치. 학파 차이.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "location_confirmed",
+   "work": "三命通會 卷三",
+   "section": "三命通會 卷三 破煞",
+   "url": "https://zh.wikisource.org/zh-hant/三命通會/卷三",
+   "original_excerpt": "。此煞，卯與午，丑與辰，子與酉，未與戌，皆相破。惟寅申巳亥原破，卻三合，故不取，",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "皆相破"
+   ],
+   "scope_note": "핵심어가 해당 출처 페이지에 존재함(위치 확인). 구절이 규칙 내용을 직접 뒷받침하는지는 판단하지 않음.",
+   "notes": "三命通會는 寅亥·巳申을 三合/六合이라 破로 취하지 않음 → 본 구현 표(6쌍)와 불일치. 학파 차이."
+  },
+  "MG-L2-HAE": {
+   "accessed": "2026-10-29",
+   "school_conditions": "任氏曰은 害(穿)에 회의적. 寅亥/寅巳 분류가 자료마다 다름.",
+   "positive_case": {
+    "year": "癸丑",
+    "month": "乙未",
+    "day": "壬子",
+    "hour": "癸丑"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "location_confirmed",
+   "work": "滴天髓闡微(任鐵樵 注)",
+   "section": "滴天髓闡微(任氏曰) 刑沖害論",
+   "url": "https://zh.wikisource.org/zh-hant/滴天髓闡微",
+   "original_excerpt": null,
+   "commentary_excerpt": "又有自刑，此皆俗謬，姑置之。穿，即害也，六害由六合而來，沖我合神，故為之害，如子",
+   "keywords_found": [
+    "六害由六合而來"
+   ],
+   "scope_note": "핵심어가 해당 출처 페이지에 존재함(위치 확인). 구절이 규칙 내용을 직접 뒷받침하는지는 판단하지 않음.",
+   "notes": "任氏曰은 害(穿)에 회의적. 寅亥/寅巳 분류가 자료마다 다름."
+  },
+  "MG-L2-GOGO": {
+   "accessed": "2026-10-29",
+   "school_conditions": "충=개고설/충=손상설/형·합으로도 연다는 설. 원문(沈孝瞻)은 必沖 속설 부정.",
+   "positive_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "negative_case": {
+    "year": "戊寅",
+    "month": "辛酉",
+    "day": "壬寅",
+    "hour": "癸卯"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "원문은 '庫는 반드시 沖해야 연다'는 속설을 부정하고 ",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "財官入庫不沖不發——此說雖俗書盛稱之，然子平先生造命，無是說也",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "財官入庫不沖不發"
+   ],
+   "scope_note": "원문은 '庫는 반드시 沖해야 연다'는 속설을 부정하고 沖이 오히려 印을 해칠 수 있다고 함 → 개고 성립이 학파 논쟁이라는 본 규칙의 처리와 부합. 辰=水庫 등 庫 대응표 자체는 별도 구절.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L2-COMPETITION": {
+   "accessed": "2026-10-29",
+   "school_conditions": "합이 충을 푼다(원문) / 충이 합을 깬다 / 인접·월령 우선 — 학파 차이.",
+   "positive_case": {
+    "year": "己亥",
+    "month": "丁巳",
+    "day": "庚戌",
+    "hour": "癸丑"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "원문은 합이 충·형을 푼다는 입장(합 우선설)",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "刑沖俱非美事，而三合六合，可以解之",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "刑沖俱非美事，而"
+   ],
+   "scope_note": "원문은 합이 충·형을 푼다는 입장(합 우선설). 본 규칙의 '합 우선/충 우선/인접·월령 우선' 중 합 우선설만 직접 뒷받침. 나머지 학설은 확인하지 않음.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L3-SIKSANG-SAENGJAE": {
+   "accessed": "2026-10-29",
+   "school_conditions": "편인도식 시 해소 여부, 군겁 시 성립 여부는 학파 차이.",
+   "positive_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "negative_case": {
+    "year": "壬午",
+    "month": "癸巳",
+    "day": "癸酉",
+    "hour": "庚申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "食神生財→食格成",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "食神生財，或食帶煞而無財，棄食就煞而透印，食格成也",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "食神生財，或食帶"
+   ],
+   "scope_note": "食神生財→食格成. 傷官生財→傷官格成도 같은 절에 있음.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L3-JAE-SAENGGWAN": {
+   "accessed": "2026-10-29",
+   "school_conditions": "身弱이면 破格(원문), 비겁 탈재 시 성립 여부.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "己巳",
+    "month": "己丑",
+    "day": "辛酉",
+    "hour": "辛丑"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "財旺生官=美格이나 身弱이면 破格(반례)이라는 점까지 확",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "如財旺生官，美格也，身弱透官，即為破格",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "如財旺生官，美格"
+   ],
+   "scope_note": "財旺生官=美格이나 身弱이면 破格(반례)이라는 점까지 확인.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L3-GWAN-INSAENG": {
+   "accessed": "2026-10-29",
+   "school_conditions": "財破印, 傷官克官 시 성립 여부는 학파 차이.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛丑",
+    "month": "壬辰",
+    "day": "己卯",
+    "hour": "甲子"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "官印雙全이 印格成의 한 형태로 나옴",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "印輕逢煞，或官印雙全，或身印兩旺而用食傷洩氣",
+   "commentary_excerpt": "官印相生，日主休囚，喜印緩而不喜比劫",
+   "keywords_found": [
+    "印輕逢煞，或官印"
+   ],
+   "scope_note": "官印雙全이 印格成의 한 형태로 나옴. '관인상생'이라는 용어 자체는 任氏曰(滴天髓闡微)에 있음.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L3-SAL-INSAENG": {
+   "accessed": "2026-10-29",
+   "school_conditions": "食神制殺 경로와 병존 시 우선순위 논쟁. 財滋弱殺 여부.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "癸丑",
+    "month": "乙未",
+    "day": "壬子",
+    "hour": "癸丑"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "滴天髓闡微(任鐵樵 注)",
+   "section": "滴天髓 원문 구절(原註 앞)",
+   "url": "https://zh.wikisource.org/zh-hant/滴天髓闡微",
+   "original_excerpt": "甲申戊寅，真為殺印相生",
+   "commentary_excerpt": "殺強身弱，則以印綬化殺",
+   "keywords_found": [
+    "甲申戊寅，真為殺"
+   ],
+   "scope_note": "滴天髓 원문 구절(原註 앞). 殺印相生 용어와 사례. 殺強身弱에 印綬化殺은 任氏曰.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L3-SANGGWAN-GYEONGWAN": {
+   "accessed": "2026-10-29",
+   "school_conditions": "印으로 제어(傷官佩印) / 財로 통관(傷官生財) 구응이 모두 있음. 金水傷官은 예외로 보는 설(원문 敗 절).",
+   "positive_case": {
+    "year": "己亥",
+    "month": "丁巳",
+    "day": "庚戌",
+    "hour": "癸丑"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "상관견관=格忌이며 財가 통관하면 해소된다는 구응까지 확",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "傷官見官，為格之忌，透財而地位配置合宜，則傷官生財來生官，反可以解",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "傷官見官，為格之"
+   ],
+   "scope_note": "상관견관=格忌이며 財가 통관하면 해소된다는 구응까지 확인(본 규칙의 반대 근거 처리와 부합).",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L3-GUNGEOP-JAENGJAE": {
+   "accessed": "2026-10-29",
+   "school_conditions": "官殺로 제겁 / 食傷으로 化劫生財 / 신약이면 비겁이 용신이라는 억부론.",
+   "positive_case": {
+    "year": "己卯",
+    "month": "辛丑",
+    "day": "戊戌",
+    "hour": "壬申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "財輕比重=財格敗 확인",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "財輕比重，財透七煞，財格敗也",
+   "commentary_excerpt": "原局無食傷之化，群劫爭財",
+   "keywords_found": [
+    "財輕比重，財透七"
+   ],
+   "scope_note": "財輕比重=財格敗 확인. '群劫爭財' 용어는 任氏曰 사례 구절(commentary_excerpt)에 있음. 구응(食傷으로 化)은 救應 절 '財逢劫而透食以化之'.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L3-CHAIN": {
+   "accessed": "2026-10-29",
+   "school_conditions": "구현 규약.",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "convention",
+   "status": "implementation_convention",
+   "work": null,
+   "section": null,
+   "url": null,
+   "original_excerpt": null,
+   "commentary_excerpt": null,
+   "keywords_found": [],
+   "scope_note": "구현자 규약. 고전이 이렇게 말한다고 주장하지 않는다.",
+   "notes": ""
+  },
+  "MG-L4-GYEOKGUK-CAND": {
+   "accessed": "2026-10-29",
+   "school_conditions": "투출 우선(沈孝瞻 用神變化) vs 본기 중심 vs 인원사령(일수) — 학파 차이. 건록·양인은 외격 별도.",
+   "positive_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "negative_case": {
+    "year": "己亥",
+    "month": "庚寅",
+    "day": "甲寅",
+    "hour": "庚子"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "본기 미투출 시 중기 투출이 용신이 되는 '用神變化' ",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "不透甲而透丙，則如知府不臨郡，而同知得以作主",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "不透甲而透丙，則"
+   ],
+   "scope_note": "본기 미투출 시 중기 투출이 용신이 되는 '用神變化' 확인. 투출 우선 순서의 모든 세부 규칙은 구현 단순화.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L4-GYEOKGUK-BONGI": {
+   "accessed": "2026-10-29",
+   "school_conditions": "본기 중심 설(구현상 병렬 대안).",
+   "positive_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "negative_case": null,
+   "classification": "classical",
+   "status": "location_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "論用神變化(本氣=本主)",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "卯酉外，餘皆有藏，不必四庫也。即以寅論，甲為本主，如郡之有府，丙其長生，如郡之有",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "甲為本主"
+   ],
+   "scope_note": "핵심어가 해당 출처 페이지에 존재함(위치 확인). 구절이 규칙 내용을 직접 뒷받침하는지는 판단하지 않음.",
+   "notes": "본기 중심 설(구현상 병렬 대안)."
+  },
+  "MG-L4-SEONGPA": {
+   "accessed": "2026-10-29",
+   "school_conditions": "격별 成敗救應 조건. 구현은 단순화 표.",
+   "positive_case": {
+    "year": "戊寅",
+    "month": "辛酉",
+    "day": "壬寅",
+    "hour": "癸卯"
+   },
+   "negative_case": {
+    "year": "癸丑",
+    "month": "乙未",
+    "day": "壬子",
+    "hour": "癸丑"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "沈孝瞻 成敗救應 절이 격별 成/敗/救應 조건표를 직접 ",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "何謂成？如官逢財印，又無刑沖破害，官格成也",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "何謂成？如官逢財"
+   ],
+   "scope_note": "沈孝瞻 成敗救應 절이 격별 成/敗/救應 조건표를 직접 제시. 구현 조건표는 이를 단순화(예: 刑沖破害·合煞 등 세부 생략)한 것으로 원문과 동일하지 않음.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L4-GEUKGUK-YONGSHIN": {
+   "accessed": "2026-10-29",
+   "school_conditions": "월령 중심 격국용신.",
+   "positive_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "negative_case": {
+    "year": "己亥",
+    "month": "庚寅",
+    "day": "甲寅",
+    "hour": "庚子"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "격국용신=월령에서 구함 확인",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "用神專尋月令，以四柱配之，必有成敗",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "用神專尋月令，以"
+   ],
+   "scope_note": "격국용신=월령에서 구함 확인. 억부·조후용신과 분리한다는 점은 후대 구분.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L4-EOKBU-YONGSHIN": {
+   "accessed": "2026-10-29",
+   "school_conditions": "억부론(扶抑). 강약 후보 규칙은 구현 규약.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "徐樂吾 평주의 용신 5분류 중 (一)扶抑",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": null,
+   "commentary_excerpt": "日元強者抑之，日元弱者扶之，此以扶抑為用神也",
+   "keywords_found": [
+    "日元強者抑之，日"
+   ],
+   "scope_note": "徐樂吾 평주의 용신 5분류 중 (一)扶抑. 沈孝瞻 원문이 아니라 20세기 평주. 강/약 후보 판정 규칙은 구현 규약.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L4-JOHU-DIRECTION": {
+   "accessed": "2026-10-29",
+   "school_conditions": "조후론. 일간×월지 개별 표(窮通寶鑑)는 미구현.",
+   "positive_case": {
+    "year": "乙巳",
+    "month": "己未",
+    "day": "庚午",
+    "hour": "庚申"
+   },
+   "negative_case": {
+    "year": "辛未",
+    "month": "甲申",
+    "day": "丙申",
+    "hour": "丙申"
+   },
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "滴天髓",
+   "section": "寒暖論 원문",
+   "url": "https://zh.wikisource.org/zh-hant/滴天髓",
+   "original_excerpt": "金水為寒，木火為暖，得氣之寒，遇暖而發",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "金水為寒，木火為"
+   ],
+   "scope_note": "寒暖論 원문. 한난 방향 개념 확인. 窮通寶鑑 일간×월지 개별 표는 확인·구현하지 않음. 평주(徐樂吾)의 調候 분류도 존재.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L4-YONGSHIN-CONFLICT": {
+   "accessed": "2026-10-29",
+   "school_conditions": "구현 규약(합치지 않는다는 원칙).",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "convention",
+   "status": "implementation_convention",
+   "work": null,
+   "section": null,
+   "url": null,
+   "original_excerpt": null,
+   "commentary_excerpt": null,
+   "keywords_found": [],
+   "scope_note": "구현자 규약. 고전이 이렇게 말한다고 주장하지 않는다.",
+   "notes": ""
+  },
+  "MG-L5-LUCK-STEM": {
+   "accessed": "2026-10-29",
+   "school_conditions": "운 천간 해석 — 규칙만 등록, 노드 미생성.",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "운의 간을 원국 喜忌에 맞춰 본다는 내용 확인",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "取運則又以運之干，配八字之喜忌",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "取運則又以運之干"
+   ],
+   "scope_note": "운의 간을 원국 喜忌에 맞춰 본다는 내용 확인. 주의: 현재 엔진은 이 rule_id 를 쓰는 claim 노드를 만들지 않음(규칙만 등록).",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L5-LUCK-BRANCH": {
+   "accessed": "2026-10-29",
+   "school_conditions": "운 지지와 원국의 합충 — 인접 개념 적용 여부는 학파 차이.",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "classical",
+   "status": "text_confirmed",
+   "work": "子平真詮評註(徐樂吾 평주 포함)",
+   "section": "운 글자를 원국 간지와 함께 본다는 일반 원칙 확인",
+   "url": "https://libokang.com/zh-hant/classics/bazi/子平真詮評註/",
+   "original_excerpt": "運中每運行一字，即必以此一字，配命中干支而統觀之",
+   "commentary_excerpt": null,
+   "keywords_found": [
+    "運中每運行一字，"
+   ],
+   "scope_note": "운 글자를 원국 간지와 함께 본다는 일반 원칙 확인. 합충 세부 분류는 Layer 2 규칙 참조.",
+   "notes": "사람이 구절을 읽고 규칙 내용(scope_note 범위)에 대응함을 확인. 발췌는 페이지 텍스트에 그대로 존재함을 스크립트가 재검증."
+  },
+  "MG-L5-STRUCTURE-DELTA": {
+   "accessed": "2026-10-29",
+   "school_conditions": "구현 규약.",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "convention",
+   "status": "implementation_convention",
+   "work": null,
+   "section": null,
+   "url": null,
+   "original_excerpt": null,
+   "commentary_excerpt": null,
+   "keywords_found": [],
+   "scope_note": "구현자 규약. 고전이 이렇게 말한다고 주장하지 않는다.",
+   "notes": ""
+  },
+  "MG-L5-SEGMENT": {
+   "accessed": "2026-10-29",
+   "school_conditions": "구현 규약(대운 교체일·입춘 분리).",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "convention",
+   "status": "implementation_convention",
+   "work": null,
+   "section": null,
+   "url": null,
+   "original_excerpt": null,
+   "commentary_excerpt": null,
+   "keywords_found": [],
+   "scope_note": "구현자 규약. 고전이 이렇게 말한다고 주장하지 않는다.",
+   "notes": ""
+  },
+  "MG-L5-COMPARE": {
+   "accessed": "2026-10-29",
+   "school_conditions": "구현 규약(점수 없는 비교).",
+   "positive_case": null,
+   "negative_case": null,
+   "classification": "convention",
+   "status": "implementation_convention",
+   "work": null,
+   "section": null,
+   "url": null,
+   "original_excerpt": null,
+   "commentary_excerpt": null,
+   "keywords_found": [],
+   "scope_note": "구현자 규약. 고전이 이렇게 말한다고 주장하지 않는다.",
+   "notes": ""
+  }
+ }
+}

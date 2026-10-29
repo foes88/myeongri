@@ -7,6 +7,7 @@ from .layer2 import analyze_layer2
 from .layer3 import analyze_layer3
 from .layer4 import analyze_layer4
 from .layer5 import analyze_year, analyze_years
+from .schools import evaluate_schools
 from .rules import RULES, RULESET_VERSION
 
 DISCLAIMER = "전통 명리학의 구조 분석이며 미래 사건을 예측하거나 길흉을 확정하지 않습니다. 고전 원문 대조는 미완료입니다."
@@ -31,7 +32,7 @@ def analyze_structure(pillars: dict[str, str], variant_id: str = "v1") -> dict:
                 node.counter_evidence.append(f"뿌리 지지 {root['branch']}가 {r['relation_type']} 관계에 있음(존재만 확인, 뿌리 손상은 확정하지 않음)")
                 g.link(node.claim_id, r["claim_id"], "opposes", "뿌리 지지가 충·형·파·해 관계에 관여")
     problems = g.validate()
-    return {"ruleset_version": RULESET_VERSION, "variant_id": variant_id, "pillars": pillars, "layer1": l1, "layer2": l2, "layer3": l3, "layer4": l4,
+    return {"ruleset_version": RULESET_VERSION, "variant_id": variant_id, "pillars": pillars, "layer1": l1, "layer2": l2, "layer3": l3, "layer4": l4, "schools": evaluate_schools(l1, l4),
             "graph": g.to_dict(), "validation": {"ok": not problems, "problems": problems}, "disclaimer": DISCLAIMER}
 
 

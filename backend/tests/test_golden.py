@@ -137,3 +137,65 @@ def test_golden_files_still_get_secret_and_email_scan(tmp_path):
     assert any("email" in h for h in hits) and not any("birth_datetime" in h for h in hits)
     (tmp_path / "other.json").write_text('{"k": "2001-02-03T04:05:00"}', encoding="utf-8")  # 가상 예시
     assert any("birth_datetime" in h for h in ps.scan_files([tmp_path / "other.json"], root=tmp_path))
+
+
+# ---- 공개 저장소 데이터 위생 (v6.4) ----
+import subprocess  # noqa: E402
+
+from tools.paths import EXT_CASES  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_public_cases_do_not_embed_restricted_external_data():
+    for c in CASES:
+        assert all(r["tool"] not in ("HKO", "KASI 달력자료") for r in c["references"]), c["test_id"]
+    assert not {"TERMTIME", "KASITERM", "KASILUNAR", "KASIDAY"} & {c["category"] for c in CASES}
+
+
+def test_restricted_files_are_not_tracked_by_git():
+    out = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8").stdout.splitlines()
+    assert not [f for f in out if "data_private" in f or f.endswith(("hko_lunar_terms.json", "kasi_calendar.json", "cases_external.json"))]
+    ign = subprocess.run(["git", "check-ignore", "backend/data_private/external/x.json"], cwd=ROOT, capture_output=True, text=True)
+    assert ign.returncode == 0
+
+
+def test_public_term_analysis_has_no_row_level_external_values():
+    ta = json.loads((G / "term_analysis.json").read_text(encoding="utf-8"))
+    assert "rows" not in ta["vs_hko_minutes_2026_2028"] and "date_mismatches" not in ta["vs_hko_date_1901_2050"]
+    rep = json.loads((G / "report.json").read_text(encoding="utf-8"))
+    assert rep["external"]["note"] and rep["total"] == len(CASES)
+
+
+EXT = json.loads(EXT_CASES.read_text(encoding="utf-8"))["cases"] if EXT_CASES.exists() else []
+
+
+@pytest.mark.skipif(not EXT, reason="비공개 외부 자료(data_private)가 없음: python -m tools.fetch_hko / fetch_kasi / build_golden 으로 로컬 재현")
+@pytest.mark.parametrize("case", EXT, ids=[c["test_id"] for c in EXT])
+def test_external_private_case(case):
+    ok, detail = run_case(case)
+    assert ok, (case["expect"], detail)
+
+
+# ---- v6.4 범위 표기 ----
+def test_scope_status_is_reported_without_blocking_and_keeps_v_status():
+    r = calculate_chart(year=2015, month=6, day=20, hour=12, minute=0, gender="male")  # 가상 입력
+    v = r.verification
+    assert v["status"] == "V2" and v["may_claim_verified"] is False  # V1/V2/V3 호환 유지
+    sc = v["scope"]
+    assert sc["CORE_VALIDATED"]["granted"] is True and "시주" in sc["CORE_VALIDATED"]["scope"]
+    assert sc["TIME_PROFILE_VALIDATED"]["granted"] is False and sc["DAEUN_PROFILE_VALIDATED"]["granted"] is False
+    assert sc["LUNAR_KR_PENDING"]["state"] == "NOT_APPLICABLE_SOLAR_INPUT"
+    assert sc["CLASSICAL_RULES_PENDING"]["pending"] > 0 and any("고전 원문" in n for n in v["unverified_notice"])
+
+
+def test_lunar_input_scope_is_separated_from_solar():
+    diff = calculate_chart(calendar="lunar", year=2012, month=3, day=1, gender="male", hour=12).verification["scope"]["LUNAR_KR_PENDING"]
+    kasi = calculate_chart(calendar="lunar", year=2025, month=3, day=1, gender="male", hour=12).verification["scope"]["LUNAR_KR_PENDING"]
+    other = calculate_chart(calendar="lunar", year=1985, month=3, day=1, gender="male", hour=12).verification["scope"]["LUNAR_KR_PENDING"]
+    assert diff["state"] == "PENDING_KR_CN_DIFFERENCE" and kasi["state"] == "PARTIAL_UNOFFICIAL_MATCH" and other["state"] == "PENDING"
+
+
+def test_core_validated_fails_closed(monkeypatch):
+    monkeypatch.setattr(vl, "_load", lambda: ({}, {}, {}))
+    assert vl.scope_status()["CORE_VALIDATED"]["granted"] is False
