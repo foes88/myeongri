@@ -1,0 +1,572 @@
+{
+ "accessed": "2026-10-29",
+ "zone": "Asia/Seoul",
+ "tzdata": {
+  "package": "tzdata",
+  "version": "2023.3"
+ },
+ "sources": {
+  "ko.wikipedia 한국 표준시": {
+   "url": "https://ko.wikipedia.org/wiki/한국_표준시",
+   "opened": true,
+   "chars": 2678
+  },
+  "namu.wiki 서머타임": {
+   "url": "https://namu.wiki/w/서머타임",
+   "opened": true,
+   "chars": 31845,
+   "dst_years_parsed": [
+    1948,
+    1949,
+    1950,
+    1951,
+    1955,
+    1956,
+    1957,
+    1958,
+    1959,
+    1960,
+    1987,
+    1988
+   ]
+  },
+  "en.wikipedia Time in South Korea": {
+   "url": "https://en.wikipedia.org/wiki/Time_in_South_Korea",
+   "opened": true,
+   "chars": 8760
+  }
+ },
+ "facts": [
+  {
+   "fact": "한국 표준시 최초 시행 +8:30 (1908-04-01)",
+   "source": "ko.wikipedia 한국 표준시",
+   "url": "https://ko.wikipedia.org/wiki/한국_표준시",
+   "claimed": "1908년 4월 1일: UTC+08:30 첫 시행(동경 127°30′)",
+   "tzdata": {
+    "transition_utc": "1908-03-31T15:32:00+00:00",
+    "from": 8.464444444444444,
+    "to": 8.5
+   },
+   "status": "MATCH_DATE_ONLY",
+   "note": "tzdata 전환은 현지 1908-04-01 00:27:52(LMT) 무렵(연혁 사실 예시). 위키는 날짜만 서술(시각 없음)"
+  },
+  {
+   "fact": "한국 표준시 전환 (1912년 1월 1일)",
+   "source": "ko.wikipedia 한국 표준시",
+   "url": "https://ko.wikipedia.org/wiki/한국_표준시",
+   "claimed": "1912년 1월 1일: UTC+09:00 변경 (0시 → 0시 30분)",
+   "tzdata": {
+    "transition_utc": "1911-12-31T15:30:00+00:00",
+    "from": 8.5,
+    "to": 9.0
+   },
+   "status": "MATCH",
+   "note": "위키가 서술한 시계 조정(전환 순간)과 tzdata 전환 순간 비교"
+  },
+  {
+   "fact": "한국 표준시 +9:00 → +8:30 (1954-03-21)",
+   "source": "ko.wikipedia 한국 표준시",
+   "url": "https://ko.wikipedia.org/wiki/한국_표준시",
+   "claimed": "1954년 3월 21일: UTC+08:30 변경 (0시 30분 → 0시)",
+   "tzdata": {
+    "transition_utc": "1954-03-20T15:00:00+00:00",
+    "from": 9.0,
+    "to": 8.5
+   },
+   "status": "DATE_MATCH_TIME_OF_DAY_MISMATCH",
+   "note": "날짜는 일치. 위키는 시계 00:30(+9)에 전환(= 03-20T15:30Z), tzdata 는 00:00(+9)에 전환(= 03-20T15:00Z)으로 30분 차이. 1차 법령 원문을 확인하지 못해 미해결 — 영향은 1954-03-20 23:30~24:00 및 03-21 00:00~00:30 출생에 한정(연혁 사실 예시)"
+  },
+  {
+   "fact": "한국 표준시 전환 (1961년 8월 10일)",
+   "source": "ko.wikipedia 한국 표준시",
+   "url": "https://ko.wikipedia.org/wiki/한국_표준시",
+   "claimed": "1961년 8월 10일: UTC+09:00 재변경 (0시 → 0시 30분)",
+   "tzdata": {
+    "transition_utc": "1961-08-09T15:30:00+00:00",
+    "from": 8.5,
+    "to": 9.0
+   },
+   "status": "MATCH",
+   "note": "위키가 서술한 시계 조정(전환 순간)과 tzdata 전환 순간 비교"
+  },
+  {
+   "fact": "1948 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1948-06-01 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1948-05-31T15:00:00+00:00",
+    "to": 10.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1948 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1948-09-13 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1948-09-12T14:00:00+00:00",
+    "to": 9.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1949 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1949-04-03 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1949-04-02T15:00:00+00:00",
+    "to": 10.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1949 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1949-09-11 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1949-09-10T14:00:00+00:00",
+    "to": 9.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1950 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1950-04-01 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1950-03-31T15:00:00+00:00",
+    "to": 10.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1950 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1950-09-10 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1950-09-09T14:00:00+00:00",
+    "to": 9.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1951 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1951-05-06 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1951-05-05T15:00:00+00:00",
+    "to": 10.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1951 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1951-09-09 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1951-09-08T14:00:00+00:00",
+    "to": 9.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1955 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1955-05-05 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1955-05-04T15:30:00+00:00",
+    "to": 9.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1955 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1955-09-09 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1955-09-08T14:30:00+00:00",
+    "to": 8.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1956 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1956-05-20 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1956-05-19T15:30:00+00:00",
+    "to": 9.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1956 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1956-09-30 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1956-09-29T14:30:00+00:00",
+    "to": 8.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1957 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1957-05-05 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1957-05-04T15:30:00+00:00",
+    "to": 9.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1957 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1957-09-22 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1957-09-21T14:30:00+00:00",
+    "to": 8.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1958 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1958-05-04 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1958-05-03T15:30:00+00:00",
+    "to": 9.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1958 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1958-09-21 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1958-09-20T14:30:00+00:00",
+    "to": 8.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1959 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1959-05-03 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1959-05-02T15:30:00+00:00",
+    "to": 9.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1959 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1959-09-20 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1959-09-19T14:30:00+00:00",
+    "to": 8.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1960 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1960-05-01 00:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1960-04-30T15:30:00+00:00",
+    "to": 9.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1960 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1960-09-18 00:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1960-09-17T14:30:00+00:00",
+    "to": 8.5
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1987 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1987-05-10 02:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1987-05-09T17:00:00+00:00",
+    "to": 10.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1987 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1987-10-11 03:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1987-10-10T17:00:00+00:00",
+    "to": 9.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1988 서머타임 시작",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1988-05-08 02:00 (현지 표준시 시계)",
+   "tzdata": {
+    "transition_utc": "1988-05-07T17:00:00+00:00",
+    "to": 10.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1988 서머타임 종료",
+   "source": "namu.wiki 서머타임 표",
+   "url": "https://namu.wiki/w/서머타임",
+   "claimed": "1988-10-09 03:00 (현지 서머타임 시계)",
+   "tzdata": {
+    "transition_utc": "1988-10-08T17:00:00+00:00",
+    "to": 9.0
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "서머타임 실시 연도 집합",
+   "source": "en.wikipedia + ko.wikipedia 일광 절약 시간제",
+   "url": "https://en.wikipedia.org/wiki/Time_in_South_Korea",
+   "claimed": "1948–1951(UTC+10), 1955–1960(UTC+9:30), 1987–1988(UTC+10); 1952~1954 미시행",
+   "tzdata": {
+    "years": [
+     1948,
+     1949,
+     1950,
+     1951,
+     1955,
+     1956,
+     1957,
+     1958,
+     1959,
+     1960,
+     1987,
+     1988
+    ]
+   },
+   "status": "MATCH",
+   "note": ""
+  },
+  {
+   "fact": "1988 서머타임 기간",
+   "source": "en.wikipedia Time in South Korea",
+   "url": "https://en.wikipedia.org/wiki/Time_in_South_Korea",
+   "claimed": "May 8 ~ October 9, 1988",
+   "tzdata": {
+    "start_utc": "1988-05-07T17:00:00+00:00",
+    "end_utc": "1988-10-08T17:00:00+00:00"
+   },
+   "status": "MATCH",
+   "note": ""
+  }
+ ],
+ "summary": {
+  "facts": 30,
+  "status_counts": {
+   "MATCH_DATE_ONLY": 1,
+   "MATCH": 28,
+   "DATE_MATCH_TIME_OF_DAY_MISMATCH": 1
+  },
+  "unresolved": [
+   "한국 표준시 +9:00 → +8:30 (1954-03-21)"
+  ],
+  "independence": "ko/en wikipedia·namu.wiki 는 2차 공개 자료. 법령 원문(대통령령·관보)과 KASI 공식 표준시 문서는 이번에 열람하지 못했다.",
+  "primary_law_text_checked": false
+ },
+ "tzdata_transitions": [
+  {
+   "utc": "1908-03-31T15:32:00+00:00",
+   "from": 8.464444444444444,
+   "to": 8.5
+  },
+  {
+   "utc": "1911-12-31T15:30:00+00:00",
+   "from": 8.5,
+   "to": 9.0
+  },
+  {
+   "utc": "1948-05-31T15:00:00+00:00",
+   "from": 9.0,
+   "to": 10.0
+  },
+  {
+   "utc": "1948-09-12T14:00:00+00:00",
+   "from": 10.0,
+   "to": 9.0
+  },
+  {
+   "utc": "1949-04-02T15:00:00+00:00",
+   "from": 9.0,
+   "to": 10.0
+  },
+  {
+   "utc": "1949-09-10T14:00:00+00:00",
+   "from": 10.0,
+   "to": 9.0
+  },
+  {
+   "utc": "1950-03-31T15:00:00+00:00",
+   "from": 9.0,
+   "to": 10.0
+  },
+  {
+   "utc": "1950-09-09T14:00:00+00:00",
+   "from": 10.0,
+   "to": 9.0
+  },
+  {
+   "utc": "1951-05-05T15:00:00+00:00",
+   "from": 9.0,
+   "to": 10.0
+  },
+  {
+   "utc": "1951-09-08T14:00:00+00:00",
+   "from": 10.0,
+   "to": 9.0
+  },
+  {
+   "utc": "1954-03-20T15:00:00+00:00",
+   "from": 9.0,
+   "to": 8.5
+  },
+  {
+   "utc": "1955-05-04T15:30:00+00:00",
+   "from": 8.5,
+   "to": 9.5
+  },
+  {
+   "utc": "1955-09-08T14:30:00+00:00",
+   "from": 9.5,
+   "to": 8.5
+  },
+  {
+   "utc": "1956-05-19T15:30:00+00:00",
+   "from": 8.5,
+   "to": 9.5
+  },
+  {
+   "utc": "1956-09-29T14:30:00+00:00",
+   "from": 9.5,
+   "to": 8.5
+  },
+  {
+   "utc": "1957-05-04T15:30:00+00:00",
+   "from": 8.5,
+   "to": 9.5
+  },
+  {
+   "utc": "1957-09-21T14:30:00+00:00",
+   "from": 9.5,
+   "to": 8.5
+  },
+  {
+   "utc": "1958-05-03T15:30:00+00:00",
+   "from": 8.5,
+   "to": 9.5
+  },
+  {
+   "utc": "1958-09-20T14:30:00+00:00",
+   "from": 9.5,
+   "to": 8.5
+  },
+  {
+   "utc": "1959-05-02T15:30:00+00:00",
+   "from": 8.5,
+   "to": 9.5
+  },
+  {
+   "utc": "1959-09-19T14:30:00+00:00",
+   "from": 9.5,
+   "to": 8.5
+  },
+  {
+   "utc": "1960-04-30T15:30:00+00:00",
+   "from": 8.5,
+   "to": 9.5
+  },
+  {
+   "utc": "1960-09-17T14:30:00+00:00",
+   "from": 9.5,
+   "to": 8.5
+  },
+  {
+   "utc": "1961-08-09T15:30:00+00:00",
+   "from": 8.5,
+   "to": 9.0
+  },
+  {
+   "utc": "1987-05-09T17:00:00+00:00",
+   "from": 9.0,
+   "to": 10.0
+  },
+  {
+   "utc": "1987-10-10T17:00:00+00:00",
+   "from": 10.0,
+   "to": 9.0
+  },
+  {
+   "utc": "1988-05-07T17:00:00+00:00",
+   "from": 9.0,
+   "to": 10.0
+  },
+  {
+   "utc": "1988-10-08T17:00:00+00:00",
+   "from": 10.0,
+   "to": 9.0
+  }
+ ]
+}

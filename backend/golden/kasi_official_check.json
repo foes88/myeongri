@@ -1,0 +1,58 @@
+{
+ "years": [
+  2004,
+  2005,
+  2006,
+  2007,
+  2008,
+  2009,
+  2010,
+  2011,
+  2012,
+  2013,
+  2014,
+  2015,
+  2016,
+  2017
+ ],
+ "klc_vs_kasi_mismatch": [],
+ "derived_kst_vs_kasi_mismatch": [],
+ "hko_vs_kasi_mismatch_years": [
+  2005,
+  2012,
+  2013,
+  2017
+ ],
+ "newmoon_max_diff_minutes": 0.8209429333333333,
+ "newmoon_compared": 161,
+ "terms_compared": 312,
+ "terms_max_diff_s": 39.140974,
+ "months_compared": 161,
+ "leap_months_official": {
+  "2004": {
+   "month": 2,
+   "start": "2004-03-21",
+   "inferred": false
+  },
+  "2006": {
+   "month": 7,
+   "start": "2006-08-24",
+   "inferred": false
+  },
+  "2009": {
+   "month": 5,
+   "start": "2009-06-23",
+   "inferred": true
+  },
+  "2012": {
+   "month": 3,
+   "start": "2012-04-21",
+   "inferred": false
+  },
+  "2017": {
+   "month": 5,
+   "start": "2017-06-24",
+   "inferred": false
+  }
+ }
+}

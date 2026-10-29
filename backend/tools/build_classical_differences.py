@@ -1,0 +1,165 @@
+"""원문·구현 차이 13건의 분류표를 만든다(golden/classical_differences.json). 실행: python -m tools.build_classical_differences
+- 분류: IMPLEMENTATION_BUG / SCHOOL_VARIANT / MODERN_CONVENTION / TRANSLATION_AMBIGUITY / SOURCE_UNVERIFIED
+- 발췌는 tools.verify_classical 의 캐시 페이지에서 그대로 존재하는지 확인해 verified_in_page 로 기록한다(오프라인 테스트는 이 플래그만 본다).
+"""
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+
+from tools import verify_classical as vc
+
+OUT = Path(__file__).resolve().parents[1] / "golden" / "classical_differences.json"
+ALLOWED = ["IMPLEMENTATION_BUG", "SCHOOL_VARIANT", "MODERN_CONVENTION", "TRANSLATION_AMBIGUITY", "SOURCE_UNVERIFIED"]
+
+
+def ex(code, text, kind, note=""):
+    return {"code": code, "text": text, "kind": kind, "note": note}
+
+
+D = {
+    "MG-L2-PA": {
+        "classification": "SCHOOL_VARIANT", "secondary": ["TRANSLATION_AMBIGUITY"],
+        "summary": "三命通會는 子酉·丑辰·卯午·未戌만 破로 취하고 寅申巳亥(寅亥·巳申)는 原破이나 合이므로 취하지 않는다. 任氏曰은 破 자체를 삭제 가능(不經)이라 한다. 엔진 기본 프로필은 6쌍 전부를 破로 기록.",
+        "original": [ex("sm", "卯與午，丑與辰，子與酉，未與戌，皆相破", "original"), ex("sm", "惟寅申巳亥原破，卻三合，故不取", "original", "'三合'은 六合(寅亥·巳申)을 가리키는 것으로 읽히나 용어가 모호"),
+                     ex("ren", "至於破之義，非害即刑也，尤屬不經，削之可也", "commentary")],
+        "engine": "layer2.py PA 표(6쌍)와 pair_relations(); profiles.pa 로 modern_6 / sanmyeongtonghoe_4 선택",
+        "handling": "학파 프로필로 분리됨(기존). sanmyeongtonghoe_4 만 원문과 일치. 기본값 modern_6 은 현대 통용 표이며 고전 원문과 같다고 표시하지 않는다(반대 근거에 '원문 대조(conflict)' 자동 부착).",
+        "profile": {"key": "pa", "values": ["modern_6", "sanmyeongtonghoe_4"], "default": "modern_6"}, "status": "resolved",
+        "regression_tests": ["tests/test_v65.py::test_pa_profile_switch_changes_relations_and_records_conflict"],
+    },
+    "MG-L2-HYUNG": {
+        "classification": "SCHOOL_VARIANT", "secondary": ["SOURCE_UNVERIFIED"],
+        "summary": "沈孝瞻은 刑을 三刑('子卯巳申之類')으로 정의하되 취의는 闕疑로 두고, 任氏曰은 刑·自刑을 俗謬로 배척한다. 엔진은 子卯·寅巳申·丑戌未·자형을 모두 '존재 후보'로만 기록(작용 미확정).",
+        "original": [ex("zpv", "刑者，三刑也，子卯巳申之類是也", "original"), ex("zpv", "至於三刑取廡，姑且闕疑", "original"),
+                     ex("ren", "子卯一刑也，寅巳申二刑也，丑戌未三刑也", "commentary", "통용 분류를 소개한 뒤 배척"), ex("ren", "又有自刑，此皆俗謬，姑置之", "commentary")],
+        "engine": "layer2.py HYUNG 처리(삼형 부분/완전, 子卯, 자형). 존재 후보만 기록",
+        "handling": "자형(辰午酉亥)을 hyung_profile 로 분리: common(기본, 자형 기록) / no_self(任氏曰에 따라 제외). 任氏曰의 刑 전면 배척은 규칙 자체를 지우는 것이라 프로필로 만들지 않음(SOURCE_UNVERIFIED: 그 입장의 학파 범위 미확인).",
+        "profile": {"key": "hyung", "values": ["common", "no_self"], "default": "common"}, "status": "resolved",
+        "regression_tests": ["tests/test_classical_regressions.py::test_hyung_profile_no_self_drops_self_punishment"],
+        "wiring_note": "analyze_structure(profiles={'hyung': ...}) 를 쓰려면 mingli/__init__.py 에서 analyze_layer2(..., hyung_profile=...) 전달 필요(제안 diff 참조)",
+    },
+    "MG-L2-HAE": {
+        "classification": "TRANSLATION_AMBIGUITY", "secondary": ["SCHOOL_VARIANT"],
+        "summary": "任氏曰은 害(穿)를 '六合의 상대를 沖하는 글자'로 정의한다. 이 규칙으로 도출한 6쌍은 엔진 표(子未·丑午·寅巳·卯辰·申亥·酉戌)와 정확히 같다(회귀 테스트로 확인). 다만 같은 주석의 예시 문구 '丑午寅亥'는 도출 결과(寅巳)와 어긋나 판본·표기 모호성이 있고, 주석은 害의 취의를 穿鑿이라 비판한다.",
+        "original": [ex("ren", "穿，即害也，六害由六合而來，沖我合神，故為之害", "commentary"), ex("ren", "害之義，尤為穿鑿", "commentary"), ex("ren", "子合丑而未沖，丑合子而午沖之類", "commentary")],
+        "engine": "layer2.py HAE 표 6쌍",
+        "handling": "구현 오류 없음(도출 일치). 예시 표기 차이는 TRANSLATION_AMBIGUITY 로 기록하고 표는 유지. 害 취의 비판은 반대 근거로 자동 부착. 원문(滴天髓 본문)에는 害 규정이 없다.",
+        "profile": None, "status": "documented",
+        "regression_tests": ["tests/test_classical_regressions.py::test_hae_table_equals_derivation_from_yukhap_and_chung"],
+    },
+    "MG-L2-HAP-HWA": {
+        "classification": "IMPLEMENTATION_BUG", "secondary": ["MODERN_CONVENTION", "SOURCE_UNVERIFIED"],
+        "summary": "원문 조건 중 구현에서 빠지거나 과하게 엄격했던 두 가지를 발견해 수정: ① 間隔(합 상대를 극하는 글자가 사이에 끼면 合而不敢合) 누락 ② 월령 조건이 '화신 오행과 같은/생하는 월지'로만 판정되어 辰·未·丑 같은 계절 월(木의 辰, 火의 未, 水의 丑)을 놓침(原文: 得時乘令). 쟁합·극신 조건은 원문 대응 미확인(구현자 보강).",
+        "original": [ex("zpv", "譬如甲與己合，而甲己中間，以庚間隔之", "original"), ex("zpv", "此制於勢然也，合而不敢合也，有若無也", "original"),
+                     ex("zpv", "甲在年干，己在時上", "original", "원격=半合"), ex("zpv", "有從化取格者，要化出之物，得時乘令，四支局全", "original")],
+        "engine": "layer2.py 천간합 루프: stem_gap()(間隔), month_tier()(得時/次等). 쟁합·극신 조건은 기존 유지",
+        "handling": "수정 완료. 천간합 노드와 합화 후보에 '사이 글자가 합 상대를 극하지 않음(間隔)' 조건 추가(극하면 '합 존재하나 間隔으로 합이 안 됨'), 월령 조건을 得時(계절)/次等(생하는 월·庫月)로 확장. 쟁합·극신 조건은 MODERN_CONVENTION(원문 대응 없음)으로 표시 유지.",
+        "profile": None, "status": "resolved",
+        "regression_tests": ["tests/test_classical_regressions.py::test_stem_gap_blocks_hap_and_is_recorded", "tests/test_classical_regressions.py::test_hwa_month_condition_uses_season_not_only_element"],
+    },
+    "MG-L2-BANGHAP": {
+        "classification": "TRANSLATION_AMBIGUITY", "secondary": ["MODERN_CONVENTION"],
+        "summary": "용어가 문헌마다 다르다: 滴天髓는 '方(寅卯辰)'과 '局(亥卯未)'을 구분하고, 任氏曰은 方을 寅卯辰·巳午未·申酉戌·亥子丑 4조로 나열한다. 沈孝瞻의 '會'는 申子辰(현대 삼합)을 가리키고 評註는 寅卯辰을 '三會'라 부른다. 2글자 부분 방합은 원문에 없다.",
+        "original": [ex("dt", "方是方兮局是局，方要得方莫混局", "original"), ex("ren", "支得寅卯辰、巳午未、申酉戌、亥子丑之方是也", "commentary"),
+                     ex("zpv", "會者，三會也，申子辰之類是也", "original", "沈孝瞻의 '會'=申子辰")],
+        "engine": "layer2.py BANGHAP: 3글자=방합(존재), 2글자=방합(부분, contested 기록만)",
+        "handling": "엔진 동작은 원문(3글자 方)과 일치. 용어 차이는 문서화. 부분 방합은 '인정 여부 논쟁'으로만 기록하고 존재 확정에 쓰지 않음(현대 확장).",
+        "profile": None, "status": "documented", "regression_tests": [],
+    },
+    "MG-L2-SAMHAP": {
+        "classification": "TRANSLATION_AMBIGUITY", "secondary": ["MODERN_CONVENTION"],
+        "summary": "沈孝瞻 원문은 申子辰을 '三會'라 부른다(현대 용어 '삼합'). 반합·공합의 구분과 인정 범위는 현대 확장이다.",
+        "original": [ex("zpv", "會者，三會也，申子辰之類是也", "original")],
+        "engine": "layer2.py SAMHAP: 완전 삼합 / 반합(왕지 포함) / 공합(왕지 없음, 논쟁)",
+        "handling": "용어 매핑을 문서화하고 반합·공합은 MODERN_CONVENTION 으로 표시. 구현 변경 없음.",
+        "profile": None, "status": "documented", "regression_tests": [],
+    },
+    "MG-L2-COMPETITION": {
+        "classification": "SCHOOL_VARIANT", "secondary": [],
+        "summary": "沈孝瞻은 합이 충·형을 푼다는 입장(합 우선)이면서, 합신이 다른 局에 끌려가면 풀지 못한다는 단서를 둔다. 엔진은 합 우선/충 우선/인접·월령 우선을 '논쟁'으로 병렬 기록하며 어느 쪽도 확정하지 않는다.",
+        "original": [ex("zpv", "刑沖俱非美事，而三合六合，可以解之", "original"), ex("zpv", "是會合而不能解刑沖也", "original", "합신이 다른 局에 끌려가면 풀리지 않음")],
+        "engine": "layer2.py MG-L2-COMPETITION 노드(탐합망충 contested)",
+        "handling": "학파 차이를 병렬 기록하는 현행 처리를 유지. '합신이 다른 局에 끌려가는 경우'는 미구현이며 기록만 남김(구현 확장 후보).",
+        "profile": None, "status": "documented", "regression_tests": [],
+    },
+    "MG-L1-DEUKRYEONG-BONGI": {
+        "classification": "MODERN_CONVENTION", "secondary": [],
+        "summary": "원문의 得令은 月令에서 用事하는 人元(令星)을 氣象·喜神(用神)이 얻는가의 문제이고, 評註도 得令(秉令)과 強弱을 분리한다. '월지 본기가 일간의 비겁/인성이면 득령'은 후대 신강약식 정의다.",
+        "original": [ex("dt", "令星，乃命之至要，宜氣象得令者吉，喜神得令者吉", "annotation"), ex("zpv", "雖秉令而不強也", "commentary")],
+        "engine": "layer1.py 득령(본기 기준) 노드",
+        "handling": "고전 직접 주장으로 표시하지 않는다(location_confirmed 유지, content_gap 기록). 학파 병렬 평가는 유지.",
+        "profile": None, "status": "documented", "regression_tests": [],
+    },
+    "MG-L1-DEUKRYEONG-SEASON": {
+        "classification": "MODERN_CONVENTION", "secondary": [],
+        "summary": "評註는 春木夏火秋金冬水를 得時(旺)라 하므로 '월령 오행 == 일간 오행'은 원문 계통과 일치한다. 엔진이 추가로 '월령이 일간을 생해도 득령 근거'로 보는 확장은 근거를 확인하지 못했다.",
+        "original": [ex("zpv", "春木夏火秋金冬水為得時，比劫印綬通根扶助為黨眾", "commentary")],
+        "engine": "layer1.py 득령(계절 오행 기준) 노드",
+        "handling": "핵심(같은 오행)은 text_confirmed(범위 한정), 생 확장은 MODERN_CONVENTION 으로 표시(coverage=partial).",
+        "profile": None, "status": "documented", "regression_tests": [],
+    },
+    "MG-L4-GYEOKGUK-BONGI": {
+        "classification": "SCHOOL_VARIANT", "secondary": [],
+        "summary": "원문은 본기를 本主로 하되 본기가 투출하지 않고 중기가 투출하면 중기가 作主한다(투출 우선). 엔진의 '항상 본기로 격 이름' 병렬 대안은 원문이 아닌 학파 대안이다.",
+        "original": [ex("zpv", "即以寅論，甲為本主，如郡之有府", "original"), ex("zpv", "不透甲而透丙，則如知府不臨郡，而同知得以作主", "original")],
+        "engine": "layer4.py 격국 후보: 투출 우선(주) + 본기 중심(병렬), 불일치 시 conflicts 간선",
+        "handling": "현행 병렬 기록 유지. 원문과 일치하는 쪽은 투출 우선(MG-L4-GYEOKGUK-CAND).",
+        "profile": None, "status": "documented", "regression_tests": [],
+    },
+    "MG-L4-SEONGPA": {
+        "classification": "MODERN_CONVENTION", "secondary": ["SOURCE_UNVERIFIED"],
+        "summary": "원문 成敗救應 절의 조건표를 구현자가 단순화했다. 확인된 생략: 傷官見官의 財 통관 구응(원문 있음), 刑沖의 會合 해소, 合煞 구응, 建祿·月劫·陽刃 격의 성패. 세부 위치(地位配置) 판단도 없음.",
+        "original": [ex("zpv", "傷官見官，為格之忌，透財而地位配置合宜，則傷官生財來生官，反可以解", "original"),
+                     ex("zpv", "何謂救應？如官逢傷而透印以解之", "original")],
+        "engine": "layer4.py SEONGPA 표(8개 격)",
+        "handling": "동작 변경 없음(기존 테스트가 현 표를 기준으로 함). 생략 항목은 known_gaps 로 기록해 상담문·UI 에서 '구현자 단순화'로 표시. 재물 통관 구응 추가는 후속 과제(제안).",
+        "profile": None, "status": "documented", "regression_tests": [],
+        "known_gaps": ["傷官見官 + 財 통관 구응 누락(정관격·상관격)", "刑沖 會合 해소 구응 누락", "合煞 구응 누락", "建祿·月劫·陽刃 격 성패 미구현"],
+    },
+    "MG-L4-EOKBU-YONGSHIN": {
+        "classification": "SCHOOL_VARIANT", "secondary": [],
+        "summary": "억부론은 滴天髓 衰旺論('旺則宜洩宜傷，衰則喜幫喜助')과 徐樂吾 評註의 扶抑 분류에 있는 학파 입장이다. 沈孝瞻의 격국론(月令 用神)과 묻는 질문이 다르다. 따라서 '沈孝瞻 원문이 아님'만으로 후대 개념(later_concept)이라고 단정할 수 없다.",
+        "original": [ex("dt", "旺則宜洩宜傷，衰則喜幫喜助，子平之理也", "original"), ex("zpv", "日元強者抑之，日元弱者扶之，此以扶抑為用神也", "commentary")],
+        "engine": "layer4.py 억부용신(강 후보→식상·재성·관성, 약 후보→인성·비겁); Multi-School 억부론",
+        "handling": "SCHOOL_VARIANT 로 재분류(제안: rules.py ENGINE_VS_CLASSICAL kind later_concept → school_variant). 강약 후보 판정 규칙 자체는 구현 규약.",
+        "profile": None, "status": "documented", "regression_tests": [],
+    },
+    "MG-L1-TONGGEUN": {
+        "classification": "SCHOOL_VARIANT", "secondary": ["MODERN_CONVENTION"],
+        "summary": "沈孝瞻은 通根의 重·輕을 十二運으로 가른다: 長生·祿·旺=根之重, 墓庫·餘氣=根之輕, 陰干 長生은 明根(餘氣 정도). 엔진 기본값은 지장간 위치(본기=강·중기=중·여기=약)로 등급을 매긴다. 예: 甲이 亥(甲은 중기)에 있어도 원문은 長生=重根.",
+        "original": [ex("zpv", "長生祿旺，根之重者也；墓庫餘氣，根之輕者也", "original"), ex("zpv", "陰長生不作此論", "original"), ex("zpv", "干多不如根重，理固然也", "original")],
+        "engine": "layer1.py 통근: position_role(기본) / twelve_stage(신규 프로필)",
+        "handling": "신규 tonggeun 프로필 twelve_stage 로 분리(analyze_layer1(tonggeun_profile=...)). 기본값 position_role 은 구현 규약으로 표시 유지.",
+        "profile": {"key": "tonggeun", "values": ["position_role", "twelve_stage"], "default": "position_role"}, "status": "resolved",
+        "regression_tests": ["tests/test_classical_regressions.py::test_tonggeun_twelve_stage_profile_matches_shen_xiaozhan_examples"],
+        "wiring_note": "analyze_structure(profiles={'tonggeun': ...}) 를 쓰려면 mingli/__init__.py 에서 analyze_layer1(..., tonggeun_profile=...) 전달 필요(제안 diff 참조)",
+    },
+}
+
+
+def main() -> None:
+    assert len(D) == 13
+    pages = {}
+    for code in vc.SOURCES:
+        t, _ = vc.fetch(code)
+        pages[code] = re.sub(r"\s+", "", t) if t else None
+    out = {}
+    for rid, d in D.items():
+        assert d["classification"] in ALLOWED and all(s in ALLOWED for s in d["secondary"])
+        evid = []
+        for e in d["original"]:
+            assert len(e["text"]) <= 40, (rid, e["text"])
+            ok = bool(pages.get(e["code"])) and re.sub(r"\s+", "", e["text"]) in pages[e["code"]]
+            evid.append({"work": vc.SOURCES[e["code"]][0], "url": vc.SOURCES[e["code"]][1], "kind": e["kind"], "text": e["text"], "note": e["note"], "verified_in_page": ok})
+        out[rid] = {**{k: v for k, v in d.items() if k != "original"}, "evidence": evid}
+    OUT.write_text(json.dumps({"accessed": vc.ACCESSED, "allowed_classifications": ALLOWED,
+                               "note": "분류는 사람이 원문 발췌와 엔진 코드를 읽고 내린 판단이다. 판본 교감은 하지 않았다.", "differences": out}, ensure_ascii=False, indent=1), encoding="utf-8")
+    bad = [(r, e["text"]) for r, d in out.items() for e in d["evidence"] if not e["verified_in_page"]]
+    from collections import Counter
+    print(dict(Counter(d["classification"] for d in out.values())), "unverified excerpts:", bad)
+
+
+if __name__ == "__main__":
+    main()

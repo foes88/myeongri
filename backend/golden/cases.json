@@ -1,0 +1,4668 @@
+{
+ "generated": "2026-10-29",
+ "cases": [
+  {
+   "test_id": "G-GEN-001",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1990,
+    "month": 11,
+    "day": 28,
+    "hour": 14,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "庚午",
+     "month": "丁亥",
+     "day": "丁酉",
+     "hour": "丁未"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-002",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2012,
+    "month": 1,
+    "day": 13,
+    "hour": 16,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "辛卯",
+     "month": "辛丑",
+     "day": "癸酉",
+     "hour": "庚申"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-003",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2001,
+    "month": 9,
+    "day": 27,
+    "hour": 20,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "辛巳",
+     "month": "丁酉",
+     "day": "癸巳",
+     "hour": "壬戌"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-004",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1992,
+    "month": 9,
+    "day": 13,
+    "hour": 3,
+    "minute": 10,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "壬申",
+     "month": "己酉",
+     "day": "壬辰",
+     "hour": "壬寅"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-005",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1993,
+    "month": 1,
+    "day": 25,
+    "hour": 3,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "壬申",
+     "month": "癸丑",
+     "day": "丙午",
+     "hour": "庚寅"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-006",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1966,
+    "month": 4,
+    "day": 27,
+    "hour": 18,
+    "minute": 40,
+    "gender": "female",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丙午",
+     "month": "壬辰",
+     "day": "丙辰",
+     "hour": "丁酉"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-007",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2011,
+    "month": 9,
+    "day": 16,
+    "hour": 3,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "辛卯",
+     "month": "丁酉",
+     "day": "甲戌",
+     "hour": "丙寅"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-008",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1989,
+    "month": 5,
+    "day": 10,
+    "hour": 3,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "己巳",
+     "month": "己巳",
+     "day": "庚午",
+     "hour": "戊寅"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-009",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1964,
+    "month": 8,
+    "day": 30,
+    "hour": 16,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "甲辰",
+     "month": "壬申",
+     "day": "辛亥",
+     "hour": "丙申"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-010",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2030,
+    "month": 3,
+    "day": 24,
+    "hour": 18,
+    "minute": 10,
+    "gender": "female",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "庚戌",
+     "month": "己卯",
+     "day": "戊午",
+     "hour": "辛酉"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-011",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2014,
+    "month": 3,
+    "day": 17,
+    "hour": 20,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "甲午",
+     "month": "丁卯",
+     "day": "丁亥",
+     "hour": "庚戌"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-012",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1963,
+    "month": 12,
+    "day": 4,
+    "hour": 12,
+    "minute": 20,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "癸卯",
+     "month": "癸亥",
+     "day": "辛巳",
+     "hour": "甲午"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-013",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1980,
+    "month": 5,
+    "day": 25,
+    "hour": 12,
+    "minute": 40,
+    "gender": "female",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "庚申",
+     "month": "辛巳",
+     "day": "戊戌",
+     "hour": "戊午"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-014",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2002,
+    "month": 4,
+    "day": 16,
+    "hour": 16,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "壬午",
+     "month": "甲辰",
+     "day": "甲寅",
+     "hour": "壬申"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-015",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1982,
+    "month": 10,
+    "day": 29,
+    "hour": 12,
+    "minute": 20,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "壬戌",
+     "month": "庚戌",
+     "day": "乙酉",
+     "hour": "壬午"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-016",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1971,
+    "month": 6,
+    "day": 11,
+    "hour": 18,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "辛亥",
+     "month": "甲午",
+     "day": "丁卯",
+     "hour": "己酉"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-017",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1990,
+    "month": 5,
+    "day": 29,
+    "hour": 9,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "庚午",
+     "month": "辛巳",
+     "day": "甲午",
+     "hour": "己巳"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-018",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2026,
+    "month": 5,
+    "day": 16,
+    "hour": 9,
+    "minute": 20,
+    "gender": "female",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丙午",
+     "month": "癸巳",
+     "day": "庚寅",
+     "hour": "辛巳"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-019",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1963,
+    "month": 9,
+    "day": 27,
+    "hour": 9,
+    "minute": 20,
+    "gender": "female",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "癸卯",
+     "month": "辛酉",
+     "day": "癸酉",
+     "hour": "丁巳"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-020",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2005,
+    "month": 7,
+    "day": 16,
+    "hour": 12,
+    "minute": 50,
+    "gender": "female",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "乙酉",
+     "month": "癸未",
+     "day": "辛丑",
+     "hour": "甲午"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-021",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2032,
+    "month": 1,
+    "day": 27,
+    "hour": 18,
+    "minute": 10,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "辛亥",
+     "month": "辛丑",
+     "day": "壬申",
+     "hour": "己酉"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-022",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1967,
+    "month": 2,
+    "day": 28,
+    "hour": 16,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "壬寅",
+     "day": "癸亥",
+     "hour": "庚申"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-023",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2006,
+    "month": 9,
+    "day": 12,
+    "hour": 16,
+    "minute": 40,
+    "gender": "female",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丙戌",
+     "month": "丁酉",
+     "day": "甲辰",
+     "hour": "壬申"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-GEN-024",
+   "category": "GEN",
+   "description": "일반 날짜(가상 입력)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2038,
+    "month": 3,
+    "day": 26,
+    "hour": 14,
+    "minute": 20,
+    "gender": "female",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "戊午",
+     "month": "乙卯",
+     "day": "壬寅",
+     "hour": "丁未"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month",
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-TERM-001",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 小寒)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 1,
+    "day": 5,
+    "hour": 23,
+    "minute": 6,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丙午",
+     "month": "庚子"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-002",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 小寒)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 1,
+    "day": 5,
+    "hour": 23,
+    "minute": 12,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丙午",
+     "month": "辛丑"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-003",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 立春)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 2,
+    "day": 4,
+    "hour": 10,
+    "minute": 43,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丙午",
+     "month": "辛丑"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-004",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 立春)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 2,
+    "day": 4,
+    "hour": 10,
+    "minute": 49,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "壬寅"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-005",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 惊蛰)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 3,
+    "day": 6,
+    "hour": 4,
+    "minute": 36,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "壬寅"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-006",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 惊蛰)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 3,
+    "day": 6,
+    "hour": 4,
+    "minute": 42,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "癸卯"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-007",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 清明)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 4,
+    "day": 5,
+    "hour": 9,
+    "minute": 14,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "癸卯"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-008",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 清明)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 4,
+    "day": 5,
+    "hour": 9,
+    "minute": 20,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "甲辰"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-009",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 立夏)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 5,
+    "day": 6,
+    "hour": 2,
+    "minute": 22,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "甲辰"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-010",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 立夏)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 5,
+    "day": 6,
+    "hour": 2,
+    "minute": 28,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "乙巳"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-011",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 芒种)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 6,
+    "day": 6,
+    "hour": 6,
+    "minute": 22,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "乙巳"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-012",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 芒种)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 6,
+    "day": 6,
+    "hour": 6,
+    "minute": 28,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "丙午"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-013",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 小暑)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 7,
+    "day": 7,
+    "hour": 16,
+    "minute": 34,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "丙午"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-014",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 小暑)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 7,
+    "day": 7,
+    "hour": 16,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "丁未"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-015",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 立秋)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 8,
+    "day": 8,
+    "hour": 2,
+    "minute": 23,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "丁未"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-016",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 立秋)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 8,
+    "day": 8,
+    "hour": 2,
+    "minute": 29,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "戊申"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-017",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 白露)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 9,
+    "day": 8,
+    "hour": 5,
+    "minute": 25,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "戊申"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-018",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 白露)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 9,
+    "day": 8,
+    "hour": 5,
+    "minute": 31,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "己酉"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-019",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 寒露)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 10,
+    "day": 8,
+    "hour": 21,
+    "minute": 14,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "己酉"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-020",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 寒露)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 10,
+    "day": 8,
+    "hour": 21,
+    "minute": 20,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "庚戌"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-021",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 立冬)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 11,
+    "day": 8,
+    "hour": 0,
+    "minute": 35,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "庚戌"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-022",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 立冬)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 11,
+    "day": 8,
+    "hour": 0,
+    "minute": 41,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "辛亥"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-023",
+   "category": "TERM",
+   "description": "절입 before 3분 (lunar-python 2027 大雪)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 12,
+    "day": 7,
+    "hour": 17,
+    "minute": 34,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "辛亥"
+    },
+    "boundary_side": "before"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-TERM-024",
+   "category": "TERM",
+   "description": "절입 after 3분 (lunar-python 2027 大雪)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2027,
+    "month": 12,
+    "day": 7,
+    "hour": 17,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "year": "丁未",
+     "month": "壬子"
+    },
+    "boundary_side": "after"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "year",
+    "month"
+   ],
+   "tolerance": "exact",
+   "note": "기대 간지·경계 시각=lunar-python. 엔진과 5초 이내 차이이므로 ±3분은 안전"
+  },
+  {
+   "test_id": "G-ZI-001",
+   "category": "ZI",
+   "description": "자시 경계 ZI_2300_DAY_CHANGE",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 22,
+    "minute": 59,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳",
+     "hour": "辛亥"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-002",
+   "category": "ZI",
+   "description": "자시 경계 ZI_2300_DAY_CHANGE",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 23,
+    "minute": 0,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "戊午"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-003",
+   "category": "ZI",
+   "description": "자시 경계 ZI_2300_DAY_CHANGE",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 23,
+    "minute": 30,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "戊午"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-004",
+   "category": "ZI",
+   "description": "자시 경계 ZI_2300_DAY_CHANGE",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 0,
+    "minute": 0,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳",
+     "hour": "庚子"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-005",
+   "category": "ZI",
+   "description": "자시 경계 ZI_2300_DAY_CHANGE",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 0,
+    "minute": 30,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳",
+     "hour": "庚子"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-006",
+   "category": "ZI",
+   "description": "자시 경계 ZI_2300_DAY_CHANGE",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 1,
+    "minute": 0,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳",
+     "hour": "辛丑"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-007",
+   "category": "ZI",
+   "description": "자시 경계 MIDNIGHT_SAME_DAY_STEM",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 22,
+    "minute": 59,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "MIDNIGHT_SAME_DAY_STEM"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳",
+     "hour": "辛亥"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-008",
+   "category": "ZI",
+   "description": "자시 경계 MIDNIGHT_SAME_DAY_STEM",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 23,
+    "minute": 0,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "MIDNIGHT_SAME_DAY_STEM"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-009",
+   "category": "ZI",
+   "description": "자시 경계 MIDNIGHT_SAME_DAY_STEM",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 23,
+    "minute": 30,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "MIDNIGHT_SAME_DAY_STEM"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-010",
+   "category": "ZI",
+   "description": "자시 경계 MIDNIGHT_SAME_DAY_STEM",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 0,
+    "minute": 0,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "MIDNIGHT_SAME_DAY_STEM"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳",
+     "hour": "庚子"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-011",
+   "category": "ZI",
+   "description": "자시 경계 MIDNIGHT_SAME_DAY_STEM",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 0,
+    "minute": 30,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "MIDNIGHT_SAME_DAY_STEM"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳",
+     "hour": "庚子"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-012",
+   "category": "ZI",
+   "description": "자시 경계 MIDNIGHT_SAME_DAY_STEM",
+   "synthetic_input": true,
+   "input": {
+    "year": 2015,
+    "month": 6,
+    "day": 10,
+    "hour": 1,
+    "minute": 0,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "MIDNIGHT_SAME_DAY_STEM"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁巳",
+     "hour": "辛丑"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-013",
+   "category": "ZI",
+   "description": "자시 경계 ZI_2300_DAY_CHANGE",
+   "synthetic_input": true,
+   "input": {
+    "year": 2023,
+    "month": 11,
+    "day": 3,
+    "hour": 23,
+    "minute": 30,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丙寅"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-014",
+   "category": "ZI",
+   "description": "자시 경계 ZI_2300_DAY_CHANGE",
+   "synthetic_input": true,
+   "input": {
+    "year": 2023,
+    "month": 11,
+    "day": 3,
+    "hour": 0,
+    "minute": 30,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "乙丑",
+     "hour": "丙子"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-015",
+   "category": "ZI",
+   "description": "자시 경계 MIDNIGHT_SAME_DAY_STEM",
+   "synthetic_input": true,
+   "input": {
+    "year": 2023,
+    "month": 11,
+    "day": 3,
+    "hour": 23,
+    "minute": 30,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "MIDNIGHT_SAME_DAY_STEM"
+   },
+   "expect": {
+    "pillars": {
+     "day": "乙丑"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-ZI-016",
+   "category": "ZI",
+   "description": "자시 경계 MIDNIGHT_SAME_DAY_STEM",
+   "synthetic_input": true,
+   "input": {
+    "year": 2023,
+    "month": 11,
+    "day": 3,
+    "hour": 0,
+    "minute": 30,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "MIDNIGHT_SAME_DAY_STEM"
+   },
+   "expect": {
+    "pillars": {
+     "day": "乙丑",
+     "hour": "丙子"
+    }
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour"
+   ],
+   "tolerance": "exact",
+   "note": "23시대 시주 천간은 학파차이라 lunar-python 비교 제외"
+  },
+  {
+   "test_id": "G-SOLAR-001",
+   "category": "SOLAR",
+   "description": "LOCAL_MEAN_SOLAR_TIME 서울특별시",
+   "synthetic_input": true,
+   "input": {
+    "year": 2010,
+    "month": 2,
+    "day": 11,
+    "hour": 7,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_MEAN_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "壬辰",
+     "hour": "甲辰"
+    },
+    "pillar_time": "2010-02-11T07:07:54.720000"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-002",
+   "category": "SOLAR",
+   "description": "LOCAL_APPARENT_SOLAR_TIME 서울특별시",
+   "synthetic_input": true,
+   "input": {
+    "year": 2010,
+    "month": 2,
+    "day": 11,
+    "hour": 7,
+    "minute": 40,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_APPARENT_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "壬辰",
+     "hour": "癸卯"
+    },
+    "pillar_time": "2010-02-11T06:53:39.430105"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-003",
+   "category": "SOLAR",
+   "description": "LOCAL_MEAN_SOLAR_TIME 부산광역시",
+   "synthetic_input": true,
+   "input": {
+    "year": 2012,
+    "month": 11,
+    "day": 3,
+    "hour": 8,
+    "minute": 20,
+    "gender": "male",
+    "place": "부산광역시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_MEAN_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "戊辰",
+     "hour": "丙辰"
+    },
+    "pillar_time": "2012-11-03T07:56:18.144000"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-004",
+   "category": "SOLAR",
+   "description": "LOCAL_APPARENT_SOLAR_TIME 부산광역시",
+   "synthetic_input": true,
+   "input": {
+    "year": 2012,
+    "month": 11,
+    "day": 3,
+    "hour": 8,
+    "minute": 20,
+    "gender": "male",
+    "place": "부산광역시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_APPARENT_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "戊辰",
+     "hour": "丙辰"
+    },
+    "pillar_time": "2012-11-03T08:12:46.896550"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-005",
+   "category": "SOLAR",
+   "description": "LOCAL_MEAN_SOLAR_TIME 광주광역시",
+   "synthetic_input": true,
+   "input": {
+    "year": 2005,
+    "month": 5,
+    "day": 15,
+    "hour": 12,
+    "minute": 20,
+    "gender": "male",
+    "place": "광주광역시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_MEAN_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "己亥",
+     "hour": "庚午"
+    },
+    "pillar_time": "2005-05-15T11:47:24.624000"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-006",
+   "category": "SOLAR",
+   "description": "LOCAL_APPARENT_SOLAR_TIME 광주광역시",
+   "synthetic_input": true,
+   "input": {
+    "year": 2005,
+    "month": 5,
+    "day": 15,
+    "hour": 12,
+    "minute": 20,
+    "gender": "male",
+    "place": "광주광역시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_APPARENT_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "己亥",
+     "hour": "庚午"
+    },
+    "pillar_time": "2005-05-15T11:51:04.453863"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-007",
+   "category": "SOLAR",
+   "description": "LOCAL_MEAN_SOLAR_TIME 제주특별자치도",
+   "synthetic_input": true,
+   "input": {
+    "year": 1999,
+    "month": 8,
+    "day": 20,
+    "hour": 14,
+    "minute": 5,
+    "gender": "male",
+    "place": "제주특별자치도"
+   },
+   "profile": {
+    "time_profile": "LOCAL_MEAN_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "甲辰",
+     "hour": "辛未"
+    },
+    "pillar_time": "1999-08-20T13:31:07.488000"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-008",
+   "category": "SOLAR",
+   "description": "LOCAL_APPARENT_SOLAR_TIME 제주특별자치도",
+   "synthetic_input": true,
+   "input": {
+    "year": 1999,
+    "month": 8,
+    "day": 20,
+    "hour": 14,
+    "minute": 5,
+    "gender": "male",
+    "place": "제주특별자치도"
+   },
+   "profile": {
+    "time_profile": "LOCAL_APPARENT_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "甲辰",
+     "hour": "辛未"
+    },
+    "pillar_time": "1999-08-20T13:27:35.393856"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-009",
+   "category": "SOLAR",
+   "description": "LOCAL_MEAN_SOLAR_TIME 서울특별시",
+   "synthetic_input": true,
+   "input": {
+    "year": 2021,
+    "month": 10,
+    "day": 25,
+    "hour": 18,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_MEAN_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丙午",
+     "hour": "丁酉"
+    },
+    "pillar_time": "2021-10-25T18:17:54.720000"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-010",
+   "category": "SOLAR",
+   "description": "LOCAL_APPARENT_SOLAR_TIME 서울특별시",
+   "synthetic_input": true,
+   "input": {
+    "year": 2021,
+    "month": 10,
+    "day": 25,
+    "hour": 18,
+    "minute": 50,
+    "gender": "male",
+    "place": "서울특별시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_APPARENT_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丙午",
+     "hour": "丁酉"
+    },
+    "pillar_time": "2021-10-25T18:33:53.502453"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-011",
+   "category": "SOLAR",
+   "description": "LOCAL_MEAN_SOLAR_TIME 부산광역시",
+   "synthetic_input": true,
+   "input": {
+    "year": 1990,
+    "month": 3,
+    "day": 3,
+    "hour": 4,
+    "minute": 45,
+    "gender": "male",
+    "place": "부산광역시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_MEAN_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁卯",
+     "hour": "壬寅"
+    },
+    "pillar_time": "1990-03-03T04:21:18.144000"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-SOLAR-012",
+   "category": "SOLAR",
+   "description": "LOCAL_APPARENT_SOLAR_TIME 부산광역시",
+   "synthetic_input": true,
+   "input": {
+    "year": 1990,
+    "month": 3,
+    "day": 3,
+    "hour": 4,
+    "minute": 45,
+    "gender": "male",
+    "place": "부산광역시"
+   },
+   "profile": {
+    "time_profile": "LOCAL_APPARENT_SOLAR_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "pillars": {
+     "day": "丁卯",
+     "hour": "壬寅"
+    },
+    "pillar_time": "1990-03-03T04:09:09.135935"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    },
+    {
+     "tool": "Meeus EoT",
+     "version": "Astronomical Algorithms ch.28"
+    }
+   ],
+   "fields_checked": [
+    "day",
+    "hour",
+    "pillar_time"
+   ],
+   "tolerance": "pillar_time ±30s(근사식 차이), 간지 exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-TZ-001",
+   "category": "TZ",
+   "description": "가상 입력: 1948 서머타임(+10:00, 초안의 540 기대값은 작성자 착오였음)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1948,
+    "month": 7,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 600
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-002",
+   "category": "TZ",
+   "description": "가상 입력: 1951 서머타임",
+   "synthetic_input": true,
+   "input": {
+    "year": 1951,
+    "month": 7,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 600
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-003",
+   "category": "TZ",
+   "description": "가상 입력: 1952 서머타임 없음",
+   "synthetic_input": true,
+   "input": {
+    "year": 1952,
+    "month": 7,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 540
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-004",
+   "category": "TZ",
+   "description": "가상 입력: 1954 +8:30 (서머타임 없음)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1954,
+    "month": 7,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 510
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-005",
+   "category": "TZ",
+   "description": "가상 입력: 1955 서머타임 +9:30",
+   "synthetic_input": true,
+   "input": {
+    "year": 1955,
+    "month": 7,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 570
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-006",
+   "category": "TZ",
+   "description": "가상 입력: 1954~61 +8:30",
+   "synthetic_input": true,
+   "input": {
+    "year": 1957,
+    "month": 1,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 510
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-007",
+   "category": "TZ",
+   "description": "가상 입력: 1960 서머타임",
+   "synthetic_input": true,
+   "input": {
+    "year": 1960,
+    "month": 7,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 570
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-008",
+   "category": "TZ",
+   "description": "가상 입력: 표준시 변경 전날",
+   "synthetic_input": true,
+   "input": {
+    "year": 1961,
+    "month": 8,
+    "day": 9,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 510
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-009",
+   "category": "TZ",
+   "description": "가상 입력: 표준시 변경 후",
+   "synthetic_input": true,
+   "input": {
+    "year": 1961,
+    "month": 8,
+    "day": 11,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 540
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-010",
+   "category": "TZ",
+   "description": "가상 입력: 1987 서머타임 시작 직후",
+   "synthetic_input": true,
+   "input": {
+    "year": 1987,
+    "month": 5,
+    "day": 10,
+    "hour": 3,
+    "minute": 30,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 600
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-011",
+   "category": "TZ",
+   "description": "가상 입력: 1987 종료 직전",
+   "synthetic_input": true,
+   "input": {
+    "year": 1987,
+    "month": 10,
+    "day": 11,
+    "hour": 1,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 600
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-012",
+   "category": "TZ",
+   "description": "가상 입력: 1988 시작 직후",
+   "synthetic_input": true,
+   "input": {
+    "year": 1988,
+    "month": 5,
+    "day": 8,
+    "hour": 3,
+    "minute": 30,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 600
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-013",
+   "category": "TZ",
+   "description": "가상 입력: 1988 종료 후",
+   "synthetic_input": true,
+   "input": {
+    "year": 1988,
+    "month": 10,
+    "day": 9,
+    "hour": 4,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 540
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-014",
+   "category": "TZ",
+   "description": "가상 입력: 1988 한여름",
+   "synthetic_input": true,
+   "input": {
+    "year": 1988,
+    "month": 7,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 600
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-015",
+   "category": "TZ",
+   "description": "가상 입력: 1989 서머타임 없음",
+   "synthetic_input": true,
+   "input": {
+    "year": 1989,
+    "month": 7,
+    "day": 1,
+    "hour": 12,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "utc_offset_minutes": 540
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "utc_offset_minutes"
+   ],
+   "tolerance": "exact",
+   "note": "tzdata와 독립 아님: 연혁 정합성 점검용"
+  },
+  {
+   "test_id": "G-TZ-016",
+   "category": "TZ",
+   "description": "가상 입력: 1988-05-08 02:30 존재하지 않는 시각",
+   "synthetic_input": true,
+   "input": {
+    "year": 1988,
+    "month": 5,
+    "day": 8,
+    "hour": 2,
+    "minute": 30,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "error": "존재하지 않는"
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "error"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-TZ-017",
+   "category": "TZ",
+   "description": "가상 입력: 1988-10-09 02:30 중복 시각 → 경고",
+   "synthetic_input": true,
+   "input": {
+    "year": 1988,
+    "month": 10,
+    "day": 9,
+    "hour": 2,
+    "minute": 30,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "warning": "ambiguous_local_time"
+   },
+   "references": [
+    {
+     "tool": "IANA tzdata/공개 연혁",
+     "version": "tzdata 2024.1"
+    }
+   ],
+   "fields_checked": [
+    "warning"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-LUNAR-001",
+   "category": "LUNAR",
+   "description": "1990 윤5월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 1990,
+    "month": 5,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "1990-06-23"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-002",
+   "category": "LUNAR",
+   "description": "1990 5월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 1990,
+    "month": 5,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "1990-05-24"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-003",
+   "category": "LUNAR",
+   "description": "2001 윤4월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2001,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2001-05-23"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-004",
+   "category": "LUNAR",
+   "description": "2001 4월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2001,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2001-04-23"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-005",
+   "category": "LUNAR",
+   "description": "2004 윤2월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2004,
+    "month": 2,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2004-03-21"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-006",
+   "category": "LUNAR",
+   "description": "2004 2월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2004,
+    "month": 2,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2004-02-20"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-007",
+   "category": "LUNAR",
+   "description": "2006 윤7월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2006,
+    "month": 7,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2006-08-24"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-008",
+   "category": "LUNAR",
+   "description": "2006 7월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2006,
+    "month": 7,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2006-07-25"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-009",
+   "category": "LUNAR",
+   "description": "2009 윤5월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2009,
+    "month": 5,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2009-06-23"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-010",
+   "category": "LUNAR",
+   "description": "2009 5월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2009,
+    "month": 5,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2009-05-24"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-011",
+   "category": "LUNAR",
+   "description": "2012 윤4월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2012,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2012-05-21"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-012",
+   "category": "LUNAR",
+   "description": "2012 4월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2012,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2012-04-21"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-013",
+   "category": "LUNAR",
+   "description": "2014 윤9월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2014,
+    "month": 9,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2014-10-24"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-014",
+   "category": "LUNAR",
+   "description": "2014 9월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2014,
+    "month": 9,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2014-09-24"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-015",
+   "category": "LUNAR",
+   "description": "2017 윤6월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2017,
+    "month": 6,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2017-07-23"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-016",
+   "category": "LUNAR",
+   "description": "2017 6월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2017,
+    "month": 6,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2017-06-24"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-017",
+   "category": "LUNAR",
+   "description": "2020 윤4월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2020,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2020-05-23"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-018",
+   "category": "LUNAR",
+   "description": "2020 4월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2020,
+    "month": 4,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2020-04-23"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-019",
+   "category": "LUNAR",
+   "description": "2023 윤2월 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2023,
+    "month": 2,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": true
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2023-03-22"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-020",
+   "category": "LUNAR",
+   "description": "2023 2월(평달) 초하루",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2023,
+    "month": 2,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0,
+    "is_leap_month": false
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2023-02-20"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": "lunar-python(중국 음력) 기준"
+  },
+  {
+   "test_id": "G-LUNAR-021",
+   "category": "LUNAR",
+   "description": "2021 윤4월 없음 → 오류",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2021,
+    "month": 4,
+    "day": 1,
+    "is_leap_month": true,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "error": "존재하지 않는"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "error"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-LUNAR-022",
+   "category": "LUNAR",
+   "description": "2000 음력 설",
+   "synthetic_input": true,
+   "input": {
+    "calendar": "lunar",
+    "year": 2000,
+    "month": 1,
+    "day": 1,
+    "gender": "male",
+    "hour": 12,
+    "minute": 0
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "solar_date": "2000-02-05"
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "solar_date"
+   ],
+   "tolerance": "exact",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-001",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1984,
+    "month": 6,
+    "day": 15,
+    "hour": 10,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "forward",
+    "start_age": [
+     7,
+     3,
+     17
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-002",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1984,
+    "month": 6,
+    "day": 15,
+    "hour": 10,
+    "minute": 0,
+    "gender": "female"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "backward",
+    "start_age": [
+     3,
+     2,
+     4
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-003",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1999,
+    "month": 3,
+    "day": 3,
+    "hour": 9,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "backward",
+    "start_age": [
+     8,
+     10,
+     25
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-004",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1999,
+    "month": 3,
+    "day": 3,
+    "hour": 9,
+    "minute": 0,
+    "gender": "female"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "forward",
+    "start_age": [
+     1,
+     0,
+     4
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-005",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2000,
+    "month": 1,
+    "day": 1,
+    "hour": 19,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "backward",
+    "start_age": [
+     8,
+     3,
+     11
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-006",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1975,
+    "month": 3,
+    "day": 3,
+    "hour": 3,
+    "minute": 0,
+    "gender": "female"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "forward",
+    "start_age": [
+     1,
+     1,
+     25
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-007",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2008,
+    "month": 11,
+    "day": 7,
+    "hour": 15,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "forward",
+    "start_age": [
+     9,
+     10,
+     0
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-008",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1966,
+    "month": 9,
+    "day": 9,
+    "hour": 21,
+    "minute": 0,
+    "gender": "female"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "backward",
+    "start_age": [
+     0,
+     5,
+     17
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-009",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 2013,
+    "month": 5,
+    "day": 28,
+    "hour": 13,
+    "minute": 0,
+    "gender": "male"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "backward",
+    "start_age": [
+     7,
+     7,
+     8
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  },
+  {
+   "test_id": "G-DAEUN-010",
+   "category": "DAEUN",
+   "description": "대운 순역·기산 (3일=1년)",
+   "synthetic_input": true,
+   "input": {
+    "year": 1992,
+    "month": 12,
+    "day": 25,
+    "hour": 7,
+    "minute": 0,
+    "gender": "female"
+   },
+   "profile": {
+    "time_profile": "CIVIL_TIME",
+    "zi_profile": "ZI_2300_DAY_CHANGE"
+   },
+   "expect": {
+    "direction": "backward",
+    "start_age": [
+     6,
+     0,
+     6
+    ]
+   },
+   "references": [
+    {
+     "tool": "lunar-python",
+     "version": "1.4.8"
+    }
+   ],
+   "fields_checked": [
+    "direction",
+    "start_age"
+   ],
+   "tolerance": "방향 exact; 시작일수 ±1일(sect=2 분 단위 환산)",
+   "note": ""
+  }
+ ]
+}

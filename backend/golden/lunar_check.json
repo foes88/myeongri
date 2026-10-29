@@ -1,0 +1,68 @@
+{
+ "hko_vs_derived8_mismatch_years": [
+  2033
+ ],
+ "klc_vs_derived9_mismatch_years": [
+  2033
+ ],
+ "kasi_vs_klc": {
+  "2023": true,
+  "2024": true,
+  "2025": true,
+  "2026": true,
+  "2027": true,
+  "2028": true
+ },
+ "kasi_vs_derived9": {
+  "2023": true,
+  "2024": true,
+  "2025": true,
+  "2026": true,
+  "2027": true,
+  "2028": true
+ },
+ "detail_focus": {
+  "2001": {
+   "derived_kst_leap": [
+    "2001-05-23"
+   ],
+   "klc_leap": [
+    "2001-05-23"
+   ],
+   "hko_leap": [
+    "2001-05-23"
+   ],
+   "derived_cst_leap": [
+    "2001-05-23"
+   ]
+  },
+  "2012": {
+   "derived_kst_leap": [
+    "2012-04-21"
+   ],
+   "klc_leap": [
+    "2012-04-21"
+   ],
+   "hko_leap": [
+    "2012-05-21"
+   ],
+   "derived_cst_leap": [
+    "2012-05-21"
+   ]
+  },
+  "2017": {
+   "derived_kst_leap": [
+    "2017-06-24"
+   ],
+   "klc_leap": [
+    "2017-06-24"
+   ],
+   "hko_leap": [
+    "2017-07-23"
+   ],
+   "derived_cst_leap": [
+    "2017-07-23"
+   ]
+  }
+ }
+}
