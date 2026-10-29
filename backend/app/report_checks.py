@@ -67,9 +67,19 @@ def l02_hidden_stems(claimed: dict[str, str]) -> Finding:
     return Finding("L02", not bad, f"불일치={bad}" if bad else "")
 
 
+BRANCH_SEASON = {"寅": "봄", "卯": "봄", "辰": "봄", "巳": "여름", "午": "여름", "未": "여름",
+                 "申": "가을", "酉": "가을", "戌": "가을", "亥": "겨울", "子": "겨울", "丑": "겨울"}
+
+# 계산 오류(L01~L03 등)와 해석 오류를 분리 기록하기 위한 분류 (보강 지시 §3)
+CALC_CHECKS = {"L01", "L02", "L03", "X05", "X06"}
+
+
+def error_kind(check_id: str) -> str:
+    return "calculation" if check_id in CALC_CHECKS else "interpretation"
+
+
 def l03_month_season(month_branch: str, claimed_season: str) -> Finding:
-    season = {"寅": "봄", "卯": "봄", "辰": "봄", "巳": "여름", "午": "여름", "未": "여름",
-              "申": "가을", "酉": "가을", "戌": "가을", "亥": "겨울", "子": "겨울", "丑": "겨울"}[month_branch]
+    season = BRANCH_SEASON[month_branch]
     return Finding("L03", season == claimed_season, f"정답={season}, 주장={claimed_season}")
 
 
