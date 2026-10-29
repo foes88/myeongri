@@ -27,6 +27,7 @@
   <div class="devline"><label for="api">연결 설정(개발용) · API 주소</label>
     <input id="api" placeholder="http://127.0.0.1:8000" aria-describedby="apihelp"> <span id="apihelp" class="small muted">로컬 실행: <code>uvicorn app.main:app --port 8000</code> (backend 폴더)</span></div>
 
+  <div id="formbar" class="formbar" hidden><span id="formsum"></span> <button type="button" class="sec" id="formedit">입력 수정</button></div>
   <form id="f" class="request" novalidate>
     <fieldset>
       <legend><span class="no">一</span>출생 정보</legend>
@@ -172,29 +173,28 @@ function firstSentence(t){const m=t.match(/^.*?[.!?](\s|$)/);return m?m[0].trim(
 
 function renderCover(a,pre){
   const c=$('cover');c.textContent='';
-  c.append(el('p',STATIC?'제1장 · 표지 요약 — 합성 데모(실제 분석 결과가 아닙니다)':'제1장 · 표지 요약 — 입력하신 출생 정보로 계산한 결과','kicker'));
+  c.append(el('p',STATIC?'합성 데모(실제 분석 결과가 아닙니다)':'입력하신 출생 정보로 계산한 결과','kicker'));
   c.append(el('h1','명식과 흐름에 대한 해설'));
   const m=el('p',null,'meta');
   const add=(k,v)=>{const s=el('span');s.append(el('b',k+' '));s.append(document.createTextNode(v));m.append(s)};
   add('분석 시기',a.years.length?a.years.join(' · ')+'년':'원국');add('살펴본 분야',(a.domains||[]).map(d=>DOM_KO[d]||d).join(', '));add('해설의 깊이',DEPTH_KO[a.depth]||a.depth);
   c.append(m);
-  const st=(a.natal_feature_items||[]).find(f=>f.kind==='structure');
-  c.append(el('p',(st?T(st.text)+' ':'')+'분야별 근거와 선택한 시기의 흐름은 아래 장에서 차례로 이어집니다. 구조가 있다는 것과 실제로 일어난다는 것은 다릅니다.','lead'));
   const v=pre.verification;
-  c.append(el('p','계산 검증: '+(v.unverified_notice&&v.unverified_notice.length?'일부 범위는 아직 검증 전입니다 — 3장에서 범위를 확인하세요.':'표시된 범위에서 검증됨')+' · 이 해설은 예측이나 보장이 아닙니다.','note'));
+  c.append(el('p','계산 검증: '+(v.unverified_notice&&v.unverified_notice.length?'일부 범위는 아직 검증 전입니다 — 아래 ‘명식과 검증 상태’에서 범위를 확인하세요.':'표시된 범위에서 검증됨')+' · 이 해설은 예측이나 보장이 아닙니다.','note'));
 }
 function renderStatus(pre,reopened){
-  const s=$('status');s.hidden=false;s.textContent='';s.append(el('span','제3장','no'));const h=el('h2','명식 및 검증 상태');h.id='ch3';s.append(h);
+  const s=$('status');s.hidden=false;s.textContent='';const h=el('h2','명식과 검증 상태');h.id='ch3';s.append(h);
   const v=pre.verification;
   s.append(pillarTable(pre.pillars));
-  s.append(el('p',(reopened?'재열람 · ':'')+'판정: '+v.status+' · 계산 프로필: '+pre.calculation_profile_id+' · 기록 해시: '+pre.content_hash.slice(0,12)+'… ('+pre.generated_at+') · 규칙 버전 '+pre.ruleset_version,'status-line number'));
+  const prof=el('details',null,'fold');prof.append(el('summary','계산 프로필·기록 정보'));prof.append(el('p',(reopened?'재열람 · ':'')+'판정: '+v.status+' · 계산 프로필: '+pre.calculation_profile_id+' · 기록 해시: '+pre.content_hash.slice(0,12)+'… ('+pre.generated_at+') · 규칙 버전 '+pre.ruleset_version,'status-line number'));
   const sc=v.scope||{};const row=el('p');
   [['핵심 간지(연·월·일주)','CORE_VALIDATED',sc.CORE_VALIDATED&&sc.CORE_VALIDATED.granted],['시주·시간 보정','TIME_PROFILE_VALIDATED',sc.TIME_PROFILE_VALIDATED&&sc.TIME_PROFILE_VALIDATED.granted],['대운 기산','DAEUN_PROFILE_VALIDATED',sc.DAEUN_PROFILE_VALIDATED&&sc.DAEUN_PROFILE_VALIDATED.granted]].forEach(([k,code,g])=>{const sp=el('span',k+(g?' 검증됨':' 검증 전')+' · ','pill badge '+(g?'on':'off'));sp.append(el('span',code,'code'));row.append(sp)});
   if(sc.LUNAR_KR_PENDING)row.append(el('span','LUNAR_KR: '+sc.LUNAR_KR_PENDING.state,'pill badge'));
   if(sc.CLASSICAL_RULES_PENDING)row.append(el('span','고전 원문 대조 전 규칙 '+sc.CLASSICAL_RULES_PENDING.pending+'/'+sc.CLASSICAL_RULES_PENDING.total,'pill badge off'));
   s.append(row);
   if(pre.variants_count>1)s.append(el('p','시간 보정·23시 규칙에 따라 명식이 '+pre.variants_count+'개로 갈립니다. 선택한 명식: '+pre.variant_id+'. 다른 명식으로 읽으면 시주와 일부 해석이 달라질 수 있습니다.','note'));
-  if(v.unverified_notice&&v.unverified_notice.length){const d=el('details');d.open=true;d.append(el('summary','검증이 끝나지 않은 범위'));d.append(ul(v.unverified_notice));s.append(d)}
+  if(v.unverified_notice&&v.unverified_notice.length){const d=el('details');d.append(el('summary','검증이 끝나지 않은 범위 ('+v.unverified_notice.length+'건)'));d.append(ul(v.unverified_notice));s.append(d)}
+  s.append(prof);
 }
 
 function evidenceTwo(b){const w=el('div',null,'two');
@@ -227,14 +227,41 @@ function classicalChapter(a,no){
     if(a.expert.profiles)x.append(el('p','학파 프로필: '+JSON.stringify(a.expert.profiles),'small'));d.append(x);ch.append(d)}
   return ch}
 
+/* ---------- v6.9: 종합 해석(첫 화면) + 접힌 상세 ---------- */
+function sentP(x){const p=el('p',x.text,'sent');p.dataset.claims=(x.claim_ids||[]).join(',');p.dataset.basis=x.basis||'';if(x.rule_status)p.dataset.ruleStatus=x.rule_status;return p}
+function sentList(arr,cls){const u=el('ul',null,cls||'sentlist');arr.forEach(x=>{const li=el('li',x.text);li.dataset.claims=(x.claim_ids||[]).join(',');li.dataset.basis=x.basis||'';u.append(li)});return u}
+function fold(title,ch){const d=el('details',null,'fold');d.append(el('summary',title));[...ch.children].forEach(c=>{if(c.classList.contains('no')||c.tagName==='H2')return;d.append(c)});return d}
+function keyChapter(a,pre){
+  const S=a.synthesis;const keys=el('section',null,'chapter keys');keys.id='keypoints';
+  const h2=el('h2',S&&S.mode==='multi'?'기간 핵심 흐름':'핵심 해석');h2.id='ch2';keys.append(h2);
+  if(!S){const pts=[];(a.blocks||[]).forEach(b=>pts.push(b.name+' — '+T(firstSentence(b.easy_text))));keys.append(ul(pts.length?pts:[firstSentence(a.summary_easy)]));return keys}
+  const vs=el('p',null,'vstrip');vs.append(el('span','검증 '+(S.verification.v_status||'—'),'pill badge'));
+  vs.append(document.createTextNode(' '+S.verification.limit));keys.append(vs);
+  S.headline.forEach(x=>keys.append(sentP(x)));
+  if(S.insufficient_evidence)keys.append(el('p','근거가 부족한 부분은 채우지 않았습니다.','note'));
+  const two=el('div',null,'two');
+  const pos=el('div',null,'positive');pos.append(el('h4','유리하게 읽히는 조건'),S.favorable.length?sentList(S.favorable):ul(['이 시기와 분야에서 뚜렷하게 돕는 조건은 확인되지 않았습니다.']));
+  const cau=el('div',null,'caution');cau.append(el('h4','주의하거나 상반되는 조건'),S.cautions.length?sentList(S.cautions):ul(['눈에 띄는 상반 조건은 확인되지 않았습니다.']));
+  two.append(pos,cau);keys.append(two);
+  if(S.domain_summaries.length){keys.append(el('h3','관심 분야별 핵심 요약'));const dl=el('dl',null,'facts domsum');S.domain_summaries.forEach(d=>{dl.append(el('dt',d.name));const dd=el('dd',d.text);dd.dataset.claims=(d.claim_ids||[]).join(',');dl.append(dd)});keys.append(dl)}
+  const f=S.period_flow||{};
+  if(f.mode==='multi'){
+    keys.append(el('h3','연도별 한 줄 요약'));
+    const ol=el('ol',null,'yearlines');
+    f.years.forEach(y=>{const li=el('li',null,y.standout?'standout':'');li.append(el('b',y.year+'년'+(y.standout?' ★ ':' ')));li.append(document.createTextNode(y.one_line));
+      const ys=(f.year_sentences||{})[y.year]||[];if(ys.length){const d=el('details',null,'yd');d.append(el('summary',y.year+'년 자세히'));d.append(sentList(ys));li.append(d)}ol.append(li)});
+    keys.append(ol);if(f.standout_note)keys.append(el('p',f.standout_note,'small muted'));
+  }
+  keys.append(el('h3','읽을 때 유의할 점'));keys.append(sentList(S.uncertainty,'sentlist small'));
+  keys.append(el('p','모든 문장은 쉬운 말로 옮긴 현대적 풀이입니다. 각 풀이가 기대는 규칙의 고전 확인 상태는 ‘더 자세히’의 고전 근거에서 확인합니다. 구조가 있다는 것과 실제로 일어난다는 것은 다릅니다.','small muted'));
+  return keys}
+
 function renderReport(a,pre,reopened){
   $('report').hidden=false;
   renderCover(a,pre);renderStatus(pre,reopened);
   const out=$('out');out.textContent='';
-  const keys=el('section',null,'chapter');keys.append(el('span','제2장','no'));const h2=el('h2','핵심 해석');h2.id='ch2';keys.append(h2);
-  const pts=[];(a.question_context&&a.question_context.items||[]).forEach(i=>pts.push(i.text));(a.blocks||[]).forEach(b=>{const names=(b.structures||[]).filter(x=>x.label!=='없음').map(x=>x.structure);pts.push(b.name+' — '+(names.length?names.join(', ')+' 구조가 참고됩니다. 근거와 반대 근거는 7장에서 확인하세요.':T(firstSentence(b.easy_text))))});
-  keys.append(ul(pts.length?pts:[firstSentence(a.summary_easy)]));
-  const old=$('keypoints');if(old)old.remove();keys.id='keypoints';$('report').insertBefore(keys,$('status'));
+  const old=$('keypoints');if(old)old.remove();
+  const keys=keyChapter(a,pre);$('report').insertBefore(keys,$('status'));
   const c4=chapter(4,'원국의 주요 특징');const dl=el('dl',null,'facts');(a.natal_feature_items||[]).forEach(f=>{dl.append(el('dt',KIND_KO[f.kind]||f.kind));const dd=el('dd',T(f.text));if(f.claim_ids.length)dd.append(el('span','근거 '+f.claim_ids.join(', '),'cid'));dl.append(dd)});c4.append(dl);
   const c5=periodChapter(a,5);
   const c6=chapter(6,'분야별 상세 해석');
@@ -247,9 +274,7 @@ function renderReport(a,pre,reopened){
   if(a.school_view){c8.append(el('p','같은 명식도 어떤 질문을 먼저 보느냐에 따라 읽는 방향이 달라집니다. 하나의 점수나 결론으로 합치지 않고 관점별로 적습니다.','muted'));c8.append(ul(a.school_view.per_school.concat(a.school_view.relations)))}
   else c8.append(el('p','요약 모드에서는 학파별 차이를 접어 둡니다. ‘상세’ 또는 ‘전문가’ 깊이로 다시 의뢰하면 관점별 해석을 볼 수 있습니다.','muted'));
   const c9=classicalChapter(a,9);
-  const c10=chapter(10,'종합 소견');
-  const st2=(a.natal_feature_items||[]).find(f=>f.kind==='structure');
-  c10.append(el('p',(st2?T(st2.text)+' ':'')+'선택한 시기에는 구간마다 새로 생기는 관계 후보가 있으나, 이는 구조가 달라질 수 있다는 뜻일 뿐 특정 사건을 예측하지 않습니다. 학파마다 읽는 방향이 달라 하나의 결론으로 합치지 않았습니다.'));
+  const c10=chapter(10,'조언·용어·해석의 범위');
   (a.paragraphs||[]).filter(p=>p.kind==='closing').forEach(p=>c10.append(el('p',p.text,'muted')));
   c10.append(el('h3',a.life_advice.label),ul(a.life_advice.items));
   const g=Object.entries(a.glossary||{});if(g.length){const d=el('details');d.append(el('summary','용어 풀이'));const l=el('dl',null,'facts');g.forEach(([k,v])=>l.append(el('dt',k),el('dd',v)));d.append(l);c10.append(d)}
@@ -259,7 +284,9 @@ function renderReport(a,pre,reopened){
   const c11=chapter(11,'이어서 살펴볼 질문');
   c11.append(ul(a.followup_questions&&a.followup_questions.length?a.followup_questions:['더 살펴보고 싶은 분야나 연도를 아래 ‘기록 추가’에 적어 주세요.']));
   c11.append(el('p',a.followup_note||'답해 주신 현실 정보는 조언에만 쓰이며 처음 작성한 해석을 바꾸지 않습니다.','small muted'));
-  [c4,c5,c6,c7,c8,c9,c10,c11].forEach(c=>out.append(c));
+  const more=el('section',null,'chapter more');more.id='more';more.append(el('h2','더 자세히 살펴볼 내용'),el('p','필요한 항목만 펼쳐 보세요. 위의 풀이가 어떤 근거에서 나왔는지 확인할 수 있습니다.','muted'));
+  [['연도별 세부 구간(대운·세운 표)',c5],['원국의 주요 특징',c4],['분야별 상세 해석',c6],['긍정 근거와 주의 근거',c7],['학파별 차이',c8],['고전 근거(원문 확인 상태)',c9],['조언·용어·해석의 범위',c10],['이어서 살펴볼 질문',c11]].forEach(([t,c])=>more.append(fold(t,c)));
+  out.append(more);
 }
 function renderRecord(a,question){
   recordNo+=1;
@@ -277,9 +304,13 @@ function renderRecord(a,question){
   $('out').append(s);s.scrollIntoView({block:'nearest'});
 }
 
+function collapseForm(j){const yrs=(j.precommit.years||[]);$('formsum').textContent='분석 완료 · '+(yrs.length?yrs.join('·')+'년':'원국')+' · '+(j.answer.domains||[]).map(d=>DOM_KO[d]||d).join(', ');
+  $('f').hidden=true;$('intronote').hidden=true;$('formbar').hidden=false}
+$('formedit').addEventListener('click',()=>{$('f').hidden=false;$('intronote').hidden=false;$('formbar').hidden=true;$('f').scrollIntoView({block:'start'})});
 function begin(j){thread=ONESHOT?'oneshot':j.thread_id;token=ONESHOT?'':j.access_token;recordNo=0;localRecords.length=0;$('session').hidden=false;
   const prev=$('keypoints');if(prev)prev.remove();
   renderReport(j.answer,Object.assign({},j.precommit),false);
+  collapseForm(j);
   const n=ONESHOT?el('p','저장되지 않는 일회성 분석입니다. 이 화면을 닫거나 새로고침하면 내용이 사라지며, 다시 보려면 같은 정보를 다시 입력해야 합니다.','small muted'):el('p','상담 번호: '+thread+' · 접근 토큰은 이 화면에만 표시되며 새로고침하면 사라집니다. 다시 열려면 번호와 토큰을 보관하세요.','small muted');$('cover').append(n);
   $('evy').value=(j.precommit.years||[2030])[0];$('report').scrollIntoView({behavior:'auto',block:'start'});
   document.querySelector('.steps li:nth-child(1)').removeAttribute('aria-current');document.querySelector('.steps li:nth-child(2)').setAttribute('aria-current','step')}

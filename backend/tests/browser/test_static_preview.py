@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from .conftest import assert_report_order, expanded_text
 
 from .conftest import BACKEND, OUT, free_port, wait_http
 
@@ -65,10 +66,9 @@ def test_demo_report_renders_without_any_network_send(browser, static_web, depth
     p.select_option("#demodepth", depth)
     p.click("#demobtn")
     p.wait_for_selector("#session:not([hidden])")
-    text = p.inner_text("#report")
+    assert_report_order(p)  # 펼치기 전 기본 상태에서 검사
+    text = expanded_text(p, "#report")
     assert "합성 데모" in text and "실제 분석 결과가 아닙니다" in text
-    nos = [t.strip() for t in p.eval_on_selector_all(".chapter > .no", "els=>els.map(e=>e.textContent)")]
-    assert nos[-1] == "제11장" and "제3장" in nos
     assert ("전문가용 상세" in p.evaluate("(()=>{const e=document.querySelector('#out .expert-only');return e?getComputedStyle(e,'::before').content:''})()")) == (depth == "expert")
     # 명식 표, 대운·세운 구간 표, 고전 근거 상세
     assert p.locator("#status table.pillars").count() == 1 and p.locator("#out table").count() >= 1
@@ -166,7 +166,7 @@ def test_csp_headers_allow_demo_but_block_external_network_send(browser, header_
     p.wait_for_function("typeof window.MINGLI_DEMO==='object'")  # 정적 스크립트는 허용
     p.click("#demobtn")
     p.wait_for_selector("#session:not([hidden])")
-    assert "합성 데모" in p.inner_text("#report")
+    assert "합성 데모" in expanded_text(p, "#report")
     # 외부 출처로의 fetch 는 CSP(connect-src 'self')로 차단된다. 정적 모드 코드는 같은 출처 호출도 하지 않는다(위 테스트에서 fetch 0건 확인)
     res2 = p.evaluate("fetch('https://example.com/x',{method:'POST',body:'x'}).then(()=>'sent').catch(e=>'blocked')")
     assert res2 == "blocked"

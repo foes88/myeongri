@@ -2,6 +2,7 @@
 import re
 
 import pytest
+from .conftest import assert_report_order, expanded_text, show_form
 
 pytestmark = pytest.mark.browser
 
@@ -54,10 +55,7 @@ def test_consult_form_responsive_and_report_chapters(browser, env, size):
     p.select_option("#depth", "expert")
     p.click("#f button[type=submit]")
     p.wait_for_selector("#session:not([hidden])", timeout=60000)
-    nos = [t.strip() for t in p.eval_on_selector_all(".chapter > .no, #cover .kicker", "els=>els.map(e=>e.textContent)")]
-    chap = [n for n in nos if re.match(r"제\d+장", n)]
-    order = [int(re.match(r"제(\d+)장", n).group(1)) for n in chap]
-    assert order == sorted(order) and order[0] == 1 and order[-1] == 11 and set(order) == set(range(1, 12)), order
+    assert_report_order(p)
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     # 챗 버블 형태가 아님: 기록은 문서 블록(record)
     p.fill("#q2", "사업은 어떨까요?")
@@ -74,7 +72,8 @@ def test_depth_modes_are_visually_separated_and_palette_has_no_blue_or_mint(sess
     sess.set_domains(["overall"])
     p.select_option("#depth", "summary")
     sess.start()
-    assert p.locator("#out .expert-only").count() == 0 and "요약 모드에서는 학파별 차이를 접어" in p.inner_text("#out")
+    assert p.locator("#out .expert-only").count() == 0 and "요약 모드에서는 학파별 차이를 접어" in expanded_text(p, "#out")
+    show_form(p)
     p.select_option("#depth", "expert")
     p.click("#f button[type=submit]")
     p.wait_for_function("document.querySelectorAll('#out .expert-only').length>=1")
@@ -90,4 +89,4 @@ def test_depth_modes_are_visually_separated_and_palette_has_no_blue_or_mint(sess
     assert not [b for b in BANNED_COPY if b in text]
     # 상태는 색만으로 구분하지 않는다: 검증 배지에 글자와 기호가 있다
     assert p.locator(".pill.off, .badge.off").first.inner_text().strip() != ""
-    assert p.evaluate("getComputedStyle(document.querySelector('.badge.off'),'::before').content") in ('"✕ "', '"✕"') or "검증 전" in p.inner_text("#status")
+    assert p.evaluate("getComputedStyle(document.querySelector('.badge.off'),'::before').content") in ('"✕ "', '"✕"') or "검증 전" in expanded_text(p, "#status")

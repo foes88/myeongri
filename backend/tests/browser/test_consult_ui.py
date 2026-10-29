@@ -3,8 +3,9 @@ import json
 import re
 
 import pytest
+from .conftest import expanded_text
 
-from .conftest import OUT
+from .conftest import OUT, show_form
 
 pytestmark = pytest.mark.browser
 
@@ -33,7 +34,7 @@ def test_01_birth_input_and_status_panel(sess, results):
     sess.fill_birth(cal="solar", prof="mean_solar")
     sess.set_domains(["overall", "wealth"])
     sess.start()
-    st = sess.page.inner_text("#status")
+    st = expanded_text(sess.page, "#status")
     assert "검증 상태" in st and "판정: V" in st and "계산 프로필" in st and "기록 해시" in st
     assert "CORE_VALIDATED" in st and "TIME_PROFILE_VALIDATED" in st and "LUNAR_KR" in st and "고전 원문 대조 전 규칙" in st
     assert "검증이 끝나지 않은 범위" in st
@@ -46,7 +47,7 @@ def test_01b_lunar_leap_input(sess):
     sess.page.fill("#date", "2012-03-01")
     sess.set_domains(["overall"])
     sess.start()
-    assert "LUNAR_KR" in sess.page.inner_text("#status")
+    assert "LUNAR_KR" in expanded_text(sess.page, "#status")
 
 
 @pytest.mark.parametrize("kind,years", [("year", [2030]), ("r5", [2030, 2031, 2032, 2033, 2034]), ("cmp", [2030, 2033])])
@@ -82,7 +83,7 @@ def test_03_all_domains_and_depths(sess, results):
     sess.set_domains(ALL_DOMS)
     sess.page.select_option("#depth", "expert")
     sess.start()
-    out = sess.page.inner_text("#out")
+    out = expanded_text(sess.page, "#out")
     for name in ["재물운", "직업·승진운", "사업운", "연애·결혼운", "가족·인간관계운", "건강 관련 전통 해석", "이직·취업운", "부동산운"]:
         assert name in out, name
     assert "전문가: 규칙 ID·고전 대조" in out and "학파별 차이" in out
@@ -90,10 +91,11 @@ def test_03_all_domains_and_depths(sess, results):
     results["03_all_domains_expert"] = "pass"
     for d in ("summary", "detailed"):
         s2 = sess.page
+        show_form(s2)
         s2.select_option("#depth", d)
         s2.click("#f button[type=submit]")
         s2.wait_for_function("document.querySelectorAll('#out section').length>=1")
-        assert ("전문가: 규칙 ID" in s2.inner_text("#out")) is False
+        assert ("전문가: 규칙 ID" in expanded_text(s2, "#out")) is False
 
 
 def test_04_followup_event_reanalyze_history(sess, results):
@@ -107,13 +109,13 @@ def test_04_followup_event_reanalyze_history(sess, results):
     p.fill("#q2", "사업은 어떨까요?")
     p.click("#askb")
     p.wait_for_function(f"document.querySelectorAll('#out section').length>{n0}")
-    assert "사업" in p.inner_text("#out") or "사전 분석 기록에 포함되지" in p.inner_text("#out")
+    assert "사업" in expanded_text(p, "#out") or "사전 분석 기록에 포함되지" in expanded_text(p, "#out")
     p.select_option("#evt", "취업·이직")
     p.fill("#evy", "2030")
     p.click("#evb")
     p.wait_for_function("document.getElementById('evr').textContent.includes('분류')")
     assert re.search(r"분류: (consistent|inconsistent|not_judged)", p.inner_text("#evr"))
-    h0 = re.search(r"기록 해시: (\w{12})", p.inner_text("#status")).group(1)
+    h0 = re.search(r"기록 해시: (\w{12})", expanded_text(p, "#status")).group(1)
     p.select_option("#pap", "sanmyeongtonghoe_4")
     p.click("#reb")
     p.wait_for_function("document.getElementById('rer').textContent.includes('재분석 기록')")
@@ -136,7 +138,7 @@ def test_05_variant_selection(sess, results):
     assert len(btns) >= 2
     btns[-1].click()
     sess.page.wait_for_selector("#session:not([hidden])", timeout=60000)
-    assert "명식이" in sess.page.inner_text("#status")
+    assert "명식이" in expanded_text(sess.page, "#status")
     results["05_variant_selection"] = "pass"
 
 
@@ -162,11 +164,11 @@ def test_06_token_and_access(sess, env, results):
     p2.fill("#rk", "wrong-token")
     p2.click("#reopen")
     p2.wait_for_selector("#out .bad")
-    assert "재열람 실패" in p2.inner_text("#out") and "권한" in p2.inner_text("#out")
+    assert "재열람 실패" in expanded_text(p2, "#out") and "권한" in expanded_text(p2, "#out")
     p2.fill("#rk", tok)
     p2.click("#reopen")
     p2.wait_for_selector("#session:not([hidden])")
-    assert "재열람" in p2.inner_text("#status")
+    assert "재열람" in expanded_text(p2, "#status")
     p2.wait_for_function("document.querySelectorAll('#histout details').length>=1")
     results["06_token"] = {"storage": "JS 변수(메모리)만; localStorage/sessionStorage/URL/콘솔에 없음", "reopen_wrong": "403 메시지", "reopen_ok": "pass"}
 
@@ -177,7 +179,7 @@ def test_07_error_screens(sess, env, results):
     sess.set_domains(["overall"])
     sess.page.click("#f button[type=submit]")
     sess.page.wait_for_selector("#out .bad")
-    assert "연결할 수 없습니다" in sess.page.inner_text("#out")
+    assert "연결할 수 없습니다" in expanded_text(sess.page, "#out")
     sess.page.fill("#api", env.api)
     sess.page.fill("#date", "1850-01-01")  # 범위 밖 → 422
     sess.page.click("#f button[type=submit]")

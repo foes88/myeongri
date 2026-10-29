@@ -6,6 +6,7 @@ import subprocess
 import sys
 
 import pytest
+from .conftest import assert_report_order, expanded_text, show_form
 
 from .conftest import BACKEND, OUT, free_port, wait_http
 
@@ -65,8 +66,8 @@ def test_oneshot_full_flow_without_any_storage(browser, one):
     p.wait_for_selector("#session:not([hidden])", timeout=60000)
     assert "저장되지 않는 일회성 분석" in p.inner_text("#cover")
     assert "상담 번호" not in p.inner_text("#cover") and p.locator("#status table.pillars").count() == 1
-    nos = [t.strip() for t in p.eval_on_selector_all(".chapter > .no", "els=>els.map(e=>e.textContent)")]
-    assert "제3장" in nos and nos[-1] == "제11장"
+    assert_report_order(p)
+    assert p.is_hidden("#f") and p.is_visible("#formbar")  # 분석 후 긴 입력란은 접힌다
     # 후속 질문·현실 사건·기록 목록
     p.fill("#q2", "사업은 어떨까요?")
     p.click("#askb")
@@ -101,7 +102,7 @@ def test_oneshot_variant_selection_and_errors(browser, one):
     fill(p, "1850-01-01", "10:00")
     p.click("#f button[type=submit]")
     p.wait_for_function("document.querySelector('#out .bad')")
-    assert "지원 범위" in p.inner_text("#out")
+    assert "지원 범위" in expanded_text(p, "#out")
     ctx.close()
 
 
@@ -132,6 +133,7 @@ def test_place_list_has_cities_and_custom_longitude(browser, one):
     p.wait_for_selector("#session:not([hidden])", timeout=60000)
     body = next(__import__("json").loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
     assert body["birth_place"] == "경기도 수원시" and body["longitude"] is None
+    show_form(p)
     p.select_option("#place", "__custom__")
     p.fill("#lon", "127.5")
     p.click("#f button[type=submit]")

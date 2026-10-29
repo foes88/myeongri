@@ -149,3 +149,20 @@ button.sec:hover{background:var(--seal-soft)}
 .status-line{overflow-wrap:anywhere}
 
 [hidden]{display:none !important}
+
+/* v6.9 종합 해석 */
+.keys .vstrip{font-size:.9rem;color:var(--ink2);margin:.2rem 0 .8rem}
+.keys .sent{font-size:1.05rem;line-height:1.8;margin:.55rem 0}
+.keys h3{margin-top:1.3rem}
+.sentlist{padding-left:1.1rem;margin:.3rem 0}
+.sentlist li{margin:.35rem 0}
+.sentlist.small{font-size:.9rem;color:var(--ink2)}
+.domsum dd{margin-bottom:.7rem}
+.yearlines{padding-left:0;list-style:none;margin:.4rem 0}
+.yearlines li{border-top:1px solid var(--rule);padding:.55rem 0}
+.yearlines li.standout{background:var(--seal-soft);padding-left:.6rem;padding-right:.6rem}
+.yearlines details.yd{border-top:0;margin:.3rem 0 0;padding-top:0}
+details.fold{border:1px solid var(--rule);background:var(--doc);padding:.1rem .9rem;margin:.5rem 0}
+details.fold>summary{font-weight:600;padding:.6rem 0}
+.formbar{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;border:1px solid var(--rule);background:var(--doc);padding:.6rem .9rem;margin:1rem 0}
+.formbar[hidden]{display:none !important}

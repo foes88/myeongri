@@ -27,6 +27,7 @@ class EvidenceBundle:
     classical_status: dict                    # {claim_id/rule 요약: 원문 검증 상태} — 확정되지 않은 규칙을 고전 근거처럼 쓰지 못하게 하는 정보
     limits: tuple[str, ...]
     fallback_text: str                        # 결정론적 대체 출력
+    key_judgments: tuple[dict, ...] = ()      # v6.9: 종합 계층이 고른 핵심 판단 {kind, text, claim_ids, basis, rule_status}. LLM 은 이 판단을 말만 바꿔 전달한다(고르지 않는다)
 
     def to_prompt_payload(self) -> dict:
         return {"paragraphs": [dict(p) for p in self.paragraphs], "limits": list(self.limits), "rules": "허용된 사실만 사용. 새 명리 용어·간지·연도·claim_id 금지. 예측·보장·단정 금지"}
@@ -76,6 +77,10 @@ def build_bundle(ans: dict, pre: dict) -> EvidenceBundle:
     cls = {rid: r["classical_status"] for rid, r in RULES.items()}
     node_rule = {n["claim_id"]: n["rule_id"] for n in pre["natal_structure"]["graph"]["nodes"]}
     used = {node_rule[c]: cls[node_rule[c]] for p in ans.get("paragraphs", []) for c in p["claim_ids"] if c in node_rule}
+    syn = ans.get("synthesis") or {}
+    kj = tuple({"section": k, "text": x["text"], "claim_ids": list(x["claim_ids"]), "basis": x["basis"], "rule_status": x.get("rule_status")}
+               for k in ("headline", "favorable", "cautions", "uncertainty") for x in syn.get(k, []))
+    allowed.claim_ids |= {c for x in kj for c in x["claim_ids"]}
     return EvidenceBundle(
         precommit_hash=pre["content_hash"], ruleset_version=pre["ruleset_version"],
         paragraphs=tuple({"kind": p["kind"], "text": p["text"], "claim_ids": list(p["claim_ids"])} for p in ans.get("paragraphs", [])),

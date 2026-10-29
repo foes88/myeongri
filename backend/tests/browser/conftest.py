@@ -132,6 +132,8 @@ class Session:
                 cb.set_checked(want)
 
     def start(self):
+        if self.page.locator("#formbar").is_visible():  # v6.9: 분석 후 입력란이 접혀 있으면 펼친다
+            self.page.click("#formedit")
         self.page.click("#f button[type=submit]")
         self.page.wait_for_selector("#session:not([hidden])", timeout=60000)
 
@@ -151,3 +153,28 @@ def results():
     yield r
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "browser_results.json").write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def expanded_text(page, sel):
+    """접힌 상세(details)를 모두 펼친 뒤 텍스트를 읽는다. 접힌 영역은 inner_text 에 보이지 않으므로 상세 내용을 검사할 때만 쓴다."""
+    page.evaluate("s => document.querySelectorAll(s + ' details').forEach(d => d.open = true)", sel)
+    return page.inner_text(sel)
+
+
+def show_form(page):
+    """분석 후 접힌 입력란을 다시 연다(이미 열려 있으면 아무 것도 하지 않음)."""
+    if page.locator("#formbar").is_visible():
+        page.click("#formedit")
+
+
+REPORT_ORDER = ["유리하게 읽히는 조건", "주의하거나 상반되는 조건", "관심 분야별 핵심 요약", "더 자세히 살펴볼 내용"]
+
+
+def assert_report_order(page):
+    """v6.9 첫 화면 순서: 핵심 해석(또는 기간 핵심 흐름) → 유리 조건 → 주의 조건 → 분야별 요약 → 더 자세히. 상세 접힘 영역은 기본으로 닫혀 있다."""
+    heads = [t.strip() for t in page.eval_on_selector_all("#report h2, #report h3, #report h4", "els=>els.map(e=>e.textContent)")]
+    first = next(i for i, t in enumerate(heads) if t in ("핵심 해석", "기간 핵심 흐름"))
+    pos = [first] + [heads.index(t) for t in REPORT_ORDER]
+    assert pos == sorted(pos), heads
+    assert page.locator("#more details.fold[open]").count() == 0
+    assert page.locator("#more details.fold").count() == 8

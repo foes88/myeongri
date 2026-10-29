@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from ..astro_core import engine as astro
 from ..mingli import RULESET_VERSION, analyze_periods, analyze_structure
 from ..report_checks import FIXED_DISCLAIMER, FORBIDDEN_PATTERNS
-from . import compose, compose_domains
+from . import compose, compose_domains, synthesis
 from . import domains as D
 from . import store
 
@@ -153,7 +153,8 @@ def _period_block(pre: dict, years: list[int], chart_fallback: dict | None = Non
             text = (f"{s['from']}~{s['to']}: " + (f"대운 {lk}, " if lk else "첫 대운 시작 전, ") + f"세운 {s['sewun_pillar']}. "
                     f"원국과 새로 생기는 관계 후보가 {n_rel}개({', '.join(kinds) or '없음'})이며, 구조 변화는 {', '.join(delta) or '확인되지 않음'}입니다.")
             raw = [{"who": who, "type": x["type"], "with": x["with"], "chars": x["chars"]} for who, lst in rel.items() if not who.endswith("_claim") for x in lst]
-            segs.append({"from": s["from"], "to": s["to"], "luck": lk, "sewun": s["sewun_pillar"], "text": text, "boundaries": s["starts_at_boundary"], "relations": raw})
+            segs.append({"from": s["from"], "to": s["to"], "luck": lk, "sewun": s["sewun_pillar"], "text": text, "boundaries": s["starts_at_boundary"], "relations": raw,
+                     "delta": [{"structure": d["structure"], "change": d["change"], "before": d["before"], "after": d["after"], "claim_id": d["claim_id"]} for d in s["analysis"]["structure_delta"]]})
         out.append({"year": y, "precommitted": precommitted, "split": len(segs) > 1, "segments": segs,
                     "note": "한 해가 대운 교체·입춘으로 나뉘어 구간별로 설명합니다." if len(segs) > 1 else ""})
     return out
@@ -207,13 +208,14 @@ def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years
         bad = {int(re.match(r"문단(\d+)", x).group(1)) for x in probs if x.startswith("문단")}
         out["paragraphs"] = [q for i, q in enumerate(out["paragraphs"]) if i not in bad]
     out["consistency"] = {"ok": not probs, "problems": probs}
+    out["synthesis"] = synthesis.build(pre, blocks, periods, doms, ys, question)
     out["classical_basis"] = compose.classical_basis(pre, out["paragraphs"])
     out["procedure"] = compose.analysis_procedure(pre, periods, doms, not probs, len(out["paragraphs"]))
     out["narrative"] = "\n\n".join(q["text"] for q in out["paragraphs"])
     if depth == "expert":
         out["expert"]["classical_conflicts"] = base["classical_conflicts"]
         out["expert"]["profiles"] = base["profiles"]
-    _check_safe(summary + " " + out["narrative"] + " ".join(out["life_advice"]["items"]) + " ".join(out["limits"]))
+    _check_safe(summary + " " + out["narrative"] + " " + out["synthesis"]["text"] + " ".join(out["life_advice"]["items"]) + " ".join(out["limits"]))
     return out
 
 
