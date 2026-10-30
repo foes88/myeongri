@@ -850,9 +850,47 @@ def public_view(ans: dict) -> dict:
     return {"refused": False, "years": ans.get("years", []), "domains": ans.get("domains", []), "verdict": v, "qa": ans.get("qa")}
 
 
+def _span(minutes: float) -> str:
+    if minutes < 60:
+        return f"약 {max(1, int(minutes))}분"
+    if minutes < 2880:
+        return f"약 {int(minutes // 60)}시간"
+    return f"약 {int(minutes // 1440)}일"
+
+
+def calc_notice(summary: dict) -> dict | None:
+    """계산 신뢰 상태를 쉬운 말로. level: ok(참고) / check(입력 확인 권장) / caution(다른 계산과 불일치). 검증 등급·도구명 같은 내부 값은 내보내지 않는다."""
+    ver = summary.get("verification")
+    if not ver:
+        return None
+    items, level = [], "ok"
+    cross = ver.get("independent_crosscheck") or {}
+    if cross and cross.get("agree") is False:
+        level = "caution"
+        items.append("다른 계산 방식과 비교했을 때 네 기둥 중 일부가 다르게 나왔습니다. 출생 정보를 다시 확인하고, 이 결과는 참고로만 봐 주세요.")
+    elif cross:
+        items.append("다른 계산 방식으로 다시 계산해 보아도 네 기둥이 같게 나왔습니다.")
+    near = ver.get("nearest_jie_minutes")
+    amb = (ver.get("ambiguity") or {}).get("ambiguous")
+    if amb or (near is not None and near < 1440):
+        if level == "ok":
+            level = "check"
+        items.append("태어난 시각이 달이 바뀌는 날(절기) 경계" + (f"에서 {_span(near)} 이내" if near is not None else "에 가깝") + "라서, 시각이 조금만 달라도 월 기둥이 바뀔 수 있습니다. 출생 시각을 다시 확인해 보세요.")
+    elif near is not None:
+        items.append("달이 바뀌는 날(절기)과 충분히 떨어져 있어 날짜·시각이 조금 달라도 월 기둥은 바뀌지 않습니다.")
+    if (summary.get("variants_count") or 1) > 1:
+        if level == "ok":
+            level = "check"
+        items.append("입력 조건(출생 시각 처리 방식 등)에 따라 달라질 수 있는 명식이 있습니다. 결과 화면의 다른 명식도 함께 확인해 보세요.")
+    if not ver.get("may_claim_verified"):
+        items.append("공식 자료와의 대조가 모두 끝난 계산은 아니어서 ‘검증 완료’라고 표시하지 않습니다. 계산 결과는 참고용입니다.")
+    title = {"ok": "계산 상태: 참고할 수 있습니다", "check": "계산 상태: 입력을 한 번 더 확인해 주세요", "caution": "계산 상태: 다른 계산과 달라 주의가 필요합니다"}[level]
+    return {"level": level, "title": title, "items": items}
+
+
 def public_precommit(summary: dict) -> dict:
-    """사전 분석 기록 요약에서 사용자에게 필요한 것만: 네 기둥과 분석 범위. 계산 프로필·해시·규칙 버전·검증 세부는 제외."""
-    return {"pillars": summary.get("pillars"), "years": summary.get("years", []), "domains": summary.get("domains", [])}
+    """사전 분석 기록 요약에서 사용자에게 필요한 것만: 네 기둥과 분석 범위, 계산 상태(쉬운 말). 계산 프로필·해시·규칙 버전·검증 세부는 제외."""
+    return {"pillars": summary.get("pillars"), "years": summary.get("years", []), "domains": summary.get("domains", []), "calc": calc_notice(summary)}
 
 
 REALITY_PLAIN = {"consistent": "처음 해석에서 이 주제와 이어지는 흐름이 있다고 읽었던 기록과 부합합니다. 다만 흐름이 있다는 것과 실제 사건은 다르며, 적중으로 세지 않습니다.",

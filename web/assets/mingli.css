@@ -227,3 +227,5 @@ details.expert-raw>summary{color:var(--ink2);font-size:.92rem}
 .qpoints{margin:.3rem 0 .6rem;padding-left:1.1rem}
 .ywhy{margin:.3rem 0;color:var(--ink2);font-size:.95rem}
 .whybox h4{margin:.8rem 0 .2rem;font-size:.95rem;color:var(--ink)}
+
+.calc{margin:8px 0;padding:10px 12px;border:1px solid #cdd5e0;border-radius:8px;background:#f6f8fb;font-size:.92rem}.calc ul{margin:6px 0 0;padding-left:1.1em}.calc-check{border-color:#d9a400;background:#fff9e6}.calc-caution{border-color:#c0392b;background:#fdecea}

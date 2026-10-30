@@ -93,3 +93,33 @@ def test_followup_never_promises_outcomes(c):
         t = _ask(c, h, rid, q)
         s = t["text"] + " ".join(t.get("points", []))
         assert not any(w in s for w in ("반드시", "틀림없", "100%", "확실히 성공"))
+
+
+# ---- 계산 상태 안내(쉬운 말)
+from app.consult import verdict as V
+import re as _re
+
+BASE = {"verification": {"may_claim_verified": False, "independent_crosscheck": {"agree": True}, "nearest_jie_minutes": 13000.0, "ambiguity": {"ambiguous": False}}, "variants_count": 1}
+
+
+def test_calc_notice_levels_in_plain_words():
+    ok = V.calc_notice(BASE)
+    assert ok["level"] == "ok" and any("검증 완료" in t for t in ok["items"])           # 미검증 부분은 숨기지 않는다
+    near = V.calc_notice({**BASE, "verification": {**BASE["verification"], "nearest_jie_minutes": 25.0}})
+    assert near["level"] == "check" and any("절기" in t and "25분" in t for t in near["items"])
+    bad = V.calc_notice({**BASE, "verification": {**BASE["verification"], "independent_crosscheck": {"agree": False}}})
+    assert bad["level"] == "caution"
+    multi = V.calc_notice({**BASE, "variants_count": 2})
+    assert multi["level"] == "check"
+    assert V.calc_notice({}) is None
+    txt = " ".join(ok["items"] + near["items"] + bad["items"] + [ok["title"]])
+    assert not _re.search(r"PILLARS|PROFILE|V[0-9]\b|lunar-python|golden|shouxing|Skyfield", txt)   # 내부 등급·도구명 비노출
+
+
+@pytest.mark.public_view
+def test_public_precommit_includes_calc_and_no_internal_fields(c):
+    h = reg(c)
+    r = c.post("/api/v1/reports", json={"title": "x", "request": REQ}, headers=h).json()
+    pc = r["precommit"]
+    assert pc["calc"]["title"].startswith("계산 상태") and pc["calc"]["items"]
+    assert not {"verification", "content_hash", "ruleset_version", "calculation_profile_id"} & set(pc)

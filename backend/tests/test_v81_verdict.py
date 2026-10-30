@@ -209,7 +209,7 @@ def test_public_api_and_precommit_expose_only_user_data():
     r = c.post("/api/v1/oneshot/analyze", json=body)
     assert r.status_code == 200
     d = r.json()
-    assert set(d["answer"]) == {"refused", "years", "domains", "verdict", "qa"} and set(d["precommit"]) == {"pillars", "years", "domains"}
+    assert set(d["answer"]) == {"refused", "years", "domains", "verdict", "qa"} and set(d["precommit"]) == {"pillars", "years", "domains", "calc"}
     assert "internal" not in d["answer"]["verdict"]
     raw = r.text
     assert not re.search(r"L\d-[A-Z0-9-]+|claim|natal_structure|synthesis|ruleset|content_hash|calculation_profile|verification\"|classical|rule_id|expert", raw)

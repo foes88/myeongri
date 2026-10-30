@@ -76,6 +76,7 @@ renderReport=function(a,pre,reopened){
   root.append(limitsEl(v));out.append(root);
   /* 내 사주(네 기둥): 결론 아래에 접어 둔다 */
   const st=$('status');st.textContent='';st.hidden=false;st.className='chapter pillars-card';
+  if(pre.calc){const cn=el('div',null,'calc calc-'+pre.calc.level);cn.append(el('b',pre.calc.title));const ul=el('ul');pre.calc.items.forEach(t=>ul.append(el('li',t)));cn.append(ul);cn.setAttribute('data-calc',pre.calc.level);st.append(cn)}
   const d=el('details');d.append(el('summary','내 사주(네 기둥) 보기'));d.append(pillarTable(pre.pillars));
   d.append(el('p','위쪽 글자(천간)와 아래쪽 글자(지지)로 이루어진 네 기둥입니다. 풀이의 바탕이 되는 계산 결과입니다.','small muted'));st.append(d);
   out.after(st);

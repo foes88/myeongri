@@ -276,7 +276,8 @@ def user_answer(ans: dict) -> dict:
 
 def user_precommit(pre: dict) -> dict:
     from .consult import verdict as V
-    return _oneshot_summary(pre) if expose_internal() else V.public_precommit(_oneshot_summary(pre))
+    s = _oneshot_summary(pre)
+    return (s | {'calc': V.calc_notice(s)}) if expose_internal() else V.public_precommit(s)
 
 
 @app.post('/api/v1/oneshot/analyze')
