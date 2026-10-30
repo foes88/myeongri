@@ -274,6 +274,10 @@ function keyChapter(a,pre){
   keys.append(el('p','모든 문장은 쉬운 말로 옮긴 현대적 풀이입니다. 각 풀이가 기대는 규칙의 고전 확인 상태는 ‘더 자세히’의 고전 근거에서 확인합니다. 구조가 있다는 것과 실제로 일어난다는 것은 다릅니다.','small muted'));
   return keys}
 
+function cons(a){const c=chapter(12,'하나의 글로 읽는 상담문');const x=a.consultation;if(!x){c.append(el('p','이 답변에는 상담문이 없습니다.','muted'));return c}
+  c.append(el('p','위의 판단을 문단으로 이어 쓴 글입니다. 새로운 판단을 더하지 않고, 같은 근거와 반대 근거·한계를 그대로 담았습니다.'+(x.source==='internal_narrator'?'':' (검증을 통과하지 못해 기본 문장으로 대체되었습니다.)'),'small muted'));
+  const lines=x.sentences&&x.sentences.length?x.sentences.map(s=>s.text):String(x.text).split('\n');
+  const box=el('div',null,'consult-text');lines.forEach(t=>{box.append(el('p',t))});c.append(box);return c}
 function renderReport(a,pre,reopened){
   $('report').hidden=false;
   renderCover(a,pre);renderStatus(pre,reopened);
@@ -303,7 +307,7 @@ function renderReport(a,pre,reopened){
   c11.append(ul(a.followup_questions&&a.followup_questions.length?a.followup_questions:['더 살펴보고 싶은 분야나 연도를 아래 ‘기록 추가’에 적어 주세요.']));
   c11.append(el('p',a.followup_note||'답해 주신 현실 정보는 조언에만 쓰이며 처음 작성한 해석을 바꾸지 않습니다.','small muted'));
   const more=el('section',null,'chapter more');more.id='more';more.append(el('h2','더 자세히 살펴볼 내용'),el('p','필요한 항목만 펼쳐 보세요. 위의 풀이가 어떤 근거에서 나왔는지 확인할 수 있습니다.','muted'));
-  [['연도별 세부 구간(대운·세운 표)',c5],['원국의 주요 특징',c4],['분야별 상세 해석',c6],['긍정 근거와 주의 근거',c7],['학파별 차이',c8],['고전 근거(원문 확인 상태)',c9],['조언·용어·해석의 범위',c10],['이어서 살펴볼 질문',c11]].forEach(([t,c])=>more.append(fold(t,c)));
+  [['하나의 글로 읽는 상담문',cons(a)],['연도별 세부 구간(대운·세운 표)',c5],['원국의 주요 특징',c4],['분야별 상세 해석',c6],['긍정 근거와 주의 근거',c7],['학파별 차이',c8],['고전 근거(원문 확인 상태)',c9],['조언·용어·해석의 범위',c10],['이어서 살펴볼 질문',c11]].forEach(([t,c])=>more.append(fold(t,c)));
   out.append(more);
 }
 function renderRecord(a,question){

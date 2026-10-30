@@ -8,7 +8,7 @@ def _sents(items):
     return "\n".join(f"- {x['text']}" for x in items) or "- (해당 없음)"
 
 
-def _block(title: str, ans: dict) -> str:
+def _block(title: str, ans: dict) -> str:  # ans: answer 딕셔너리
     S = ans.get("synthesis")
     if not S:
         return f"## {title}\n\n" + ans.get("narrative", "")
@@ -24,6 +24,8 @@ def _block(title: str, ans: dict) -> str:
             parts.append(f"- 선택한 기간: {r['period']}")
         parts.append(f"- 해석 범위: {r['scope']}")
     parts += ["", "### 읽을 때 유의할 점", _sents(S["uncertainty"])]
+    if ans.get("consultation", {}).get("text"):
+        parts += ["", "### 하나의 글로 읽는 상담문", ans["consultation"]["text"]]
     return "\n".join(parts)
 
 

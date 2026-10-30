@@ -215,7 +215,11 @@ def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years
     if depth == "expert":
         out["expert"]["classical_conflicts"] = base["classical_conflicts"]
         out["expert"]["profiles"] = base["profiles"]
-    _check_safe(summary + " " + out["narrative"] + " " + out["synthesis"]["text"] + " ".join(out["life_advice"]["items"]) + " ".join(out["limits"]))
+    from . import contracts, internal_narrator, narrator  # 지연 import(순환 방지). 내부 Narrator: 외부 호출 없음, Claim Validator 통과 시에만 사용, 실패 시 결정론 문장
+    nar = narrator.narrate(contracts.build_bundle(out, pre), internal_narrator.InternalNarrator(), question, retries=0)
+    out["consultation"] = {"text": nar.text, "source": "internal_narrator" if nar.source == "llm" else "deterministic_fallback", "validated": nar.ok, "problems": nar.problems,
+                           "prompt_version": narrator.PROMPT_VERSION, "sentences": nar.sentences}
+    _check_safe(summary + " " + out["narrative"] + " " + out["synthesis"]["text"] + " " + out["consultation"]["text"] + " ".join(out["life_advice"]["items"]) + " ".join(out["limits"]))
     return out
 
 

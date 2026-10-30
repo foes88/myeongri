@@ -166,3 +166,4 @@ details.fold{border:1px solid var(--rule);background:var(--doc);padding:.1rem .9
 details.fold>summary{font-weight:600;padding:.6rem 0}
 .formbar{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;border:1px solid var(--rule);background:var(--doc);padding:.6rem .9rem;margin:1rem 0}
 .formbar[hidden]{display:none !important}
+.consult-text p{margin:.55rem 0;line-height:1.85}

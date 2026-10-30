@@ -80,7 +80,15 @@ def build_bundle(ans: dict, pre: dict) -> EvidenceBundle:
     syn = ans.get("synthesis") or {}
     kj = tuple({"section": k, "text": x["text"], "claim_ids": list(x["claim_ids"]), "basis": x["basis"], "rule_status": x.get("rule_status")}
                for k in ("headline", "favorable", "cautions", "uncertainty") for x in syn.get(k, []))
+    kj += tuple({"section": sec, "text": r[f], "claim_ids": list(r["claim_ids"]), "basis": r["basis"], "rule_status": r.get("rule_status"), "reading": r["name"]}
+                for r in syn.get("readings", []) for sec, f in (("reading_meaning", "meaning"), ("reading_why", "why"), ("reading_reality", "reality"), ("reading_scope", "scope")))
+    kj += tuple({"section": "reading_counter", "text": c, "claim_ids": list(r["claim_ids"]), "basis": r["basis"], "rule_status": r.get("rule_status"), "reading": r["name"]}
+                for r in syn.get("readings", []) for c in r["counter"][:1])
     allowed.claim_ids |= {c for x in kj for c in x["claim_ids"]}
+    kj_text = " ".join(x["text"] for x in kj)  # 엔진(종합 계층)이 만든 판단 문장에 나오는 용어·간지·연도도 엔진의 사실이다
+    allowed.terms |= {t for t in L.LEXICON if t in kj_text}
+    allowed.ganzhi |= {g for g in L.GANZHI if g in kj_text}
+    allowed.years |= {int(y) for y in re.findall(r"(?<!\d)(19\d{2}|20\d{2})(?!\d)", kj_text)}
     return EvidenceBundle(
         precommit_hash=pre["content_hash"], ruleset_version=pre["ruleset_version"],
         paragraphs=tuple({"kind": p["kind"], "text": p["text"], "claim_ids": list(p["claim_ids"])} for p in ans.get("paragraphs", [])),

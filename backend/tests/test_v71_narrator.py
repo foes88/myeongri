@@ -135,3 +135,30 @@ def test_live_provider_is_disabled_without_approval(bundle, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
     r = N.narrate(bundle[0], N.AnthropicProvider(max_cost_usd=0.0), retries=0)  # 비용 한도 0 이면 호출하지 않음
     assert r.source == "deterministic_fallback"
+
+
+def test_internal_narrator_passes_validator_and_keeps_every_counter_and_limit(bundle):
+    from app.consult.internal_narrator import InternalNarrator
+    b, _ = bundle
+    r = N.narrate(b, InternalNarrator(), "2030년 재물과 직업 흐름이 궁금합니다", retries=0)
+    assert r.ok and r.source == "llm" and r.usage.provider == "internal-composer"
+    for j in b.key_judgments:
+        if j["section"] in ("cautions", "reading_counter", "uncertainty"):
+            assert max(N._sim(N._grams(j["text"]), N._grams(s["text"])) for s in r.sentences) >= N.SIM_MIN, j["text"]
+    assert r.text != N.fallback_text(b)  # 단순 이어붙임이 아니라 재구성(순서·연결어)
+
+
+def test_preservation_check_blocks_dropping_any_single_counter(bundle):
+    b, _ = bundle
+    victim = next(j for j in b.key_judgments if j["section"] == "reading_counter")
+    r = N.narrate(b, Fixed(lambda js: [{"text": j["text"], "claim_ids": j["claim_ids"]} for j in js if j["text"] != victim["text"]]), retries=0)
+    assert not r.ok and any("반대 근거 판단 누락" in p for p in r.problems)
+    # 의역은 허용: 어미만 바꾼 문장은 통과
+    r2 = N.narrate(b, Fixed(lambda js: [{"text": j["text"].replace("있습니다", "있어요") if j["section"] != "uncertainty" else j["text"], "claim_ids": j["claim_ids"]} for j in js]), retries=0)
+    assert r2.ok, r2.problems
+
+
+def test_answer_carries_validated_consultation_text():
+    _, ans, _ = run(years=(2030,), domains=("wealth", "career"))
+    c = ans["consultation"]
+    assert c["source"] == "internal_narrator" and c["validated"] and c["sentences"] and "확정하지 않습니다" in c["text"]

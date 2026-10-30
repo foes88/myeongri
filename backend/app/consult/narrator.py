@@ -38,7 +38,7 @@ def sanitize_question(q: str, limit: int = 300) -> tuple[str, bool]:
 
 def build_prompt(bundle: EvidenceBundle, question: str = "") -> dict:
     q, flagged = sanitize_question(question)
-    judgments = [{"section": j["section"], "text": j["text"], "claim_ids": j["claim_ids"], "basis": j["basis"]} for j in bundle.key_judgments]
+    judgments = [{"section": j["section"], "text": j["text"], "claim_ids": j["claim_ids"], "basis": j["basis"], **({"reading": j["reading"]} if j.get("reading") else {})} for j in bundle.key_judgments]
     user = ("<user_question>" + q + "</user_question>\n<judgments>" + json.dumps(judgments, ensure_ascii=False) + "</judgments>")
     return {"version": PROMPT_VERSION, "system": SYSTEM_PROMPT, "user": user, "question_flagged": flagged,
             "hash": hashlib.sha256((SYSTEM_PROMPT + user).encode()).hexdigest()[:16]}
@@ -116,6 +116,18 @@ COUNTER_MARK = re.compile(r"견해|어렵|조심|신중|부딪히|다투기|함�
 CLASSICAL_CLAIM = re.compile(r"(고전|원전|원문|자평진전|적천수|궁통보감|연해자평|삼명통회)[^.]{0,8}(에 따르면|에서는|은 말|에 나오|에서 말)|「[^」]{4,}」")
 
 
+SIM_MIN = 0.5
+
+
+def _grams(t: str) -> set[str]:
+    t = re.sub(r"\s+|[.,·()'\"]", "", t)
+    return {t[i:i + 3] for i in range(max(1, len(t) - 2))}
+
+
+def _sim(a: set[str], b: set[str]) -> float:
+    return len(a & b) / max(1, len(a | b)) if a and b else 0.0
+
+
 def claim_validate(sentences: list[dict], bundle: EvidenceBundle, allowed: L.AllowedFacts) -> list[str]:
     """문장 단위 검증. 반환: 문제 목록(비어 있으면 통과)."""
     problems: list[str] = []
@@ -138,6 +150,11 @@ def claim_validate(sentences: list[dict], bundle: EvidenceBundle, allowed: L.All
     need = {c for j in bundle.key_judgments if j["section"] == "cautions" for c in j["claim_ids"]}
     if need - got_ids:
         problems.append(f"반대 근거 claim 누락: {sorted(need - got_ids)[:5]}")
+    # 보존: 반대 근거·한계 판단은 출력 문장 중 하나와 충분히 비슷해야 한다(삭제·약화 방지, 의역은 허용)
+    out_grams = [_grams(s["text"]) for s in sentences]
+    for j in bundle.key_judgments:
+        if j["section"] in ("cautions", "reading_counter", "uncertainty") and max((_sim(_grams(j["text"]), g) for g in out_grams), default=0.0) < SIM_MIN:
+            problems.append(f"{'한계' if j['section'] == 'uncertainty' else '반대 근거'} 판단 누락/약화: {j['text'][:24]}…")
     if bundle.key_judgments and any(j["section"] == "cautions" for j in bundle.key_judgments) and not COUNTER_MARK.search(text):
         problems.append("반대 근거 표현 누락")
     if any(j["section"] == "uncertainty" for j in bundle.key_judgments) and not LIMIT_MARK.search(text):
