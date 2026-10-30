@@ -112,8 +112,9 @@ def main():
                         pg.locator("#out .record").first.screenshot(path=str(OUT / f"record_{name}.png"))
                         pg.locator("#session").screenshot(path=str(OUT / f"session_{name}.png"))
                         # 분야별 상세 펼침
-                        pg.locator("#more details.fold >> nth=2").locator("summary").click()
-                        pg.locator("#more details.fold >> nth=2").screenshot(path=str(OUT / f"domains_{name}.png"))
+                        dom = pg.locator("#more details.fold", has=pg.locator("summary", has_text="분야별 상세 해석")).first
+                        dom.locator("summary").first.click()
+                        dom.screenshot(path=str(OUT / f"domains_{name}.png"))
                         # 근거 상세 펼침(대운·세운 표, 고전 근거 포함 전부)
                         pg.evaluate("document.querySelectorAll('#more details').forEach(d=>d.open=true)")
                         pg.locator("#more").screenshot(path=str(OUT / f"evidence_{name}.png"))
