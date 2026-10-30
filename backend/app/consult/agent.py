@@ -173,7 +173,7 @@ def _check_safe(text: str) -> None:
             raise AssertionError(f"금지 표현 패턴 검출: {pat}")
 
 
-def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years: list[int] | None = None, depth: str | None = None) -> dict:
+def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years: list[int] | None = None, depth: str | None = None, context: dict | None = None) -> dict:
     ref = {"precommit_hash": pre["content_hash"], "precommit_generated_at": pre["generated_at"], "ruleset_version": pre["ruleset_version"],
            "calculation_profile_id": pre["calculation_profile_id"], "variant_id": pre["variant_id"]}
     rf = D.refusal(question)
@@ -234,7 +234,7 @@ def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years
     from . import verdict
     out["verdict"] = verdict.build(pre, out, question)
     from . import qa
-    out["qa"] = qa.answer_question(pre, out["verdict"], question, doms, ys)
+    out["qa"] = qa.answer_question(pre, out["verdict"], question, doms, ys, context)
     _check_safe(summary + " " + out["narrative"] + " " + out["synthesis"]["text"] + " " + out["consultation"]["text"] + " ".join(out["life_advice"]["items"]) + " ".join(out["limits"]))
     return out
 

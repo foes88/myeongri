@@ -53,3 +53,43 @@ def test_saved_body_has_no_birth_input(c):
     import json
     t = json.dumps(body, ensure_ascii=False)
     assert REQ["birth_date"] not in t and REQ["birth_time"] not in t and "birth_place" not in t  # 가상 입력
+
+
+# ---- 후속 질문 맥락(규칙 기반 답변; 자유 대화형 AI 아님)
+def _ask(c, h, rid, q):
+    r = c.post(f"/api/v1/reports/{rid}/ask", json={"question": q}, headers=h)
+    assert r.status_code == 200, r.text
+    return r.json()["answer"]["qa"]
+
+
+def test_followups_keep_context_and_new_intents(c):
+    h = reg(c)
+    rid = c.post("/api/v1/reports", json={"title": "x", "request": {**REQ, "years": [2027, 2028, 2029, 2030], "domains": ["overall", "wealth", "career"]}}, headers=h).json()["id"]
+    q1 = _ask(c, h, rid, "2029년 재물운 자세히 알려줘")
+    assert q1["kind"] == "detail" and q1["domain"] == "wealth" and q1["year"] == 2029
+    q2 = _ask(c, h, rid, "앞에서 말한 결론은 왜 그렇게 판단했어?")      # 직전 답변의 분야·연도를 이어받는다
+    assert q2["kind"] == "recap_why" and q2["domain"] == "wealth" and q2["year"] == 2029 and q2["points"]
+    q3 = _ask(c, h, rid, "2028년 이직 고려할 점은?")
+    assert q3["kind"] == "consider" and q3["domain"] == "career" and q3["year"] == 2028 and "보장하지 않" in q3["text"]
+    q4 = _ask(c, h, rid, "재물과 직업은 어떤 관계야?")
+    assert q4["kind"] == "relation" and len(q4["points"]) == 2
+    q5 = _ask(c, h, rid, "2027년과 2030년은 뭐가 달라? 차이를 알려줘")
+    assert q5["kind"] == "compare" and q5["years"] == [2027, 2030]
+
+
+def test_this_year_outside_range_is_stated_not_substituted(c):
+    import datetime
+    now = datetime.date.today().year
+    h = reg(c)
+    rid = c.post("/api/v1/reports", json={"title": "x", "request": {**REQ, "years": [now + 5], "domains": ["overall", "career"]}}, headers=h).json()["id"]
+    q = _ask(c, h, rid, "올해 이직 고려할 점은?")
+    assert q["kind"] == "unsupported" and str(now) in q["text"] and "범위에 없" in q["text"]
+
+
+def test_followup_never_promises_outcomes(c):
+    h = reg(c)
+    rid = c.post("/api/v1/reports", json={"title": "x", "request": {**REQ, "years": [2028], "domains": ["overall", "career"]}}, headers=h).json()["id"]
+    for q in ("2028년에 이직하면 성공해?", "2028년 이직 고려할 점은?"):
+        t = _ask(c, h, rid, q)
+        s = t["text"] + " ".join(t.get("points", []))
+        assert not any(w in s for w in ("반드시", "틀림없", "100%", "확실히 성공"))

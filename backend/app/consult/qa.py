@@ -11,9 +11,13 @@ from . import domains as D
 from . import verdict as V
 
 SUPPORTED = ["“2030년에 이직하는 게 좋다는 거야?” 처럼 선택에 대한 해석", "“2028년과 2030년 중 어느 쪽이 나아?” 처럼 두 해 비교", "“그 말이 무슨 뜻이야?” 처럼 결과에 나온 표현의 뜻",
-             "“왜 그렇게 읽어?” 처럼 이유", "“재물운을 더 자세히 알려 줘” 처럼 분야·연도 자세히"]
+             "“왜 그렇게 읽어?”, “앞에서 말한 결론은 왜 그렇게 판단했어?” 처럼 이유", "“2027년에 이직 고려할 점은?”, “재물과 직업은 어떤 관계야?” 처럼 생각해 볼 점과 분야 관계", "“재물운을 더 자세히 알려 줘” 처럼 분야·연도 자세히"]
 ADVICE = re.compile(r"좋다는|좋을까|좋겠|해도 (돼|될까|되나)|하는 게 (좋|나)|해야 (해|할까|하나)|괜찮|추천|권해|말아야|하면 (안|될)|해볼까|할까\??")
-COMPARE = re.compile(r"비교|어느 (쪽|해)|더 (나아|좋|유리|낫)|vs|보다")
+COMPARE = re.compile(r"비교|어느 (쪽|해)|더 (나아|좋|유리|낫)|vs|보다|차이|다른 점")
+CONSIDER = re.compile(r"고려|살펴|주의할|조심|유의|챙겨|생각해 볼")
+RECAP = re.compile(r"(앞|아까|방금|이전|위)(에서|에|서)?\s*.{0,12}(말|결론|판단|이야기|답)|그렇게 (판단|결론|봤|읽|말)")
+RELATION = re.compile(r"관계|연결|영향|이어|서로|따로|같이|함께")
+REL_YEAR = {"올해": 0, "금년": 0, "내년": 1, "내후년": 2, "작년": -1}
 WHY = re.compile(r"왜|이유|근거|어떻게 (그렇게|알)")
 WHY_YEAR = re.compile(r"(\d{4})\s*년.*(왜|이유).*(달라|두드러|주목|다르|특별|변화)|왜.*(\d{4})\s*년.*(달라|두드러|주목|다르|특별|변화)")
 MEANING = re.compile(r"무슨 (뜻|말)|뜻이|의미|무슨 소리|어떤 의미")
@@ -58,25 +62,52 @@ def _best_domain(v: dict, question: str, doms: list[str]) -> str | None:
     return sel[0] if sel else None
 
 
-def answer_question(pre: dict, v: dict, question: str, doms: list[str], years: list[int]) -> dict:
+def _rel_years(q: str, years: list[int]) -> list[int]:
+    """‘올해·내년’ 같은 말을 분석 범위 안의 연도로 바꾼다(범위 밖이면 무시)."""
+    import datetime
+    now = datetime.date.today().year
+    return [now + d for w, d in REL_YEAR.items() if w in q and (now + d) in years]
+
+
+def answer_question(pre: dict, v: dict, question: str, doms: list[str], years: list[int], context: dict | None = None) -> dict:
+    """context: 직전 답변의 {domain, year, kind} — 질문에 분야·연도가 없을 때만 이어받는다(‘그럼 재물은?’, ‘그해는 왜?’)."""
     q = (question or "").strip()
-    qy = D.extract_years(q)
-    dom = _best_domain(v, q, doms)
+    ctx = context or {}
+    qy = D.extract_years(q) or _rel_years(q, years)
+    own = [d for d in D.route(q, None) if d not in ("overall", "luck")]
+    dom = own[0] if own else (ctx.get("domain") if ctx.get("domain") in (D.DOMAINS or {}) and ctx.get("domain") != "overall" else None) or _best_domain(v, q, doms)
+    if not qy and ctx.get("year") and ctx["year"] in years and len(years) > 1:
+        qy = [ctx["year"]]
     name = D.DOMAINS[dom]["name"] if dom else "전반적인 흐름"
     base = {"question": q}
     if not q or q == "종합 상담을 시작합니다":
         return {**base, "kind": "none", "text": "", "points": []}
+    if not D.extract_years(q) and not qy:
+        import datetime
+        now = datetime.date.today().year
+        miss = [(w, now + d) for w, d in REL_YEAR.items() if w in q and (now + d) not in years]
+        if miss:  # ‘올해’가 분석 범위 밖이면 다른 해로 바꿔 답하지 않고 알린다
+            w, yy = miss[0]
+            return {**base, "kind": "unsupported", "text": f"‘{w}’({yy}년)는 지금 분석 범위에 없습니다. 연도를 {yy}년으로 바꿔 다시 분석한 뒤 물어봐 주세요.", "points": []}
     if MEANING.search(q):
         for rx, dd, key in PHRASES:
             if rx.search(q):
                 return {**base, "kind": "meaning", **_meaning(pre, v, key, dom or dd)}
+    if len(own) >= 2 and RELATION.search(q):
+        y = qy[0] if qy else (years[0] if years else None)
+        return {**base, "kind": "relation", **_relation(v, y, own[:2])}
+    if RECAP.search(q) and WHY.search(q) and ctx:
+        return {**base, "kind": "recap_why", **_recap(v, ctx, dom, name)}
     cand = sorted(set(qy) if len(qy) >= 2 else (set(qy) | set(years)))
-    if COMPARE.search(q) and len(cand) >= 2:
+    if COMPARE.search(q) and len(cand) >= 2 and not WHY_YEAR.search(q):
         ys = cand[:2] if len(qy) < 2 else qy[:2]
         return {**base, "kind": "compare", **_compare(v, ys, dom, name)}
     if ADVICE.search(q):
         y = qy[0] if qy else (years[0] if years else None)
         return {**base, "kind": "advice", **_advice(v, y, dom, name, q)}
+    if CONSIDER.search(q) and (own or ctx.get("domain")):
+        y = qy[0] if qy else (years[0] if years else None)
+        return {**base, "kind": "consider", **_consider(v, y, dom, name)}
     if WHY_YEAR.search(q) and v.get("mode") == "multi":
         m = re.search(r"(\d{4})", q)
         return {**base, "kind": "why_year", **_why_year(v, int(m.group(1)))}
@@ -104,6 +135,39 @@ def _advice(v: dict, y: int | None, dom: str | None, name: str, q: str) -> dict:
     return {"year": y, "domain": b["domain"],
             "text": lead + f" 다만 {w} {name}은 ‘{b['tone_label']}’으로 읽힙니다. " + b["headline"].split(". ")[0].rstrip(".") + ".",
             "points": b["think"] + ["최종 결정은 현실 조건을 기준으로 해 주세요. 이 해석은 결과를 보장하지 않습니다."]}
+
+
+def _consider(v: dict, y: int | None, dom: str | None, name: str) -> dict:
+    b = _pick_block(v, y, dom)
+    if not b:
+        return {"text": _scope_text(), "points": []}
+    w = V.when_phrase([y] if y else [])
+    if b["tone"] == "thin":
+        return {"year": y, "domain": b["domain"], "text": f"{w} {name}은 이 사주에서 말할 근거가 부족합니다. 사주보다 현실 조건(제안 내용, 자금, 일정)을 우선해 살펴 주세요.", "points": b["limits"][:2] if b.get("limits") else []}
+    return {"year": y, "domain": b["domain"], "text": f"{w} {name}에서 생각해 볼 점입니다. 이 해석은 ‘{b['tone_label']}’이며 결과를 보장하지 않습니다.",
+            "points": b["think"] + ["결정은 현실 조건을 기준으로 해 주세요."]}
+
+
+def _relation(v: dict, y: int | None, two: list[str]) -> dict:
+    ba, bb = _pick_block(v, y, two[0]), _pick_block(v, y, two[1])
+    if not ba or not bb or ba["domain"] == bb["domain"]:
+        return {"text": "두 분야를 함께 볼 수 있는 풀이가 없습니다. 분야를 선택해 다시 분석해 주세요.", "points": []}
+    w = V.when_phrase([y] if y else [])
+    same = ba["tone"] == bb["tone"]
+    head = f"{w} {ba['name']}은 ‘{ba['tone_label']}’, {bb['name']}은 ‘{bb['tone_label']}’으로 읽힙니다. "
+    tail = ("두 분야가 같은 방향으로 읽히지만, 한쪽의 결과가 다른 쪽을 보장하지는 않습니다." if same else
+            "두 분야의 흐름이 서로 다르게 읽힙니다. 한 분야의 상황이 다른 분야에 그대로 이어진다고 단정할 수 없습니다.")
+    return {"year": y, "domain": ba["domain"], "text": head + tail, "points": [f"{ba['name']}: " + ba["headline"], f"{bb['name']}: " + bb["headline"]]}
+
+
+def _recap(v: dict, ctx: dict, dom: str | None, name: str) -> dict:
+    d = ctx.get("domain") or dom
+    nm = D.DOMAINS[d]["name"] if d in D.DOMAINS else name
+    r = _why(v, d, nm, ctx.get("year"))
+    if not r.get("points"):
+        return r
+    r["text"] = f"앞에서 말씀드린 {nm} 결론을 이렇게 판단했습니다."
+    return r
 
 
 def _compare(v: dict, ys: list[int], dom: str | None, name: str) -> dict:

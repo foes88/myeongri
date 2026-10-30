@@ -305,7 +305,9 @@ def ask(rid: str, b: ReportAsk, req: Request, authorization: str | None = Header
     years = b.years if b.years is not None else ((last and last.get("years")) or pre["years"])
     if any(y < 1901 or y > 2049 for y in years):
         raise HTTPException(status_code=422, detail={"code": "BAD_YEAR", "message": "분석 연도는 1901~2049 범위입니다."})
-    ans = consult_agent.answer(pre, b.question, domains_=doms, years=years, depth=b.depth or pre["depth"])
+    qa_prev = (last or {}).get("answer", {}).get("qa") or {}
+    ctx = {k: qa_prev.get(k) for k in ("domain", "year", "kind") if qa_prev.get(k)}  # 직전 답변의 분야·연도만 이어받는다(질문 원문은 넘기지 않는다)
+    ans = consult_agent.answer(pre, b.question, domains_=doms, years=years, depth=b.depth or pre["depth"], context=ctx)
     n = repo().add_turn(uid, rid, "answer", {"question": b.question, "domains": ans.get("domains", doms), "years": ans.get("years", years), "answer": ans})
     repo().audit(uid, "ask", rid[:8])
     from .. import main as M
