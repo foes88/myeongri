@@ -52,4 +52,4 @@ def test_saved_body_has_no_birth_input(c):
     body = A.repo().get_report(A.current_user(h["Authorization"]), rid)["body"]
     import json
     t = json.dumps(body, ensure_ascii=False)
-    assert "1984-06-15" not in t and "10:00" not in t and "birth_place" not in t
+    assert REQ["birth_date"] not in t and REQ["birth_time"] not in t and "birth_place" not in t  # 가상 입력
