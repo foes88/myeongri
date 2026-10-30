@@ -431,6 +431,7 @@ def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], y
             ups_by.setdefault(n, []).append(r["year"])
     yn = {n: (f"{ys[0]}년" if len(ys) == 1 else f"{ys[0]}~{ys[-1]}년") + " 흐름" for n, ys in ups_by.items()}
     readings = R.for_domains(pre, blocks, nm, yn)
+    readings += R.palace_readings(pre, blocks)
     for rd in readings:
         ys = ups_by.get(rd["structure"], [])
         if ys:

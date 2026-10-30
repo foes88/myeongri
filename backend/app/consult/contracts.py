@@ -86,7 +86,7 @@ def build_bundle(ans: dict, pre: dict) -> EvidenceBundle:
         paragraphs=tuple({"kind": p["kind"], "text": p["text"], "claim_ids": list(p["claim_ids"])} for p in ans.get("paragraphs", [])),
         allowed_terms=frozenset(allowed.terms), allowed_ganzhi=frozenset(allowed.ganzhi), allowed_years=frozenset(allowed.years),
         allowed_claim_ids=frozenset(allowed.claim_ids), classical_status=used, limits=tuple(ans["limits"]),
-        fallback_text="\n\n".join(p["text"] for p in ans.get("paragraphs", [])))
+        fallback_text="\n\n".join(p["text"] for p in ans.get("paragraphs", [])), key_judgments=kj)
 
 
 def validate(draft: ConsultationDraft | None, bundle: EvidenceBundle, request: ConsultationRequest) -> ValidatedResponse:

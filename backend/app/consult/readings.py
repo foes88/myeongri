@@ -107,3 +107,56 @@ def for_domains(pre: dict, blocks: list[dict], nm: dict, year_notes: dict[str, s
         final.append(r)
     order = {id(r): i for i, r in enumerate(out)}
     return sorted(final, key=lambda r: order[id(r)])
+
+
+# ------------------------------------------------------------------ 궁위·십성 신호 분야(연애·가족·건강·이직·부동산)
+PLAIN_SUBS = [("배우자성(관성)", "배우자를 뜻하는 직책·규율의 기운"), ("배우자성(재성)", "배우자를 뜻하는 재물·현실 자원의 기운"), ("배우자성", "배우자를 뜻하는 기운"), ("자녀성", "자녀를 뜻하는 기운"),
+              ("관성", "직책·규율의 기운"), ("인성", "배움·보호의 기운"), ("비겁", "나와 같은 기운"), ("식상", "표현·기술의 기운"), ("재성", "재물·현실 자원의 기운"),
+              ("지지 암장", "지지 속에 숨은 것"), ("천간 노출", "겉으로 드러난 것"), ("십성군", "기운"), ("개고·입묘 후보", "창고가 열리고 닫히는 관계"),
+              ("관계 후보에 있음(존재만 확인, 관계의 질은 확정하지 않음)", "관계에 놓여 있음(있다는 사실만 확인한 것)"), ("관계 후보에 있음(존재만 확인)", "관계에 놓여 있음(있다는 사실만 확인한 것)"),
+              ("관계 후보에 관여", "관계에 얽혀 있음"), ("무례지형(子卯)", "마찰이 생기는 형"), ("형(부분)", "마찰이 생기는 형"), ("반합", "서로 끌어당기는 합"), ("충 관계", "부딪히는 관계")]
+PALACE = {
+    "love_marriage": {"meaning": "배우자 자리(일지)와 배우자를 뜻하는 기운이 어떻게 놓였는지로 관계를 맺는 방식과 조건을 살펴봅니다.",
+                      "reality": "관계를 맺을 때 중요하게 여기는 조건, 갈등이 생겼을 때의 조율 방식, 가까운 사람과의 거리감을 돌아보는 데 참고할 수 있습니다."},
+    "family": {"meaning": "태어난 해·달·시의 자리와 윗사람·형제·자녀를 뜻하는 기운으로 가까운 사람들과의 관계 틀을 살펴봅니다.",
+               "reality": "부모·형제·동료·자녀와의 거리, 도움을 주고받는 방식, 부딪히기 쉬운 지점을 점검하는 데 참고할 수 있습니다."},
+    "job_change": {"meaning": "직업 자리(월주)와 직책·배움의 기운, 운에서 그 자리에 닿는 관계를 함께 살펴봅니다.",
+                   "reality": "자리를 옮길 때 조직이 요구하는 역할, 준비해 둔 자격·경력이 맞물리는 방식, 환경 변화에 대한 부담을 점검하는 데 참고할 수 있습니다."},
+    "real_estate": {"meaning": "재물을 뜻하는 기운, 문서·거처를 뜻하는 기운, 창고 역할을 하는 지지의 상태로 부동산과 거처에 대한 틀을 살펴봅니다.",
+                    "reality": "거래·계약 서류를 챙기는 방식, 자산을 묶어 두는 성향, 이사나 거처 변화에 대한 준비를 점검하는 데 참고할 수 있습니다."},
+    "health_traditional": {"meaning": "오행의 쏠림과 계절의 한난 균형을 '균형의 상징'으로만 살펴봅니다. 몸의 상태를 판단하는 해석이 아닙니다.",
+                           "reality": "생활 리듬과 휴식의 균형을 돌아보는 일상적 참고로만 쓸 수 있으며, 몸 상태를 판단하는 용도로는 쓸 수 없습니다."},
+}
+COUNT_CLAIM = "L1-SUP-001"
+
+
+def _plain(t: str) -> str:
+    t = re.sub(r"\s*\[[A-Z0-9]+(?:-[A-Z0-9]+)*-\d{3}\](?:\s*\([^)]*\))?", "", t)
+    for a, b in PLAIN_SUBS:
+        t = t.replace(a, b)
+    t = re.sub(r"'([一-鿿])'\(([一-鿿]{2})\)", lambda m: GOD_PLAIN.get(m.group(2), m.group(0)), t)
+    return t.replace("관계 관계", "관계").strip()
+
+
+def palace_readings(pre: dict, blocks: list[dict]) -> list[dict]:
+    from . import compose_domains as CD
+    out = []
+    for b in blocks:
+        dom = b["domain"]
+        if dom not in PALACE:
+            continue
+        ex = CD.domain_extra(dom, pre)
+        if not ex:
+            continue
+        status = "implementer_convention"
+        why = [_plain(x) for x in ex["evidence_for"]][:3]
+        counter = [_plain(x) for x in ex["evidence_against"]][:3]
+        scope = "원국의 글자 배치만 근거로 한 전통적 해석이며, 결과나 사건을 확정하지 않습니다. 이 분야의 판단 기준은 구현자 규약(고전 원문 대조 전) 단계입니다."
+        if dom == "health_traditional":
+            scope = CD.HEALTH_NOTICE + " " + scope
+        cids = list(dict.fromkeys(ex["claim_ids"] + [COUNT_CLAIM]))
+        out.append({"domain": dom, "name": b["name"], "structure": b["name"], "polarity": "support", "tier": 2, "meaning": PALACE[dom]["meaning"],
+                    "why": "원국의 근거: " + (" / ".join(why) if why else "이 분야와 직접 이어지는 뚜렷한 근거가 확인되지 않았습니다."),
+                    "reality": PALACE[dom]["reality"], "counter": counter or ["눈에 띄는 반대 근거는 확인되지 않았습니다."], "scope": scope,
+                    "claim_ids": cids, "rule_status": status, "rule_status_ko": S.STATUS_KO[status], "basis": S.BASIS_MODERN, "thin": not why})
+    return out

@@ -57,3 +57,18 @@ def test_overall_does_not_repeat_readings_already_given_by_specific_domains():
     for r in syn["readings"]:
         if r["domain"] == "overall":
             assert r["structure"] not in keys
+
+
+def test_palace_domains_get_five_part_readings_and_health_never_diagnoses():
+    doms = ("love_marriage", "family", "job_change", "real_estate", "health_traditional")
+    pre, _, syn = run(years=(2030,), domains=doms)
+    got = {r["domain"]: r for r in syn["readings"] if r["domain"] in doms}
+    assert set(got) == set(doms)
+    for r in got.values():
+        for k in ("meaning", "why", "reality", "counter", "scope"):
+            assert r[k]
+        assert "확정하지 않습니다" in r["scope"] and r["rule_status"] == "implementer_convention"
+        assert not re.search(r"\[[A-Z0-9-]+-\d{3}\]", r["why"] + " ".join(r["counter"]))  # 내부 번호 노출 없음(번호는 claim_ids 로)
+        assert not FUTURE.search(r["meaning"] + r["reality"] + r["scope"])
+    h = got["health_traditional"]
+    assert "의료진" in h["scope"] and not re.search(r"질환|질병|병이|진단|치료|수명", h["meaning"] + h["reality"])
