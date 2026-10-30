@@ -28,11 +28,12 @@ class BirthInput(BaseModel):
     latitude: float | None = Field(default=None, ge=33.0, le=39.0)
 
 app.add_middleware(CORSMiddleware, allow_origins=[o for o in os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',') if o],
-                   allow_methods=['GET', 'POST', 'DELETE'], allow_headers=['Content-Type', 'X-Consult-Token'])
+                   allow_methods=['GET', 'POST', 'DELETE'], allow_headers=['Content-Type', 'X-Consult-Token', 'Authorization'])
 
 @app.get('/api/v1/health')
 def health():
-    return {'status':'ok', 'calendar_verified':False, 'calendar_engine':'astro-core-0.1.0'}
+    from .accounts.api import accounts_enabled
+    return {'status':'ok', 'calendar_verified':False, 'calendar_engine':'astro-core-0.1.0', 'accounts': accounts_enabled()}
 
 _TIME_PROFILE = {'standard': TimeProfile.CIVIL_TIME, 'mean_solar': TimeProfile.LOCAL_MEAN_SOLAR_TIME,
                  'apparent_solar': TimeProfile.LOCAL_APPARENT_SOLAR_TIME}
@@ -197,6 +198,19 @@ def consult_delete(tid: str, x_consult_token: str | None = Header(default=None))
 from fastapi import Request  # noqa: E402
 
 
+MAX_BODY = 64 * 1024
+
+
+@app.middleware('http')
+async def _limit_body(request: Request, call_next):
+    """요청 크기 제한: 입력은 작은 JSON 이다. 큰 본문은 파싱 전에 거절한다."""
+    from fastapi.responses import JSONResponse
+    cl = request.headers.get('content-length')
+    if cl and cl.isdigit() and int(cl) > MAX_BODY:
+        return JSONResponse({'detail': {'code': 'TOO_LARGE', 'message': '요청이 너무 큽니다.'}}, status_code=413)
+    return await call_next(request)
+
+
 @app.middleware('http')
 async def _no_store(request: Request, call_next):
     resp = await call_next(request)
@@ -264,6 +278,11 @@ def oneshot_ask(b: OneshotBody):
 def oneshot_reality(b: OneshotReality):
     pre = _oneshot_pre(b)
     return consult_agent.classify_event(pre, b.event.model_dump())
+
+
+from .accounts.api import router as accounts_router  # noqa: E402
+
+app.include_router(accounts_router)
 
 
 if os.environ.get('SERVE_WEB'):  # 로컬/테스트에서 화면과 API 를 같은 출처로 서빙(Vercel 에서는 정적 파일을 Vercel 이 서빙)

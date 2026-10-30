@@ -24,6 +24,18 @@
 
   <div class="note" role="note" id="intronote"><b>의뢰 전 안내.</b> 이 문서는 전통 명리학의 해석이며, 미래를 예측하거나 결과를 보장하지 않습니다. 명식 계산의 검증 범위와 고전 원문 대조 상태를 리포트 안에 함께 표시합니다. 건강·투자·승진 확정과 같은 질문에는 답하지 않습니다. 합성 예시는 <a href="index.html#example">예시 리포트</a>에서 확인할 수 있으며, 이 화면의 결과는 입력하신 출생 정보로 계산한 것입니다.</div>
 
+  <section id="acct" class="doc acct" hidden aria-label="회원">
+    <div id="acct-out"><h2>내 리포트 저장 <span class="small muted">(선택)</span></h2>
+      <p class="small muted">로그인하면 분석 결과를 암호화해 저장하고, 다시 열어 후속 상담을 이어갈 수 있습니다. 출생 정보 원문은 저장하지 않습니다. 로그인하지 않아도 일회성 분석을 그대로 쓸 수 있습니다.</p>
+      <div class="grid"><div><label for="acct-mail">이메일</label><input id="acct-mail" type="email" autocomplete="username" maxlength="254"></div>
+        <div><label for="acct-pw">비밀번호<span class="hint">10자 이상, 영문+숫자</span></label><input id="acct-pw" type="password" autocomplete="current-password" maxlength="200"></div></div>
+      <p><button type="button" class="primary" id="acct-login">로그인</button> <button type="button" class="sec" id="acct-reg">가입</button></p></div>
+    <div id="acct-in" hidden><p><b id="acct-email"></b> · 저장한 리포트 <span id="acct-n">0</span>건 <button type="button" class="sec" id="acct-logout">로그아웃</button></p>
+      <ul id="mylist" class="plain"></ul>
+      <details><summary>계정 삭제</summary><p class="small muted">계정과 저장된 모든 리포트·상담 기록이 즉시 삭제되며 되돌릴 수 없습니다.</p>
+        <label for="delpw">비밀번호 확인</label><input id="delpw" type="password" autocomplete="current-password" maxlength="200"> <button type="button" class="sec" id="delacct">계정 삭제</button></details></div>
+    <p id="acct-msg" class="small muted" role="status"></p>
+  </section>
   <div class="devline"><label for="api">연결 설정(개발용) · API 주소</label>
     <input id="api" placeholder="http://127.0.0.1:8000" aria-describedby="apihelp"> <span id="apihelp" class="small muted">로컬 실행: <code>uvicorn app.main:app --port 8000</code> (backend 폴더)</span></div>
 
@@ -382,5 +394,6 @@ if(ONESHOT){
   $('intronote').innerHTML='<b>의뢰 전 안내.</b> 이 문서는 전통 명리학의 해석이며, 미래를 예측하거나 결과를 보장하지 않습니다. 명식 계산의 검증 범위와 고전 원문 대조 상태를 리포트 안에 함께 표시합니다. 건강·투자·승진 확정과 같은 질문에는 답하지 않습니다.';
 }
 </script>
+<script src="assets/member.js"></script>
 </body>
 </html>

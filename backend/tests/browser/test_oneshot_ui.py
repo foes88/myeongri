@@ -23,7 +23,7 @@ def one(tmp_path_factory):
     f.write_text(re.sub(r'name="mingli-mode" content="[a-z-]+"', 'name="mingli-mode" content="oneshot"', f.read_text(encoding="utf-8")), encoding="utf-8")
     consult_dir = d / "consult"
     port = free_port()
-    env = dict(os.environ, SERVE_WEB=str(d / "web"), CONSULT_DIR=str(consult_dir), PYTHONIOENCODING="utf-8")
+    env = dict(os.environ, SERVE_WEB=str(d / "web"), CONSULT_DIR=str(consult_dir), APP_DB=str(d / "app.sqlite3"), APP_DATA_KEY="dGVzdC1rZXktMzItYnl0ZXMtbG9uZy10ZXN0LWtleSE=", PYTHONIOENCODING="utf-8")
     p = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(port), "--host", "127.0.0.1", "--log-level", "warning"], cwd=BACKEND, env=env,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
@@ -79,6 +79,7 @@ def test_oneshot_full_flow_without_any_storage(browser, one):
     assert p.locator("#histout details").count() >= 2
     # 요청: 같은 출처 oneshot API 만, 토큰/번호/저장 API 호출 없음
     api = [(m, u) for m, u, pd in reqs if "/api/" in u]
+    api = [(m, u) for m, u in api if not (m == "GET" and u.endswith("/api/v1/health"))]  # 회원 기능 사용 가능 여부 확인(개인정보 없음)
     assert api and all(m == "POST" and "/api/v1/oneshot/" in u and u.startswith(one["base"]) for m, u in api), api
     assert not [u for m, u, pd in reqs if "/consultations" in u]
     assert all("?" not in u for m, u, pd in reqs if "/api/" in u)  # 쿼리스트링에 개인정보 없음
@@ -140,4 +141,84 @@ def test_place_list_has_cities_and_custom_longitude(browser, one):
     p.wait_for_function("document.querySelectorAll('#out section').length>0")
     body2 = [__import__("json").loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze")][-1]
     assert body2["longitude"] == 127.5
+    ctx.close()
+
+
+
+def _login_ui(p, email, pw="correct-horse-9", register=False):
+    p.fill("#acct-mail", email)
+    p.fill("#acct-pw", pw)
+    p.click("#acct-reg" if register else "#acct-login")
+    p.wait_for_selector("#acct-in:not([hidden])")
+
+
+def test_member_flow_save_reopen_follow_up_export_isolation_and_delete(browser, one):
+    ctx, p, reqs, console = open_page(browser, one)
+    assert p.is_visible("#acct")
+    assert p.evaluate("Object.keys(sessionStorage).length") == 0  # 로그인 전에는 저장소 사용 없음
+    _login_ui(p, "ui-user@example.com", register=True)
+    assert p.evaluate("document.cookie") == ""  # 쿠키 미사용
+    fill(p)
+    p.fill("#q", "2030년 재물과 직업이 궁금합니다")
+    p.click("#f button[type=submit]")
+    p.wait_for_selector("#session:not([hidden])", timeout=60000)
+    assert "저장되었습니다" in p.inner_text("#cover") and "저장되지 않는" not in p.inner_text("#cover")
+    p.wait_for_function("document.querySelectorAll('#mylist li button').length>=3")
+    assert p.inner_text("#acct-n") == "1"
+    posts = [u for m, u, pd in reqs if m == "POST"]
+    assert any(u.endswith("/api/v1/reports") for u in posts) and not any("/oneshot/" in u for u in posts)
+    assert all("1984-06-15" not in (u or "") for m, u, pd in reqs)  # 쿼리스트링에 출생 정보 없음
+    # 후속 질문(서버가 맥락 유지) → 새로고침 → 로그인 → 열기 → 기록 복원
+    p.fill("#q2", "사업 쪽은 어떻게 보이나요?")
+    p.click("#askb")
+    p.wait_for_selector("#out .record")
+    p.reload()
+    assert p.is_visible("#acct-in")  # 같은 탭에서는 세션 유지
+    p.click("#mylist li button:has-text('열기')")
+    p.wait_for_selector("#out .record", timeout=30000)
+    assert "사업" in p.inner_text("#out .record") and "다시 열었습니다" in p.inner_text("#cover")
+    # 내보내기
+    with p.expect_download() as dl:
+        p.click("#mylist li button:has-text('내보내기')")
+    txt = open(dl.value.path(), encoding="utf-8").read()
+    assert "후속 질문 1" in txt and "1984-06-15" not in txt
+    # 다른 회원은 이 리포트를 볼 수 없다
+    p.click("#acct-logout")
+    p.wait_for_selector("#acct-out:not([hidden])")
+    assert p.evaluate("Object.keys(sessionStorage).length") == 0
+    _login_ui(p, "ui-other@example.com", register=True)
+    assert p.inner_text("#acct-n") == "0"
+    p.click("#acct-logout")
+    # 원래 회원: 리포트 삭제 → 계정 삭제
+    _login_ui(p, "ui-user@example.com")
+    p.click("#mylist li button:has-text('삭제')")
+    p.wait_for_function("document.getElementById('acct-n').textContent==='0'")
+    p.click("#acct-in details summary")
+    p.fill("#delpw", "correct-horse-9")
+    p.click("#delacct")
+    p.wait_for_selector("#acct-out:not([hidden])")
+    p.fill("#acct-mail", "ui-user@example.com")
+    p.fill("#acct-pw", "correct-horse-9")
+    p.click("#acct-login")
+    p.wait_for_function("document.getElementById('acct-msg').textContent.includes('올바르지')")
+    assert not [c for c in console if "PAGEERROR" in c or "Content Security" in c]
+    ctx.close()
+
+
+def test_member_panel_errors_are_shown_and_anonymous_oneshot_unchanged(browser, one):
+    ctx, p, reqs, console = open_page(browser, one)
+    p.fill("#acct-mail", "nobody@example.com")
+    p.fill("#acct-pw", "wrong-pass-123")
+    p.click("#acct-login")
+    p.wait_for_function("document.getElementById('acct-msg').textContent.length>0")
+    assert "올바르지" in p.inner_text("#acct-msg") and p.is_hidden("#acct-in")
+    p.fill("#acct-pw", "short")
+    p.click("#acct-reg")
+    p.wait_for_function("document.getElementById('acct-msg').textContent.includes('10자')")
+    fill(p)
+    p.click("#f button[type=submit]")
+    p.wait_for_selector("#session:not([hidden])", timeout=60000)
+    assert "저장되지 않는 일회성 분석" in p.inner_text("#cover")  # 비로그인 흐름은 기존 그대로
+    assert any(u.endswith("/oneshot/analyze") for m, u, pd in reqs if m == "POST")
+    assert p.evaluate("Object.keys(sessionStorage).length") == 0 and p.evaluate("Object.keys(localStorage).length") == 0
     ctx.close()
