@@ -35,6 +35,12 @@ def health():
     from .accounts.api import accounts_enabled
     return {'status':'ok', 'calendar_verified':False, 'calendar_engine':'astro-core-0.1.0', 'accounts': accounts_enabled()}
 
+@app.get('/api/v1/verification/matrix')
+def verification_matrix(calendar: Literal['solar', 'lunar'] = 'solar'):
+    from .astro_core import status_matrix
+    return status_matrix.summary(calendar)
+
+
 _TIME_PROFILE = {'standard': TimeProfile.CIVIL_TIME, 'mean_solar': TimeProfile.LOCAL_MEAN_SOLAR_TIME,
                  'apparent_solar': TimeProfile.LOCAL_APPARENT_SOLAR_TIME}
 

@@ -204,6 +204,7 @@ function renderStatus(pre,reopened){
   if(sc.LUNAR_KR_PENDING)row.append(el('span','LUNAR_KR: '+sc.LUNAR_KR_PENDING.state,'pill badge'));
   if(sc.CLASSICAL_RULES_PENDING)row.append(el('span','고전 원문 대조 전 규칙 '+sc.CLASSICAL_RULES_PENDING.pending+'/'+sc.CLASSICAL_RULES_PENDING.total,'pill badge off'));
   s.append(row);
+  const hb=v.hour_boundary;if(hb&&hb.near)(hb.messages||[]).forEach(m=>s.append(el('p',m,'note')));
   if(pre.variants_count>1)s.append(el('p','시간 보정·23시 규칙에 따라 명식이 '+pre.variants_count+'개로 갈립니다. 선택한 명식: '+pre.variant_id+'. 다른 명식으로 읽으면 시주와 일부 해석이 달라질 수 있습니다.','note'));
   if(v.unverified_notice&&v.unverified_notice.length){const d=el('details');d.append(el('summary','검증이 끝나지 않은 범위 ('+v.unverified_notice.length+'건)'));d.append(ul(v.unverified_notice));s.append(d)}
   s.append(prof);

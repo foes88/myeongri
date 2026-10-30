@@ -167,6 +167,25 @@ def _pillar_time(profile: TimeProfile, aware_local: datetime, utc: datetime, lon
     return t.replace(tzinfo=None), info
 
 
+HOUR_NEAR_MINUTES = 10
+
+
+def hour_boundary_notice(pt: datetime, hour_known: bool, coord_source: str, longitude: float) -> dict:
+    """보정 후 시각이 12시진 경계(홀수 정시: 01·03·…·23시)에서 얼마나 가까운지. 가까우면 출생 시각·출생지 경도의 작은 오차로 시주가 바뀔 수 있다.
+    V등급 판정은 바꾸지 않는다(별도 안내). 출생지 좌표가 표(시청·군청 대표 위치 근사)에서 왔으면 그 사실도 함께 알린다."""
+    if not hour_known:
+        return {"near": False, "minutes_to_boundary": None, "messages": []}
+    m = (pt.hour * 60 + pt.minute + pt.second / 60 - 60) % 120
+    d = min(m, 120 - m)
+    near = d <= HOUR_NEAR_MINUTES
+    msgs = []
+    if near:
+        msgs.append(f"보정 후 시각이 시(時) 경계에서 약 {d:.0f}분 거리입니다. 출생 시각이 몇 분만 달라도 시주가 바뀔 수 있으니 출생 시각을 다시 확인하세요.")
+        if coord_source.startswith("table"):
+            msgs.append(f"출생지 좌표는 시청·군청 대표 위치의 근사값입니다(경도 1°≈4분). 실제 출생지의 경도(현재 {longitude:.2f}°)가 다르면 시주가 달라질 수 있으니 '직접 입력(경도)'로 확인하세요.")
+    return {"near": near, "minutes_to_boundary": round(d, 1), "messages": msgs}
+
+
 def _resolve_instants(naive: datetime, tz: ZoneInfo) -> list[tuple[int, datetime, datetime]]:
     """로컬 벽시계 → [(fold, aware_local, utc)]. 서머타임 중복 시각이면 2개, 존재하지 않는 시각이면 오류."""
     out = []
@@ -310,6 +329,7 @@ def calculate_chart(
     primary_inst = instants[0]
     pillars, pt, tinfo, bounds = build(primary_inst, time_profile, zi_profile)
     fold, aw, utc = primary_inst
+    boundary = hour_boundary_notice(pt, hour_known, coord_source, longitude)
 
     # 변형: 시간 보정 3종 × 23시 규칙 3종 × (서머타임 fold)
     groups: dict[tuple, list] = {}
@@ -395,7 +415,7 @@ def calculate_chart(
                     "nearest_jie_minutes": term_min, "ambiguity": {"ambiguous": ambiguous, "nearest_jie_seconds": nearest_s,
                                                                     "window_seconds": amb_s},
                     "levels": {k: v["granted"] for k, v in vlevels.levels().items()}, "v1_blockers": v1_blockers,
-                    "scope": _scope, "unverified_notice": vlevels.unverified_notice(_scope)}
+                    "scope": _scope, "unverified_notice": vlevels.unverified_notice(_scope), "hour_boundary": boundary}
 
     tinfo = dict(tinfo, pillar_time_local=pt.isoformat())
     profile_id = f"{CALC_VERSION}/{time_profile.value}/{zi_profile.value}/dst:{dst_policy}/{daeun_profile.profile_id}"
