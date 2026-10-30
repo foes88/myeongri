@@ -34,7 +34,7 @@ def matrix(calendar: str = "solar") -> list[dict]:
     add("시주(시지·오서둔)", "VERIFIED" if prof["granted"] else "PARTIAL", "시주 독립 계열 1종 + 내부 교차", prof["blockers"])
     add("평균태양시 경도 보정", "VERIFIED" if prof["granted"] else "PARTIAL", "경도×4분 공식. 출생지 좌표는 시청·군청 대표 위치 근사(전국 161곳)", prof["blockers"] + ["출생지 좌표는 근사값(실제 출생지와 차이 가능)"])
     add("진태양시·균시차", "VERIFIED" if prof["granted"] else "PARTIAL", "Meeus 근사식과 교차. 독립 천문 계열과의 대조는 아직 없음", prof["blockers"])
-    add("한국 역사적 표준시·서머타임", "CONFLICT", "2차 공개 자료 28/30 일치. 1954-03-21 전환 시각이 자료(00:30)와 tzdata(00:00) 사이 30분 불일치", ["법령 1차 원문 미확인", "tzdata 는 엔진과 같은 원천(독립 아님)"], False)
+    add("한국 역사적 표준시·서머타임", "CONFLICT", "2차 공개 자료 28/30 일치. 1954-03-21 전환(연혁 사실 예시, 출생정보 아님) 시각이 자료(00:30)와 tzdata(00:00) 사이 30분 불일치", ["법령 1차 원문 미확인", "tzdata 는 엔진과 같은 원천(독립 아님)"], False)
     add("23시 경계·야자시 학파 차이", "PARTIAL", "3가지 규칙을 모두 계산해 명식이 갈리면 변형으로 제시(자동 선택하지 않음). 학파 간 정답 판정은 하지 않음", prof["blockers"], False)
     add("대운 방향·시작 시점", "VERIFIED" if daeun["granted"] else "PARTIAL", "독립 대운 계산원 1종(lunar-python Yun)과 대조", daeun["blockers"])
     add("세운·대운 교체 구간", "PARTIAL", "입춘(검증된 절입)과 대운 기산일로 구간 분할. 교체일은 대운 기산에 의존", daeun["blockers"], False)

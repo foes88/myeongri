@@ -340,7 +340,35 @@ def _dedupe(items: list[dict]) -> list[dict]:
 
 
 # ------------------------------------------------------------------ 종합
-def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], years: list[int], question: str = "") -> dict:
+def monthly_summary(months: dict | None, rel: list[str]) -> dict | None:
+    """월운 한 줄 요약. 선택 분야 구조의 변화(대운·세운 포함 대비)와 원국과의 부딪히는 관계만 쓰고, 변화가 없으면 없다고 말한다. 구현자 규약이며 예측이 아니다."""
+    if not months or not months.get("months"):
+        return None
+    items, scores = [], []
+    for m in months["months"]:
+        d = [x for x in m["structure_delta"] if x["structure"] in rel and x["change"] in CHANGE_UP]
+        sup = [x["structure"] for x in d if STRUCT[x["structure"]]["polarity"] == "support"]
+        ten = [x["structure"] for x in d if STRUCT[x["structure"]]["polarity"] == "tension"]
+        bad = sorted({r["type"] for r in m["relations"] if r["type"] in REL_PLAIN})
+        bits = []
+        if sup:
+            bits.append(_join_themes(sup, "short") + "이 더해짐")
+        if ten:
+            bits.append(_join_themes(ten, "short") + "이 커짐")
+        if bad:
+            bits.append("원국과 " + "·".join(bad) + " 관계")
+        score = 2 * len(sup) + 2 * len(ten) + len(bad)
+        scores.append(score)
+        items.append({"span": f"{_md(m['from'])}~{_md(m['to'])}", "month_pillar": m["month_pillar"], "luck": m["luck"], "one_line": "; ".join(bits) or "이 분야 구조에서 달라지는 점이 확인되지 않음",
+                      "score": score, "claim_ids": [m["claim_id"]] + [x["claim_id"] for x in d]})
+    top = max(scores)
+    for it in items:
+        it["standout"] = top > 0 and it["score"] == top
+    return {"year": months["year"], "items": items, "standout": [i["span"] for i in items if i["standout"]][:3], "note": months["note"], "rule_status": "implementer_convention",
+            "basis": BASIS_MODERN}
+
+
+def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], years: list[int], question: str = "", months: dict | None = None) -> dict:
     base = pre["natal_structure"]
     nm = _natal_map(base)
     sdoms = [d for d in doms if d != "luck"] or ["overall"]
@@ -415,6 +443,9 @@ def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], y
                          "year_sentences": {r["year"]: year_sentences(r) for r in yrs}})
     if natal["insufficient"] and any(r["score"] for r in yrs):
         headline.insert(0, _sent("원국만으로는 이 분야에서 뚜렷한 구조가 확인되지 않고, 대운·세운이 들어오는 시기에 비로소 나타나는 구조를 중심으로 읽습니다.", [], BASIS_ENGINE, kind="limit"))
+    monthly = monthly_summary(months, rel) if mode == "single" else None
+    if monthly:
+        flow["monthly"] = monthly
     # 한계·불확실성
     uncertainty = [_sent("같은 구조라도 실제 삶에서 어떻게 나타나는지는 사람마다 다르며, 이 풀이는 가능한 전통적 주제를 보여 줄 뿐입니다.", [], BASIS_ENGINE, kind="limit")]
     if not base["layer1"]["deukryeong"]["agree"]:
@@ -423,6 +454,8 @@ def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], y
         uncertainty.append(_sent("한 해 안에서 대운이 바뀌는 경우 앞뒤 구간을 따로 읽었고, 경계일 전후의 해석은 서로 이어 붙이지 않습니다.", [], BASIS_ENGINE, kind="limit"))
     elif any(r["split"] for r in yrs):
         uncertainty.append(_sent("입춘을 기준으로 세운이 바뀌는 구간은 따로 읽었고, 입춘 전후의 해석은 서로 이어 붙이지 않습니다.", [], BASIS_ENGINE, kind="limit"))
+    if monthly:
+        uncertainty.append(_sent("월별 흐름(월운)은 대운·세운과 같은 방식을 월 기둥에 적용한 구현자 규약이며, 고전 원문과 대조하지 않았습니다.", [], BASIS_ENGINE, kind="limit"))
     summaries = [domain_summary(pre, b, yrs, nm) for b in blocks]
     from . import readings as R  # 순환 import 방지
     ups_by = {}

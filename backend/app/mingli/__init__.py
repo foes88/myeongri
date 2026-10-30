@@ -82,3 +82,13 @@ def analyze_periods(chart: dict, years: list[int], variant_id: str = "v1") -> di
     out = analyze_years(chart, natal, sorted(set(years)), v["variant_id"], base["layer1"]["support_structure"]["label"])
     return {"variant_id": v["variant_id"], "natal": natal, "verification": chart["verification"], "natal_structure_ref": base["validation"],
             "periods": out, "calculation_profile_id": chart["calculation_profile_id"], "disclaimer": DISCLAIMER}
+
+
+def analyze_months(chart: dict, year: int, variant_id: str = "v1") -> dict:
+    """한 해의 월운(월별 흐름). 대운·세운에 월 기둥을 더해 달라지는 점만 기록한다(구현자 규약, 사건 예측 아님)."""
+    from .layer6_monthly import analyze_months as _m
+    if year < 1901 or year > 2049:
+        raise ValueError("연도는 1901~2049 범위")
+    v = next((x for x in chart["variants"] if x["variant_id"] == variant_id), chart["variants"][0])
+    base = analyze_structure(v["pillars"], v["variant_id"])
+    return _m(chart, v["pillars"], year, v["variant_id"], base["layer1"]["support_structure"]["label"])

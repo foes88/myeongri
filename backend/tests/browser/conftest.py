@@ -177,4 +177,4 @@ def assert_report_order(page):
     pos = [first] + [heads.index(t) for t in REPORT_ORDER]
     assert pos == sorted(pos), heads
     assert page.locator("#more details.fold[open]").count() == 0
-    assert page.locator("#more details.fold").count() == 9
+    assert page.locator("#more details.fold").count() == 10

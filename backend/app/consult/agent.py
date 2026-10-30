@@ -184,6 +184,10 @@ def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years
     summary = " ".join(b["easy_text"] for b in blocks) or "대운·세운 흐름을 구간별로 설명합니다."
     if periods:
         summary += " 요청하신 연도는 입춘과 대운 교체일을 기준으로 구간을 나누어 살펴봤고, 새 구조 변화는 '가능한 전통적 주제'일 뿐 사건 예측이 아닙니다."
+    months = None
+    if len(ys) == 1 and 1901 <= ys[0] <= 2049:  # 단일 연도 분석에는 월운(월별 흐름)을 더한다
+        from ..mingli import analyze_months
+        months = analyze_months(pre["chart"], ys[0], pre["variant_id"])
     out = {
         "refused": False, "ref": ref, "domains": doms, "years": ys, "depth": depth,
         "summary_easy": summary, "blocks": blocks, "periods": periods,
@@ -208,7 +212,8 @@ def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years
         bad = {int(re.match(r"문단(\d+)", x).group(1)) for x in probs if x.startswith("문단")}
         out["paragraphs"] = [q for i, q in enumerate(out["paragraphs"]) if i not in bad]
     out["consistency"] = {"ok": not probs, "problems": probs}
-    out["synthesis"] = synthesis.build(pre, blocks, periods, doms, ys, question)
+    out["months"] = months
+    out["synthesis"] = synthesis.build(pre, blocks, periods, doms, ys, question, months)
     out["classical_basis"] = compose.classical_basis(pre, out["paragraphs"])
     out["procedure"] = compose.analysis_procedure(pre, periods, doms, not probs, len(out["paragraphs"]))
     out["narrative"] = "\n\n".join(q["text"] for q in out["paragraphs"])
