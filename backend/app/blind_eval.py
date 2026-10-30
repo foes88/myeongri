@@ -1,6 +1,6 @@
 """블라인드 상담 평가(사람 평가) 도구의 핵심 로직. 평가자에게는 출처 라벨 없이 X/Y(/Z) 문장만 보여 주고, 정답 키는 별도 파일에 둔다.
 
-- 평가 대상 변형: legacy(v6.8 결정론 서술), synthesis(v7 종합), 선택적으로 llm(제공자 출력, 키·승인 없으면 생략).
+- 평가 대상 변형: 항목마다 2~3개의 서로 다른 버전 문장(예: v70 종합, v81 결론형, v82 개선). 이름은 key 에만 있고 평가자에게는 보이지 않는다.
 - 사람 평가가 끝났다고 기록하려면 gate() 조건(전문가 평가자 수, 일반 평가자 수, 항목 커버리지)을 충족해야 한다. 자동 지표는 이를 대신하지 못한다.
 - 합성 명식만 사용한다(실제 출생 정보 없음).
 """
@@ -29,7 +29,7 @@ def build_packet(items: list[dict], seed: int = 20261030) -> tuple[dict, dict]:
     rnd = random.Random(seed)
     packet_items, key = [], {}
     for it in items:
-        names = [n for n in ("legacy", "synthesis", "llm") if it["variants"].get(n)]
+        names = [n for n in it["variants"] if it["variants"].get(n)]  # 변형 이름은 자유(예: v70, v81, v82). 슬롯은 X/Y/Z 로 가려진다
         rnd.shuffle(names)
         slots = {SLOTS[i]: n for i, n in enumerate(names)}
         pid = hashlib.sha256(f"{seed}:{it['item_id']}".encode()).hexdigest()[:10]

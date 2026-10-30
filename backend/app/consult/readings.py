@@ -235,4 +235,4 @@ def natural(line: str) -> str:
     t = re.sub(r"(얽혀 있|놓여 있|있|없|않)음$", r"\1습니다", t)
     if t.endswith("기운"):
         t += "입니다"
-    return t if t.endswith(("다.", "요.")) else (t + "." if not t.endswith((".", ")")) else t)
+    return t if t.endswith(("다.", "요.")) else (t + "." if not t.endswith(".") else t)

@@ -103,7 +103,7 @@ def test_2027_vs_2030_and_same_year_same_conclusion_regardless_of_range():
     _, a30 = run(None, (2030,), ("wealth", "career"))
     t27, t30 = a27["verdict"], a30["verdict"]
     assert [b["story"] for b in t27["blocks"]] != [b["story"] for b in t30["blocks"]]
-    assert any("10년 단위" in s for b in t30["blocks"] for s in b["story"]) and not any("10년 단위" in s for b in t27["blocks"] for s in b["story"])  # 대운 교체 전후 설명
+    assert any("무렵 10년 단위로 바뀌는 큰 흐름이 바뀌" in s for b in t30["blocks"] for s in b["story"]) and not any("무렵 10년 단위로 바뀌는 큰 흐름이 바뀌" in s for b in t27["blocks"] for s in b["story"])  # 대운 교체 전후 설명
     assert any("6월 15일" in s for b in t30["blocks"] for s in b["story"])
     # 같은 해는 단일 연도로 보든 5년 범위로 보든 같은 결론
     _, multi = run(None, (2027, 2028, 2029, 2030, 2031), ("wealth", "career"))

@@ -17,16 +17,22 @@ QUESTIONS = [(("overall", "wealth", "career"), (2030,), "2030년 재물과 직�
              (("overall", "career"), tuple(range(2027, 2032)), "앞으로 5년 직업 흐름이 궁금합니다")]
 
 
-def items(n):
+def items(n, v81_json: str | None = None):
+    """평가 항목: 같은 명식·질문에 대해 v7.0(종합 템플릿), v8.1(결론형, 이전 코드에서 덤프), v8.2(현재)의 문장을 출처 없이 비교한다."""
     from app.evaluation import dataset as DS
+    from tools.dump_verdict_text import verdict_text
+    v81 = json.loads(Path(v81_json).read_text(encoding="utf-8")) if v81_json and Path(v81_json).exists() else {}
     out = []
     for name, p in charts(n):
         doms, years, q = QUESTIONS[len(out) % len(QUESTIONS)]
         pre = DS.pre_of(DS.Spec(p, domains=doms, years=years, cycles_first_year=2000))
         a = agent.answer(pre, q, domains_=list(doms), years=list(years), depth="detailed")
         S = a["synthesis"]
-        syn = "\n".join([x["text"] for k in ("headline", "favorable", "cautions") for x in S[k]] + [f"[{r['name']}] " + " ".join([r["meaning"], r["why"], r["reality"], " ".join(r["counter"]), r["scope"]]) for r in S["readings"]])
-        out.append({"item_id": name, "question": q, "years": list(years), "domains": list(doms), "variants": {"legacy": a["narrative"], "synthesis": syn}})
+        v70 = "\n".join([x["text"] for k in ("headline", "favorable", "cautions") for x in S[k]] + [f"[{r['name']}] " + " ".join([r["meaning"], r["why"], r["reality"], " ".join(r["counter"]), r["scope"]]) for r in S["readings"]])
+        variants = {"v70": v70, "v82": verdict_text(a["verdict"])}
+        if name in v81:
+            variants["v81"] = v81[name]
+        out.append({"item_id": name, "question": q, "years": list(years), "domains": list(doms), "variants": variants})
     return out
 
 
@@ -55,12 +61,13 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     b = sub.add_parser("build")
     b.add_argument("--n", type=int, default=20)
+    b.add_argument("--v81-json", default=None, help="v8.1 코드에서 tools.dump_verdict_text 로 만든 JSON")
     s = sub.add_parser("score")
     s.add_argument("files", nargs="+")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     if a.cmd == "build":
-        packet, key = BE.build_packet(items(a.n))
+        packet, key = BE.build_packet(items(a.n, a.v81_json))
         (OUT / "packet.json").write_text(json.dumps(packet, ensure_ascii=False, indent=1), encoding="utf-8")
         (OUT / "key.json").write_text(json.dumps(key, ensure_ascii=False, indent=1), encoding="utf-8")
         (OUT / "rater_form.html").write_text(FORM.replace("__PACKET__", json.dumps(packet, ensure_ascii=False)), encoding="utf-8")

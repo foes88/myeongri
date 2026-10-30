@@ -144,7 +144,11 @@ def _period_block(pre: dict, years: list[int], chart_fallback: dict | None = Non
             res = analyze_periods(pre["chart"], [y], pre["variant_id"])
             per = res["periods"]["per_year"][y]
         segs = []
-        for s in per["segments"]:
+        nodes = per.get("graph", {}).get("nodes", [])
+        by_id = {n["claim_id"]: n for n in nodes}
+        # 구간별 구조 증거: 구간마다 '원국+대운+세운' 구조 노드(L5-S-*)가 6개(구조 순서)씩 만들어진다 → 어떤 운 글자가 변화를 만들었는지 추적하는 데 쓴다(내부용)
+        struct_nodes = [n for n in nodes if n["claim_id"].startswith("L5-S-") and n["rule_id"].startswith("MG-L3-") and n["rule_id"] != "MG-L3-CHAIN"]
+        for si, s in enumerate(per["segments"]):
             rel = s["analysis"]["relations"]
             n_rel = sum(len(v) for k, v in rel.items() if not k.endswith("_claim"))
             kinds = sorted({x["type"] for k, v in rel.items() if not k.endswith("_claim") for x in v})
@@ -153,7 +157,10 @@ def _period_block(pre: dict, years: list[int], chart_fallback: dict | None = Non
             text = (f"{s['from']}~{s['to']}: " + (f"대운 {lk}, " if lk else "첫 대운 시작 전, ") + f"세운 {s['sewun_pillar']}. "
                     f"원국과 새로 생기는 관계 후보가 {n_rel}개({', '.join(kinds) or '없음'})이며, 구조 변화는 {', '.join(delta) or '확인되지 않음'}입니다.")
             raw = [{"who": who, "type": x["type"], "with": x["with"], "chars": x["chars"]} for who, lst in rel.items() if not who.endswith("_claim") for x in lst]
+            seg_struct = {n["attributes"].get("name"): n["supporting_evidence"] for n in struct_nodes[si * 6:(si + 1) * 6]}
+            claim_nodes = {d["claim_id"]: {"rule_id": by_id[d["claim_id"]]["rule_id"], "evidence": by_id[d["claim_id"]]["supporting_evidence"]} for d in s["analysis"]["structure_delta"] if d["claim_id"] in by_id}
             segs.append({"from": s["from"], "to": s["to"], "luck": lk, "sewun": s["sewun_pillar"], "text": text, "boundaries": s["starts_at_boundary"], "relations": raw,
+                         "struct_evidence": seg_struct, "claim_nodes": claim_nodes,
                      "delta": [{"structure": d["structure"], "change": d["change"], "before": d["before"], "after": d["after"], "claim_id": d["claim_id"]} for d in s["analysis"]["structure_delta"]]})
         out.append({"year": y, "precommitted": precommitted, "split": len(segs) > 1, "segments": segs,
                     "note": "한 해가 대운 교체·입춘으로 나뉘어 구간별로 설명합니다." if len(segs) > 1 else ""})

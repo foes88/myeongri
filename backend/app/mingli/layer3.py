@@ -18,7 +18,7 @@ def occurrences(pillars: dict[str, str], extra: dict[str, str] | None = None) ->
     """일간 기준 십성 출현 목록. extra: {'luck':'甲子','year':'乙丑'} 같은 외부 기둥(대운·세운)."""
     day_stem = pillars["day"][0]
     out = []
-    items = [(p, pillars[p]) for p in POS if p in pillars] + list((extra or {}).items())
+    items = [(p, pillars[p]) for p in POS if p in pillars] + [({"year": "sewun"}.get(k, k), v) for k, v in (extra or {}).items()]  # 세운 키(year)가 원국 연주(year)와 이름이 겹치지 않게 분리
     for pos, gz in items:
         if pos != "day":
             g = ten_god(day_stem, gz[0])
@@ -39,7 +39,7 @@ def best(occs: list[dict]) -> int:
 
 
 def _fmt(o: dict) -> str:
-    where = POS_KO.get(o["pos"], {"luck": "대운", "year": "세운", "month_luck": "월운"}.get(o["pos"], o["pos"]))
+    where = POS_KO.get(o["pos"], {"luck": "대운", "sewun": "세운", "month_luck": "월운"}.get(o["pos"], o["pos"]))
     return f"{where}{'간' if o['kind'] == 'stem' else '지 지장간'} {o['char']}({o['god']}{'·' + o['role'] if o['role'] else ''})"
 
 

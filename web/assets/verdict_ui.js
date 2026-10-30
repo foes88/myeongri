@@ -18,10 +18,11 @@ function trimSession(){const s=$('session');s.querySelectorAll('h3').forEach(h=>
   const dp=$('depth');if(dp){const g=dp.closest('div');if(g)g.hidden=true}}
 trimSession();
 
-function reasonsBox(v,b){const r=(v.reasons||{})[b.domain];const box=el('div',null,'whybox');box.hidden=true;
-  if(!r||(!r.positive.length&&!r.negative.length)){box.append(el('p','이 결론을 뒷받침하거나 반대로 보는 이유를 정리할 항목이 없습니다.','small muted'));return box}
-  const w=el('div',null,'two');const p=el('div',null,'positive');p.append(el('h4','뒷받침하는 이유'),ul(r.positive.length?r.positive:['(해당 없음)']));
-  const c=el('div',null,'caution');c.append(el('h4','주의하거나 반대로 보는 이유'),ul(r.negative.length?r.negative:['(해당 없음)']));w.append(p,c);box.append(w);return box}
+function reasonsBox(v,b){const w=b.why;const box=el('div',null,'whybox');box.hidden=true;
+  if(!w){box.append(el('p','이 결론의 이유를 정리한 항목이 없습니다.','small muted'));return box}
+  const sec=(t,arr)=>{if(arr&&arr.length){box.append(el('h4',t),ul(arr))}};
+  sec('타고난 사주에서 이렇게 봅니다',w.natal);sec('이 시기에 이렇게 봅니다',w.period);sec('반대로 보는 이유',w.against);
+  if(w.nature)box.append(el('p',w.nature,'small muted'));return box}
 
 function blockEl(v,b,lead){const s=el('section',null,'vblock'+(lead?' lead':''));s.dataset.domain=b.domain;s.dataset.tone=b.tone;
   const h=el('h2',b.name);const hd=el('div',null,'vhead');hd.append(h,chip(b.tone));s.append(hd);
@@ -42,6 +43,7 @@ function periodEl(v){const p=v.period;const s=el('section',null,'vperiod');
   p.years.forEach(r=>{const li=el('li',null,r.standout?'standout':'');li.dataset.year=r.year;
     const head=el('div',null,'yhead');head.append(el('b',r.year+'년'+(r.standout?' ★':'')),chip(r.tone));li.append(head);
     li.append(el('p',r.change,'ychange'));if(r.caution)li.append(el('p','주의: '+r.caution,'ycaution'));
+    if(r.why)li.append(el('p','왜 두드러지나요? '+r.why,'ywhy'));
     const det=el('div',null,'ydetail');det.hidden=true;
     const btn=el('button',r.year+'년 자세히 보기','sec');btn.type='button';btn.setAttribute('aria-expanded','false');
     btn.onclick=()=>{if(!det.childElementCount){((v.detail[String(r.year)]||{}).blocks||[]).forEach((b,i)=>det.append(blockEl(v,b,false)))}

@@ -103,6 +103,19 @@ def main():
                 p.click("#to5")
                 p.wait_for_selector("#verdict .vperiod", timeout=60000)
                 p.screenshot(path=str(OUT / f"04_5years_{name}.png"), full_page=True)
+                # 연도 선택 → 자세한 풀이, 이유 보기, 연도 이유 질문(후속)
+                st = p.locator("#verdict .yearlines > li.standout").first
+                if st.count():
+                    st.locator("button").first.click()
+                    p.wait_for_selector("#verdict .ydetail .verdict-a")
+                    st.locator(".ydetail .why").first.click()
+                    st.screenshot(path=str(OUT / f"04b_year_detail_{name}.png"))
+                    r["standout_has_reason"] = bool(st.locator(".ywhy").count())
+                p.fill("#q2", "2031년은 왜 달라지는 해야?")
+                p.click("#askb")
+                p.wait_for_selector("#out .record")
+                p.locator("#out .record").last.screenshot(path=str(OUT / f"04c_why_year_{name}.png"))
+                r["why_year_answer"] = p.locator("#out .record").last.inner_text()[:140]
                 p.fill("#q2", "사업 쪽은 어떻게 보이나요?")
                 t0 = time.time()
                 p.click("#askb")

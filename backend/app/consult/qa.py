@@ -15,6 +15,7 @@ SUPPORTED = ["“2030년에 이직하는 게 좋다는 거야?” 처럼 선택�
 ADVICE = re.compile(r"좋다는|좋을까|좋겠|해도 (돼|될까|되나)|하는 게 (좋|나)|해야 (해|할까|하나)|괜찮|추천|권해|말아야|하면 (안|될)|해볼까|할까\??")
 COMPARE = re.compile(r"비교|어느 (쪽|해)|더 (나아|좋|유리|낫)|vs|보다")
 WHY = re.compile(r"왜|이유|근거|어떻게 (그렇게|알)")
+WHY_YEAR = re.compile(r"(\d{4})\s*년.*(왜|이유).*(달라|두드러|주목|다르|특별|변화)|왜.*(\d{4})\s*년.*(달라|두드러|주목|다르|특별|변화)")
 MEANING = re.compile(r"무슨 (뜻|말)|뜻이|의미|무슨 소리|어떤 의미")
 DETAIL = re.compile(r"자세히|더 알려|풀어|구체적으로|설명해")
 
@@ -76,8 +77,12 @@ def answer_question(pre: dict, v: dict, question: str, doms: list[str], years: l
     if ADVICE.search(q):
         y = qy[0] if qy else (years[0] if years else None)
         return {**base, "kind": "advice", **_advice(v, y, dom, name, q)}
+    if WHY_YEAR.search(q) and v.get("mode") == "multi":
+        m = re.search(r"(\d{4})", q)
+        return {**base, "kind": "why_year", **_why_year(v, int(m.group(1)))}
     if WHY.search(q):
-        return {**base, "kind": "why", **_why(v, dom, name)}
+        y = qy[0] if qy else (years[0] if len(years) == 1 else None)
+        return {**base, "kind": "why", **_why(v, dom, name, y)}
     q_dom = [d for d in D.route(q, None) if d not in ("overall", "luck")]  # 분야만 언급한 질문은 그 분야의 풀이로 답한다
     if DETAIL.search(q) or q_dom or (qy and not MEANING.search(q)):
         y = qy[0] if qy else (years[0] if years else None)
@@ -118,11 +123,23 @@ def _compare(v: dict, ys: list[int], dom: str | None, name: str) -> dict:
     return {"years": ys, "domain": dom, "text": text, "points": [] if same else [f"{ys[0]}년: " + ba["headline"], f"{ys[1]}년: " + bb["headline"]]}
 
 
-def _why(v: dict, dom: str | None, name: str) -> dict:
-    r = (v.get("reasons") or {}).get(dom or "overall") or next(iter((v.get("reasons") or {}).values()), None)
-    if not r:
+def _why(v: dict, dom: str | None, name: str, year: int | None = None) -> dict:
+    b = _pick_block(v, year, dom)
+    w = b and b.get("why")
+    if not w:
         return {"text": "이 결론에 쓴 이유를 쉬운 말로 정리할 수 있는 항목이 없습니다.", "points": []}
-    return {"domain": dom, "text": f"{name}을 이렇게 읽은 이유를 쉬운 말로 정리했습니다.", "points": (["뒷받침하는 이유"] + r["positive"][:3] + ["주의하거나 반대로 보는 이유"] + r["negative"][:3])}
+    pts = (w["natal"][:2] + w["period"][:2] + (["반대로 보는 이유: " + x for x in w["against"][:1]]) + ([w["nature"]] if w.get("nature") else []))
+    return {"domain": b["domain"], "year": year, "text": f"{b['name']}을 이렇게 읽은 이유를 쉬운 말로 정리했습니다.", "points": pts}
+
+
+def _why_year(v: dict, year: int) -> dict:
+    row = next((r for r in v["period"]["years"] if r["year"] == year), None)
+    if not row:
+        return {"text": f"{year}년은 분석 범위에 없습니다. 연도를 바꿔 다시 분석해 주세요.", "points": []}
+    if row["standout"] and row["why"]:
+        return {"year": year, "text": f"{year}년이 다른 해보다 두드러지는 이유입니다. {row['why']}", "points": ["두드러진다는 것은 구조가 달라지는 정도가 크다는 뜻이며 좋거나 나쁜 일이 생긴다는 뜻이 아닙니다."]}
+    extra = f" 참고로 이 해의 변화는 다음과 같습니다: {row['change']}." if not row["change"].startswith("다른 해와") else ""
+    return {"year": year, "text": f"{year}년은 다른 해와 구별되는 구조 변화가 크지 않아 두드러지는 해로 뽑지 않았습니다." + extra, "points": []}
 
 
 def _meaning(pre: dict, v: dict, key: str, dom: str | None) -> dict:
