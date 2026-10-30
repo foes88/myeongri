@@ -29,14 +29,17 @@ def test_reading_text_has_no_jargon_or_future_assertion():
             assert not FUTURE.search(body + r["why"]), body
 
 
-def test_why_uses_only_evidence_present_in_the_chart():
-    """판단 근거 문장의 십성 한자는 해당 구조의 지지 증거에 실제로 있는 것만 나온다."""
+def test_why_uses_only_evidence_present_in_the_chart_and_has_no_hanja():
+    """판단 근거 문장에는 한자가 없고, 말한 기운(쉬운 말)은 해당 구조의 지지 증거에 실제로 있는 십성에서만 나온다."""
     pre, _, syn = run(years=(2030,), domains=("wealth",))
     nm = {s["name"]: s for s in pre["natal_structure"]["layer3"]["structures"]}
     for r in syn["readings"]:
-        ev = " ".join(nm[r["structure"]]["supporting"])
-        for god in re.findall(r"\(([一-鿿]{2})\)", r["why"]):
-            assert god in ev, (god, ev)
+        assert not re.search(r"[一-鿿]", r["why"]), r["why"]
+        ev_gods = {g for g in readings.GOD_PLAIN if any(f"({g}" in e for e in nm[r["structure"]]["supporting"])}
+        allowed = {readings.GOD_PLAIN[g] for g in ev_gods}
+        for phrase in set(readings.GOD_PLAIN.values()):
+            if phrase in r["why"]:
+                assert phrase in allowed, (phrase, r["why"])
 
 
 def test_wealth_and_career_use_different_reality_lens_for_same_structure():
@@ -72,3 +75,18 @@ def test_palace_domains_get_five_part_readings_and_health_never_diagnoses():
         assert not FUTURE.search(r["meaning"] + r["reality"] + r["scope"])
     h = got["health_traditional"]
     assert "의료진" in h["scope"] and not re.search(r"질환|질병|병이|진단|치료|수명", h["meaning"] + h["reality"])
+
+
+def test_plain_evidence_per_domain_has_no_jargon_ids_or_hanja_and_no_repeated_sentences():
+    pre, _, syn = run(years=(2030,), domains=("wealth", "career", "love_marriage", "family"))
+    ev = syn["evidence_plain"]
+    assert [e["domain"] for e in ev] == ["wealth", "career", "love_marriage", "family"]
+    for e in ev:
+        lines = e["positive"] + e["negative"]
+        assert lines and len(lines) == len(set(lines))
+        blob = " ".join(lines)
+        assert not re.search(r"\[[A-Z0-9-]+-\d{3}\]|[一-鿿]|지장간|암장|투출|십성|비겁|식상|재성|관성|인성|식상생재|재생관|관인상생|살인상생|상관견관|군겁쟁재", blob), blob
+        assert e["claim_ids"]
+    for e in ev:  # 같은 반대 견해 문장이 한 분야 안에서 구조마다 되풀이되지 않는다
+        sentences = [x.split(". (해당")[0] for x in e["positive"] + e["negative"] if ". (해당" in x]
+        assert len(sentences) == len(set(sentences))

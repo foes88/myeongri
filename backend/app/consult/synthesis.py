@@ -465,6 +465,7 @@ def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], y
     yn = {n: (f"{ys[0]}년" if len(ys) == 1 else f"{ys[0]}~{ys[-1]}년") + " 흐름" for n, ys in ups_by.items()}
     readings = R.for_domains(pre, blocks, nm, yn)
     readings += R.palace_readings(pre, blocks)
+    evidence_plain = R.block_evidence(pre, blocks, nm)
     for rd in readings:
         ys = ups_by.get(rd["structure"], [])
         if ys:
@@ -488,7 +489,7 @@ def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], y
     favorable, cautions = favorable[:3], cautions[:4]
     all_s = headline + favorable + cautions + uncertainty
     return {"version": SYNTH_VERSION, "mode": mode, "verification": verification, "headline": headline, "favorable": favorable, "cautions": cautions, "more": more,
-            "domain_summaries": summaries, "readings": readings, "period_flow": flow, "uncertainty": uncertainty, "natal": {"present": natal["present"], "center": natal["center"], "month": natal["month"]},
+            "domain_summaries": summaries, "readings": readings, "evidence_plain": evidence_plain, "period_flow": flow, "uncertainty": uncertainty, "natal": {"present": natal["present"], "center": natal["center"], "month": natal["month"]},
             "insufficient_evidence": bool(natal["insufficient"] and not any(r["score"] for r in yrs)),
             "claim_ids": list(dict.fromkeys(c for s in all_s for c in s["claim_ids"])),
             "text": "\n".join([s["text"] for s in all_s] + [d["text"] for d in summaries] + [y["one_line"] for y in flow.get("years", [])] + [" ".join([x["meaning"], x["why"], x["reality"], " ".join(x["counter"]), x["scope"], x.get("period", "")]) for x in readings])}

@@ -121,6 +121,7 @@ class Session:
         p.fill("#date", date)
         p.fill("#time", time_)
         p.select_option("#gender", gender)
+        open_adv(p)
         p.select_option("#cal", cal)
         p.select_option("#leap", leap)
         p.select_option("#prof", prof)
@@ -178,3 +179,11 @@ def assert_report_order(page):
     assert pos == sorted(pos), heads
     assert page.locator("#more details.fold[open]").count() == 0
     assert page.locator("#more details.fold").count() == 10
+
+
+OPEN_ADV = "(()=>{const a=document.getElementById('adv');if(a)a.open=true})()"
+
+
+def open_adv(page):
+    """고급 옵션(시간 보정·해설의 깊이)은 기본으로 접혀 있다. 해당 입력을 다루는 테스트에서만 연다."""
+    page.evaluate(OPEN_ADV)

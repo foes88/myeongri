@@ -5,7 +5,7 @@ import re
 import pytest
 from .conftest import expanded_text
 
-from .conftest import OUT, show_form
+from .conftest import OUT, open_adv, show_form
 
 pytestmark = pytest.mark.browser
 
@@ -81,6 +81,7 @@ def test_03_all_domains_and_depths(sess, results):
     sess.open()
     sess.fill_birth()
     sess.set_domains(ALL_DOMS)
+    open_adv(sess.page)
     sess.page.select_option("#depth", "expert")
     sess.start()
     out = expanded_text(sess.page, "#out")
@@ -92,6 +93,7 @@ def test_03_all_domains_and_depths(sess, results):
     for d in ("summary", "detailed"):
         s2 = sess.page
         show_form(s2)
+        open_adv(s2)
         s2.select_option("#depth", d)
         s2.click("#f button[type=submit]")
         s2.wait_for_function("document.querySelectorAll('#out section').length>=1")
@@ -226,9 +228,19 @@ def test_09b_keyboard_only_flow(sess, results):
         order.append(p.evaluate("document.activeElement.id || document.activeElement.tagName"))
         if order[-1] == "q":
             break
-    assert "time" in order and "gender" in order and "depth" in order and order[-1] == "q"
-    p.keyboard.press("Tab")  # store 체크박스
-    p.keyboard.press("Space")
+    assert "time" in order and "gender" in order and order[-1] == "q"
+    p.keyboard.press("Tab")  # 고급 옵션(summary): 키보드로 열 수 있다
+    assert p.evaluate("document.activeElement.tagName") == "SUMMARY"
+    p.keyboard.press("Enter")
+    assert p.evaluate("document.getElementById('adv').open") is True
+    adv_order = []
+    for _ in range(6):
+        p.keyboard.press("Tab")
+        adv_order.append(p.evaluate("document.activeElement.id"))
+        if adv_order[-1] == "store":
+            break
+    assert adv_order[:2] == ["prof", "depth"] and adv_order[-1] == "store"
+    p.keyboard.press("Space")  # store 체크박스
     p.keyboard.press("Tab")  # submit 버튼
     assert p.evaluate("document.activeElement.type") == "submit"
     p.keyboard.press("Enter")

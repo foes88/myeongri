@@ -2,7 +2,7 @@
 import re
 
 import pytest
-from .conftest import assert_report_order, expanded_text, show_form
+from .conftest import assert_report_order, expanded_text, open_adv, show_form
 
 pytestmark = pytest.mark.browser
 
@@ -52,6 +52,7 @@ def test_consult_form_responsive_and_report_chapters(browser, env, size):
     for label in ("생년월일", "출생 시각", "달력", "출생지", "해설의 깊이"):
         assert p.locator(f"text={label}").count() >= 1, label
     p.fill("#date", "1984-06-15")  # 가상 입력
+    open_adv(p)
     p.select_option("#depth", "expert")
     p.click("#f button[type=submit]")
     p.wait_for_selector("#session:not([hidden])", timeout=60000)
@@ -70,10 +71,12 @@ def test_depth_modes_are_visually_separated_and_palette_has_no_blue_or_mint(sess
     p = sess.page
     sess.fill_birth()
     sess.set_domains(["overall"])
+    open_adv(p)
     p.select_option("#depth", "summary")
     sess.start()
     assert p.locator("#out .expert-only").count() == 0 and "요약 모드에서는 학파별 차이를 접어" in expanded_text(p, "#out")
     show_form(p)
+    open_adv(p)
     p.select_option("#depth", "expert")
     p.click("#f button[type=submit]")
     p.wait_for_function("document.querySelectorAll('#out .expert-only').length>=1")

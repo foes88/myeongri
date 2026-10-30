@@ -168,6 +168,9 @@ def test_accounts_are_disabled_in_production_without_explicit_flag(c, monkeypatc
     r = c.post("/api/v1/auth/register", json={"email": "p@example.com", "password": PW})
     assert r.status_code == 503 and r.json()["detail"]["code"] == "ACCOUNTS_DISABLED"
     monkeypatch.setenv("ACCOUNTS_ENABLED", "1")
+    assert c.get("/api/v1/health").json()["accounts"] is False  # 플래그만으로는 켜지지 않는다(관리형 DB·키 필요)
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@db.example.net/x?sslmode=require")
+    monkeypatch.setenv("APP_DATA_KEY", "k")
     assert c.get("/api/v1/health").json()["accounts"] is True
 
 
@@ -201,3 +204,30 @@ def test_postgres_persists_across_instances_serializes_turns_and_cascades():
         assert (r2.count("users"), r2.count("reports"), r2.count("turns"), r2.count("sessions")) == (0, 0, 0, 0)
     finally:
         r1.drop_schema()
+
+
+@pytest.mark.parametrize("env,url,key,flag,expect", [
+    ({"VERCEL": "1"}, None, None, None, False),                                                             # Vercel + 설정 없음 → 비활성(휘발성 파일 DB 금지)
+    ({"VERCEL": "1"}, "postgresql://u:p@db.example.net/x?sslmode=require", "k", None, False),               # 플래그 없음
+    ({"VERCEL": "1"}, "postgresql://u:p@127.0.0.1:55498/myeongri", "k", "1", False),                        # 로컬 DB 문자열을 운영형 환경에 사용 금지
+    ({"VERCEL": "1"}, "postgresql://u:p@myeongri-pg:5432/myeongri?sslmode=require", "k", "1", False),       # 컨테이너 호스트명 금지
+    ({"VERCEL": "1"}, "postgresql://u:p@db.example.net/x", "k", "1", False),                                # TLS 요구 없음
+    ({"VERCEL": "1"}, "postgresql://u:p@db.example.net/x?sslmode=require", None, "1", False),               # 암호화 키 없음
+    ({"VERCEL": "1"}, "sqlite:///x.db", "k", "1", False),                                                   # Postgres 아님
+    ({"VERCEL": "1"}, "postgresql://u:p@db.example.net/x?sslmode=require", "k", "1", True),                 # 모두 충족
+    ({"APP_ENV": "production"}, None, None, "1", False),
+    ({}, None, None, None, True),                                                                            # 로컬 개발
+])
+def test_accounts_status_gate(monkeypatch, env, url, key, flag, expect):
+    for k in ("VERCEL", "APP_ENV", "DATABASE_URL", "APP_DATA_KEY", "ACCOUNTS_ENABLED"):
+        monkeypatch.delenv(k, raising=False)
+    for k, v in env.items():
+        monkeypatch.setenv(k, v)
+    if url:
+        monkeypatch.setenv("DATABASE_URL", url)
+    if key:
+        monkeypatch.setenv("APP_DATA_KEY", key)
+    if flag:
+        monkeypatch.setenv("ACCOUNTS_ENABLED", flag)
+    st = A.accounts_status()
+    assert st["enabled"] is expect and (expect or st["reason"])

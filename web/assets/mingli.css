@@ -167,3 +167,28 @@ details.fold>summary{font-weight:600;padding:.6rem 0}
 .formbar{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;border:1px solid var(--rule);background:var(--doc);padding:.6rem .9rem;margin:1rem 0}
 .formbar[hidden]{display:none !important}
 .consult-text p{margin:.55rem 0;line-height:1.85}
+.adv{margin:1rem 0;border:1px solid var(--rule);background:var(--doc);padding:.1rem .9rem}
+.adv>summary{padding:.6rem 0;font-weight:600}
+.busy{margin:.6rem 0;padding:.6rem .9rem;border-left:3px solid var(--seal);background:var(--seal-soft)}
+.busy.bad{background:transparent}
+.yearnav{display:inline-flex;gap:.4rem;flex-wrap:wrap}
+details.inl{display:inline;border:0;margin:0;padding:0}
+details.inl>summary{display:inline;color:var(--seal);cursor:pointer;font-weight:600}
+details.inl[open]{display:block;margin-top:.4rem}
+details.inl[open]>summary{display:block}
+
+/* 서버 호출 중 표시: 상단 진행 막대 + 안내 옆 회전 표시. 움직임 줄이기 설정이면 애니메이션 없이 정적으로 보인다 */
+.progress{position:fixed;left:0;right:0;top:0;height:3px;background:var(--seal-soft);overflow:hidden;z-index:50}
+.progress[hidden]{display:none !important}
+.progress::after{content:"";position:absolute;top:0;bottom:0;width:40%;background:var(--seal);animation:prog 1.1s ease-in-out infinite}
+@keyframes prog{0%{left:-40%}100%{left:100%}}
+.spin{display:inline-block;width:.95em;height:.95em;margin-right:.55em;vertical-align:-.12em;border:2px solid var(--rule);border-top-color:var(--seal);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.progress::after{animation:none;left:0;width:100%;opacity:.45}.spin{animation:none;border-top-color:var(--seal)}}
+
+/* 전문 용어 풀이: 점선 밑줄, 누르면 그 자리에 뜻이 펼쳐진다(모바일에서도 넘치지 않음) */
+abbr.term{text-decoration:underline dotted var(--seal);text-underline-offset:3px;cursor:help;border-radius:2px}
+abbr.term:focus-visible{outline:2px solid var(--seal);outline-offset:1px}
+.tipbox{color:var(--ink2);font-size:.92em;background:var(--seal-soft);padding:0 .3em}
+details.expert-raw{border-top:1px dashed var(--rule);margin-top:.6rem}
+details.expert-raw>summary{color:var(--ink2);font-size:.92rem}

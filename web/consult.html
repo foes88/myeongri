@@ -15,6 +15,7 @@
   <nav class="mastnav" aria-label="주요 메뉴"><a href="index.html">서재</a><a href="index.html#example">예시 리포트</a><a href="consult.html" aria-current="page">상담 의뢰</a></nav>
 </header>
 <hr class="rule">
+<div id="progress" class="progress" role="progressbar" aria-label="분석 진행 중" hidden></div>
 <main id="main">
   <div id="staticbanner" class="note" role="note" hidden><b>정적 미리보기(디자인 확인용).</b> 이 화면은 서버에 연결되어 있지 않으며, 입력란은 비활성화되어 있습니다. 어떤 내용도 전송되거나 저장되지 않습니다. 아래 “합성 샘플” 버튼으로 합성 명식(실제 출생 정보 아님)의 리포트 디자인을 확인할 수 있습니다.</div>
   <p class="kicker" style="margin-top:28px">상담 의뢰서</p>
@@ -24,22 +25,11 @@
 
   <div class="note" role="note" id="intronote"><b>의뢰 전 안내.</b> 이 문서는 전통 명리학의 해석이며, 미래를 예측하거나 결과를 보장하지 않습니다. 명식 계산의 검증 범위와 고전 원문 대조 상태를 리포트 안에 함께 표시합니다. 건강·투자·승진 확정과 같은 질문에는 답하지 않습니다. 합성 예시는 <a href="index.html#example">예시 리포트</a>에서 확인할 수 있으며, 이 화면의 결과는 입력하신 출생 정보로 계산한 것입니다.</div>
 
-  <section id="acct" class="doc acct" hidden aria-label="회원">
-    <div id="acct-out"><h2>내 리포트 저장 <span class="small muted">(선택)</span></h2>
-      <p class="small muted">로그인하면 분석 결과를 암호화해 저장하고, 다시 열어 후속 상담을 이어갈 수 있습니다. 출생 정보 원문은 저장하지 않습니다. 로그인하지 않아도 일회성 분석을 그대로 쓸 수 있습니다.</p>
-      <div class="grid"><div><label for="acct-mail">이메일</label><input id="acct-mail" type="email" autocomplete="username" maxlength="254"></div>
-        <div><label for="acct-pw">비밀번호<span class="hint">10자 이상, 영문+숫자</span></label><input id="acct-pw" type="password" autocomplete="current-password" maxlength="200"></div></div>
-      <p><button type="button" class="primary" id="acct-login">로그인</button> <button type="button" class="sec" id="acct-reg">가입</button></p></div>
-    <div id="acct-in" hidden><p><b id="acct-email"></b> · 저장한 리포트 <span id="acct-n">0</span>건 <button type="button" class="sec" id="acct-logout">로그아웃</button></p>
-      <ul id="mylist" class="plain"></ul>
-      <details><summary>계정 삭제</summary><p class="small muted">계정과 저장된 모든 리포트·상담 기록이 즉시 삭제되며 되돌릴 수 없습니다.</p>
-        <label for="delpw">비밀번호 확인</label><input id="delpw" type="password" autocomplete="current-password" maxlength="200"> <button type="button" class="sec" id="delacct">계정 삭제</button></details></div>
-    <p id="acct-msg" class="small muted" role="status"></p>
-  </section>
   <div class="devline"><label for="api">연결 설정(개발용) · API 주소</label>
     <input id="api" placeholder="http://127.0.0.1:8000" aria-describedby="apihelp"> <span id="apihelp" class="small muted">로컬 실행: <code>uvicorn app.main:app --port 8000</code> (backend 폴더)</span></div>
 
-  <div id="formbar" class="formbar" hidden><span id="formsum"></span> <button type="button" class="sec" id="formedit">입력 수정</button></div>
+  <div id="formbar" class="formbar" hidden><span id="formsum"></span> <button type="button" class="sec" id="formedit">입력 수정</button>
+    <span id="yearnav" class="yearnav" role="group" aria-label="분석 연도 바로 바꾸기"><button type="button" class="sec" id="yprev">◀ 이전 해</button> <button type="button" class="sec" id="ynext">다음 해 ▶</button> <button type="button" class="sec" id="to5">이 해부터 5년</button> <button type="button" class="sec" id="to10">10년</button></span></div>
   <form id="f" class="request" novalidate>
     <fieldset>
       <legend><span class="no">一</span>출생 정보</legend>
@@ -51,7 +41,6 @@
         <div><label for="gender">성별</label><select id="gender"><option value="male">남</option><option value="female">여</option></select></div>
         <div><label for="place">출생지<span class="hint">시·군 단위</span></label><select id="place"><option>서울특별시</option></select></div>
         <div id="lonw" hidden><label for="lon">경도(동경)<span class="hint">124~132, 예: 127.50</span></label><input id="lon" type="number" step="0.01" min="124" max="132" value="127.00"></div>
-        <div><label for="prof">시간 보정<span class="hint">시주 판단에 쓰는 기준</span></label><select id="prof"><option value="standard">시계 시각</option><option value="mean_solar">평균태양시</option><option value="apparent_solar">진태양시</option></select></div>
       </div>
       <p class="small muted">시간 보정에 따라 시주가 달라지면 명식을 여러 개로 나누어 보여 드리며, 하나를 정답으로 확정하지 않습니다.</p>
     </fieldset>
@@ -72,20 +61,39 @@
         <label><input type="checkbox" value="family">가족·인간관계운</label><label><input type="checkbox" value="health_traditional">건강 관련 전통 해석(진단 아님)</label>
         <label><input type="checkbox" value="luck">대운·세운</label>
       </div>
-      <div class="grid" style="margin-top:.6rem"><div>
-        <label for="depth">해설의 깊이</label>
-        <select id="depth" aria-describedby="depthnote"><option value="summary">요약</option><option value="detailed" selected>상세</option><option value="expert">전문가</option></select>
-        <p class="depth-note" id="depthnote"></p></div></div>
     </fieldset>
 
     <fieldset>
       <legend><span class="no">三</span>묻고 싶은 것</legend>
       <label for="q">자유 질문<span class="hint">선택 사항 · 예: 2030년에 이직을 생각 중인데 재물과 직업의 흐름이 궁금합니다</span></label>
       <textarea id="q" rows="3" maxlength="500"></textarea>
-      <label class="inline" style="margin-top:.8rem"><input type="checkbox" id="store"> 출생 원문을 서버에 저장합니다 (기본: 저장하지 않음)</label>
     </fieldset>
-    <p style="margin-top:1.4rem"><button type="submit">해석 리포트 받기</button></p>
+    <details id="adv" class="adv"><summary>고급 옵션 <span class="small muted">(시간 보정 · 해설의 깊이) — 처음에는 건드리지 않아도 됩니다</span></summary>
+      <div class="grid">
+        <div><label for="prof">시간 보정<span class="hint">시주 판단에 쓰는 기준</span></label><select id="prof"><option value="standard">시계 시각</option><option value="mean_solar">평균태양시</option><option value="apparent_solar">진태양시</option></select></div>
+      </div>
+      <div class="grid" style="margin-top:.6rem"><div>
+        <label for="depth">해설의 깊이</label>
+        <select id="depth" aria-describedby="depthnote"><option value="summary">요약</option><option value="detailed" selected>상세</option><option value="expert">전문가</option></select>
+        <p class="depth-note" id="depthnote"></p></div></div>
+      <label class="inline" style="margin-top:.8rem"><input type="checkbox" id="store"> 출생 원문을 서버에 저장합니다 (기본: 저장하지 않음)</label>
+    </details>
+    <p style="margin-top:1.4rem"><button type="submit" id="submitb">해석 리포트 받기</button></p>
+    <p id="busy" class="busy" role="status" aria-live="polite" hidden></p>
   </form>
+
+  <section id="acct" class="doc acct" hidden aria-label="회원">
+    <div id="acct-out"><h2>내 리포트 저장 <span class="small muted">(선택)</span></h2>
+      <p class="small muted">로그인하면 분석 결과를 암호화해 저장하고, 다시 열어 후속 상담을 이어갈 수 있습니다. 출생 정보 원문은 저장하지 않습니다. 로그인하지 않아도 일회성 분석을 그대로 쓸 수 있습니다.</p>
+      <div class="grid"><div><label for="acct-mail">이메일</label><input id="acct-mail" type="email" autocomplete="username" maxlength="254"></div>
+        <div><label for="acct-pw">비밀번호<span class="hint">10자 이상, 영문+숫자</span></label><input id="acct-pw" type="password" autocomplete="current-password" maxlength="200"></div></div>
+      <p><button type="button" class="primary" id="acct-login">로그인</button> <button type="button" class="sec" id="acct-reg">가입</button></p></div>
+    <div id="acct-in" hidden><p><b id="acct-email"></b> · 저장한 리포트 <span id="acct-n">0</span>건 <button type="button" class="sec" id="acct-logout">로그아웃</button></p>
+      <ul id="mylist" class="plain"></ul>
+      <details><summary>계정 삭제</summary><p class="small muted">계정과 저장된 모든 리포트·상담 기록이 즉시 삭제되며 되돌릴 수 없습니다.</p>
+        <label for="delpw">비밀번호 확인</label><input id="delpw" type="password" autocomplete="current-password" maxlength="200"> <button type="button" class="sec" id="delacct">계정 삭제</button></details></div>
+    <p id="acct-msg" class="small muted" role="status"></p>
+  </section>
 
   <section id="demo" class="doc" hidden aria-label="합성 샘플 시연">
     <p class="kicker">합성 샘플</p>
@@ -142,13 +150,32 @@ const STATIC=MODE==='static-preview';
 const ONESHOT=MODE==='oneshot';
 let lastBody=null;const localRecords=[];
 let thread=null,token=null,recordNo=0;
+if(ONESHOT){const sl=$('store').closest('label');if(sl)sl.hidden=true}
 if(!STATIC&&!ONESHOT){try{$('api').value=localStorage.getItem('api')||'http://127.0.0.1:8000'}catch(e){$('api').value='http://127.0.0.1:8000'}}
 const base=()=>{if(ONESHOT)return '';const v=$('api').value.replace(/\/$/,'');try{localStorage.setItem('api',v)}catch(e){}return v};
 const el=(t,txt,cls)=>{const e=document.createElement(t);if(txt!==undefined&&txt!==null)e.textContent=txt;if(cls)e.className=cls;return e};
 const kids=(p,...c)=>{c.flat().forEach(x=>{if(x)p.append(x)});return p};
 const hdr=()=>({'Content-Type':'application/json','X-Consult-Token':token});
-async function call(path,opt){if(STATIC)return {ok:false,status:0,j:{detail:'정적 미리보기에서는 서버에 연결하지 않습니다.'}};try{const r=await fetch(base()+path,opt);let j=null;try{j=await r.json()}catch(e){}return {ok:r.ok,status:r.status,j}}catch(e){return {ok:false,status:0,j:{detail:'API 서버에 연결할 수 없습니다: '+e.message}}}}
-const errText=r=>{const d=r.j&&r.j.detail;return typeof d==='string'?d:JSON.stringify(d)};
+let inflight=0,progTimer=null;
+function progress(d){inflight=Math.max(0,inflight+d);const bar=$('progress');if(!bar)return;
+  if(inflight>0){if(!progTimer&&bar.hidden){progTimer=setTimeout(()=>{bar.hidden=false;progTimer=null},250)}document.body.setAttribute('aria-busy','true')}
+  else{if(progTimer){clearTimeout(progTimer);progTimer=null}bar.hidden=true;document.body.removeAttribute('aria-busy')}}
+async function call(path,opt){if(STATIC)return {ok:false,status:0,j:{detail:'정적 미리보기에서는 서버에 연결하지 않습니다.'}};progress(1);try{const r=await fetch(base()+path,opt);let j=null;try{j=await r.json()}catch(e){}return {ok:r.ok,status:r.status,j}}catch(e){return {ok:false,status:0,j:{detail:'API 서버에 연결할 수 없습니다: '+e.message}}}finally{progress(-1)}}
+const FIELD_KO={birth_date:'생년월일',birth_time:'출생 시각',years:'분석 연도',longitude:'경도',latitude:'위도',birth_place:'출생지',gender:'성별',calendar:'달력',question:'질문',domains:'관심 분야'};
+const errText=r=>{const d=r.j&&r.j.detail;
+  if(r.status===0)return '서버에 연결할 수 없습니다. 인터넷 연결을 확인하고 잠시 후 다시 시도해 주세요.';
+  if(r.status===413)return '입력이 너무 깁니다. 질문을 줄여 다시 시도해 주세요.';
+  if(r.status===429)return (d&&d.message?d.message:'요청이 너무 많습니다.')+' 잠시 뒤 다시 시도해 주세요.';
+  if(r.status>=500)return '분석을 마치지 못했습니다. 입력은 그대로이니 잠시 후 다시 시도해 주세요. 반복되면 출생 시각을 비우거나 출생지를 바꿔 시도해 보세요.';
+  if(Array.isArray(d))return '입력을 확인해 주세요: '+d.map(x=>(FIELD_KO[(x.loc||[]).slice(-1)[0]]||'입력값')+' — '+(x.msg||'형식이 맞지 않습니다')).join(' / ');
+  if(typeof d==='string'){let h='';
+    if(/연도|1901|2049/.test(d))h=' 분석 연도는 1901~2049년 사이로 입력해 주세요.';
+    else if(/day is out of range|month must|year .* out of range|날짜|윤달|음력/.test(d))h=' 생년월일(음력이면 달력·윤달 선택)을 확인해 주세요.';
+    else if(/출생지|latitude|longitude|경도/.test(d))h=' 출생지를 목록에서 고르거나 ‘직접 입력(경도)’에 124~132 사이 값을 넣어 주세요.';
+    return d+h}
+  if(d&&d.message)return d.message;
+  return '요청을 처리하지 못했습니다. 입력 값을 확인해 주세요.'};
+const busy=(on,msg,bad)=>{const b=$('busy');b.hidden=!on;b.textContent='';if(on&&!bad){const sp=document.createElement('span');sp.className='spin';sp.setAttribute('aria-hidden','true');b.append(sp)}b.append(document.createTextNode(on?msg:''));b.className='busy'+(bad?' bad':'');$('submitb').disabled=!!(on&&!bad);$('f').setAttribute('aria-busy',on&&!bad?'true':'false')};
 const ul=(arr,cls)=>{const u=el('ul',null,cls||'plain');arr.forEach(x=>u.append(el('li',x)));return u};
 
 const STEM={'甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계'};
@@ -241,6 +268,48 @@ function classicalChapter(a,no){
   return ch}
 
 /* ---------- v6.9: 종합 해석(첫 화면) + 접힌 상세 ---------- */
+/* ---------- 전문 용어 풀이: 용어를 누르면(키보드 Enter 포함) 그 자리에서 뜻이 펼쳐진다 ---------- */
+const TERMS={
+ '식상생재':'능력·표현(식상)의 기운이 재물(재성)의 기운으로 이어지는 짜임을 부르는 이름',
+ '재생관':'재물의 기운이 직책·평가(관성)의 기운을 돕는 짜임',
+ '관인상생':'직책·규율(관성)의 기운이 배움·문서·보호(인성)의 기운을 돕는 짜임',
+ '살인상생':'강한 압박(칠살)의 기운을 배움·보호(인성)의 기운이 누그러뜨리며 돕는 짜임',
+ '상관견관':'표현·주장(상관)의 기운과 직책·규칙(정관)의 기운이 함께 있어 부딪히기 쉬운 짜임',
+ '군겁쟁재':'나와 같은 기운(비겁)이 여럿이라 재물을 나누어 가진다고 보는 짜임',
+ '지장간':'지지(아래 글자) 속에 숨어 있는 천간(위 글자). 본기·중기·여기 순서로 힘의 중심이 다르다',
+ '본기':'지장간 중 가장 중심이 되는 글자','중기':'지장간 중 두 번째 글자','여기':'지장간 중 가장 약한 글자',
+ '천간':'사주의 위쪽 글자(겉으로 드러난 기운)','지지':'사주의 아래쪽 글자(속에 깔린 기운)',
+ '식신':'표현·기술·여유의 기운','상관':'재능·자기주장의 기운','편재':'움직이는 재물·사업의 기운','정재':'꾸준한 재물·월급의 기운',
+ '칠살':'압박·경쟁·도전의 기운(편관)','편관':'압박·경쟁·도전의 기운','정관':'직책·규칙·명예의 기운','편인':'독특한 배움·직관의 기운','정인':'배움·문서·보호의 기운',
+ '비견':'나와 같은 기운(동료·경쟁)','겁재':'나와 비슷한 처지의 기운(나눔·경쟁)',
+ '식상':'식신과 상관(표현·기술)','재성':'편재와 정재(재물·현실 자원)','관성':'정관과 칠살(직책·규율·압박)','인성':'정인과 편인(배움·문서·보호)','비겁':'비견과 겁재(나와 같은 기운)',
+ '십성':'일간(나)을 기준으로 다른 글자가 어떤 역할인지 나눈 열 가지 이름',
+ '食神':'식신: 표현·기술의 기운','傷官':'상관: 재능·자기주장의 기운','偏財':'편재: 움직이는 재물의 기운','正財':'정재: 꾸준한 재물의 기운','七殺':'칠살: 압박·경쟁의 기운',
+ '正官':'정관: 직책·규칙의 기운','偏印':'편인: 독특한 배움의 기운','正印':'정인: 배움·보호의 기운','比肩':'비견: 나와 같은 기운','劫財':'겁재: 나와 비슷한 처지의 기운',
+ '통근':'위 글자(천간)가 아래 글자(지지)에 뿌리를 두고 힘을 얻는 것','투간':'지장간 속 글자가 천간으로 드러나는 것','득령':'태어난 달의 기운이 일간(나)을 돕는 것',
+ '월령':'태어난 달(계절)의 기운','격국':'태어난 달의 기운으로 정하는 사주의 큰 틀','용신':'사주의 균형에 필요하다고 보는 기운(학파마다 정의가 다름)','조후':'계절의 춥고 더운 균형',
+ '억부':'일간(나)의 강약을 눌러 주거나 보태 주는 균형','일간':'사주의 주인공이 되는 태어난 날의 위 글자','대운':'10년 단위로 바뀌는 큰 흐름','세운':'해마다 바뀌는 흐름(입춘 기준)','월운':'달마다 바뀌는 흐름',
+ '탈재':'비겁이 재물을 가져간다고 보는 것','편인도식':'편인이 식신(표현)을 눌러 막는다고 보는 견해','제겁':'관성이 비겁의 다툼을 눌러 조절하는 것','화겁생재':'식상이 비겁의 힘을 재물로 돌리는 것',
+ '상관패인':'인성이 상관의 거친 표현을 다듬는 것','상관생재':'상관의 기운이 재물로 이어져 부딪힘을 풀어 주는 것','재극인':'재물의 기운이 배움·보호의 기운을 누르는 것','식상극관':'표현의 기운이 직책의 기운을 누르는 것',
+ '재자약살':'재물이 약한 압박(칠살)을 키운다고 보는 것','구응':'깨진 구조를 구해 주는 요소','성격':'격국이 이루어진 것(좋다는 확정이 아님)','파격':'격국이 흐트러진 것',
+ '합화':'합이 되어 다른 기운으로 변한다고 보는 것(변하는지는 학파마다 다름)','천간합':'위 글자끼리 서로 끌어당겨 묶이는 관계','육합':'아래 글자끼리 짝으로 묶이는 관계','반합':'세 글자 합 중 두 글자만 모인 관계',
+ '삼합':'아래 글자 셋이 모여 한 기운을 이루는 관계','방합':'같은 계절의 아래 글자 셋이 모이는 관계','복음':'같은 글자가 다시 나타나는 것','입묘':'기운이 창고(진술축미)로 들어가 잠기는 것','개고':'창고가 열려 갇힌 기운이 나오는 것',
+ '일지':'태어난 날의 아래 글자(배우자 자리)','월지':'태어난 달의 아래 글자','연지':'태어난 해의 아래 글자','시지':'태어난 시의 아래 글자'
+};
+const TERM_RE=new RegExp(Object.keys(TERMS).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
+function annotate(root){
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>{const p=n.parentElement;return(!p||p.closest('abbr.term,summary,button,select,textarea,input,script,style'))?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  nodes.forEach(n=>{const t=n.nodeValue;TERM_RE.lastIndex=0;if(!TERM_RE.test(t))return;TERM_RE.lastIndex=0;
+    const f=document.createDocumentFragment();let last=0,m;
+    while((m=TERM_RE.exec(t))){if(m.index>last)f.append(t.slice(last,m.index));
+      const a=document.createElement('abbr');a.className='term';a.tabIndex=0;a.setAttribute('role','button');a.setAttribute('aria-expanded','false');a.title=TERMS[m[0]];a.textContent=m[0];
+      const tog=()=>{const nx=a.nextElementSibling;if(nx&&nx.classList.contains('tipbox')){nx.remove();a.setAttribute('aria-expanded','false');return}
+        const s=document.createElement('span');s.className='tipbox';s.textContent=' ('+TERMS[a.textContent]+') ';a.after(s);a.setAttribute('aria-expanded','true')};
+      a.addEventListener('click',tog);a.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tog()}});
+      f.append(a);last=m.index+m[0].length}
+    if(last<t.length)f.append(t.slice(last));n.replaceWith(f)})}
+
 function sentP(x){const p=el('p',x.text,'sent');p.dataset.claims=(x.claim_ids||[]).join(',');p.dataset.basis=x.basis||'';if(x.rule_status)p.dataset.ruleStatus=x.rule_status;return p}
 function sentList(arr,cls){const u=el('ul',null,cls||'sentlist');arr.forEach(x=>{const li=el('li',x.text);li.dataset.claims=(x.claim_ids||[]).join(',');li.dataset.basis=x.basis||'';u.append(li)});return u}
 function fold(title,ch){const d=el('details',null,'fold');d.append(el('summary',title));[...ch.children].forEach(c=>{if(c.classList.contains('no')||c.tagName==='H2')return;d.append(c)});return d}
@@ -297,7 +366,13 @@ function renderReport(a,pre,reopened){
   (a.blocks||[]).forEach(b=>{c6.append(el('h3',b.name),el('p',T(b.easy_text)));
     (a.paragraphs||[]).filter(p=>p.kind==='domain_period'&&p.text.includes(b.name)).forEach(p=>c6.append(el('p',p.text,'para muted')))});
   (a.paragraphs||[]).filter(p=>p.kind==='cross').forEach(p=>c6.append(el('p',p.text,'note plain')));
-  const c7=chapter(7,'긍정 근거와 주의 근거');(a.blocks||[]).forEach(b=>{c7.append(el('h3',b.name),evidenceTwo(b))});
+  const c7=chapter(7,'긍정 근거와 주의 근거');
+  c7.append(el('p','전문 용어 없이 풀어 쓴 근거입니다. 원문(전문 용어·근거 번호)은 각 분야 아래 ‘전문가용 근거 원문’에서 볼 수 있습니다.','small muted'));
+  const EP={};((a.synthesis&&a.synthesis.evidence_plain)||[]).forEach(e=>{EP[e.domain]=e});
+  (a.blocks||[]).forEach(b=>{c7.append(el('h3',b.name));const e=EP[b.domain];
+    if(e){const w=el('div',null,'two');const pp=el('div',null,'positive');pp.append(el('h4','돕거나 뒷받침하는 근거'),ul(e.positive.length?e.positive:['(해당 없음)']));
+      const cc=el('div',null,'caution');cc.append(el('h4','주의하거나 반대로 보는 근거'),ul(e.negative.length?e.negative:['(해당 없음)']));w.append(pp,cc);c7.append(w)}
+    const d=el('details',null,'expert-raw');d.append(el('summary','전문가용 근거 원문(전문 용어·근거 번호)'));d.append(evidenceTwo(b));c7.append(d)});
   const c8=chapter(8,'학파별 차이');
   if(a.school_view){c8.append(el('p','같은 명식도 어떤 질문을 먼저 보느냐에 따라 읽는 방향이 달라집니다. 하나의 점수나 결론으로 합치지 않고 관점별로 적습니다.','muted'));c8.append(ul(a.school_view.per_school.concat(a.school_view.relations)))}
   else c8.append(el('p','요약 모드에서는 학파별 차이를 접어 둡니다. ‘상세’ 또는 ‘전문가’ 깊이로 다시 의뢰하면 관점별 해석을 볼 수 있습니다.','muted'));
@@ -314,7 +389,7 @@ function renderReport(a,pre,reopened){
   c11.append(el('p',a.followup_note||'답해 주신 현실 정보는 조언에만 쓰이며 처음 작성한 해석을 바꾸지 않습니다.','small muted'));
   const more=el('section',null,'chapter more');more.id='more';more.append(el('h2','더 자세히 살펴볼 내용'),el('p','필요한 항목만 펼쳐 보세요. 위의 풀이가 어떤 근거에서 나왔는지 확인할 수 있습니다.','muted'));
   [['하나의 글로 읽는 상담문',cons(a)],['월별 흐름(월운)',monthly(a)],['연도별 세부 구간(대운·세운 표)',c5],['원국의 주요 특징',c4],['분야별 상세 해석',c6],['긍정 근거와 주의 근거',c7],['학파별 차이',c8],['고전 근거(원문 확인 상태)',c9],['조언·용어·해석의 범위',c10],['이어서 살펴볼 질문',c11]].forEach(([t,c])=>more.append(fold(t,c)));
-  out.append(more);
+  out.append(more);annotate(more);
 }
 function renderRecord(a,question){
   recordNo+=1;
@@ -329,12 +404,12 @@ function renderRecord(a,question){
   if(a.expert){const d=el('details');d.append(el('summary','전문가: 규칙 ID·고전 대조'));d.append(el('p','규칙: '+a.expert.rule_ids.join(', '),'small'));s.append(d)}
   if(a.followup_questions&&a.followup_questions.length)s.append(el('p','이어서 확인하면 좋은 질문: '+a.followup_questions.join(' / '),'small muted'));
   s.append(el('p',a.life_advice.label+': '+a.life_advice.items.join(' '),'small muted'));
-  $('out').append(s);s.scrollIntoView({block:'nearest'});
+  $('out').append(s);annotate(s);s.scrollIntoView({block:'nearest'});
 }
 
 function collapseForm(j){const yrs=(j.precommit.years||[]);$('formsum').textContent='분석 완료 · '+(yrs.length?yrs.join('·')+'년':'원국')+' · '+(j.answer.domains||[]).map(d=>DOM_KO[d]||d).join(', ');
-  $('f').hidden=true;$('intronote').hidden=true;$('formbar').hidden=false}
-$('formedit').addEventListener('click',()=>{$('f').hidden=false;$('intronote').hidden=false;$('formbar').hidden=true;$('f').scrollIntoView({block:'start'})});
+  $('f').hidden=true;$('intronote').hidden=true;$('formbar').hidden=false;$('session').after($('acct'))}
+$('formedit').addEventListener('click',()=>{$('f').after($('acct'));$('f').hidden=false;$('intronote').hidden=false;$('formbar').hidden=true;$('f').scrollIntoView({block:'start'})});
 function begin(j){thread=ONESHOT?'oneshot':j.thread_id;token=ONESHOT?'':j.access_token;recordNo=0;localRecords.length=0;$('session').hidden=false;
   const prev=$('keypoints');if(prev)prev.remove();
   renderReport(j.answer,Object.assign({},j.precommit),false);
@@ -344,16 +419,26 @@ function begin(j){thread=ONESHOT?'oneshot':j.thread_id;token=ONESHOT?'':j.access
   document.querySelector('.steps li:nth-child(1)').removeAttribute('aria-current');document.querySelector('.steps li:nth-child(2)').setAttribute('aria-current','step')}
 
 $('f').addEventListener('submit',async e=>{e.preventDefault();$('out').textContent='';$('variants').hidden=true;
+  if(!$('date').value){$('f').hidden=false;busy(true,'생년월일을 입력해 주세요.',true);$('date').focus();return}
+  const yy=parseInt($('y1').value,10);if(!(yy>=1901&&yy<=2049)){$('f').hidden=false;busy(true,'분석 연도는 1901~2049년 사이로 입력해 주세요.',true);$('y1').focus();return}
+  if($('place').value==='__custom__'&&!(parseFloat($('lon').value)>=124&&parseFloat($('lon').value)<=132)){busy(true,'경도는 124~132 사이로 입력해 주세요.',true);$('lon').focus();return}
+  busy(true,'분석 중입니다… 명식을 계산하고 해설을 만드는 데 몇 초 걸립니다. 처음 접속하면 조금 더 걸릴 수 있어요.');
   const doms=[...document.querySelectorAll('#doms input:checked')].map(i=>i.value);
   const body={question:$('q').value,birth_date:$('date').value,birth_time:$('time').value||null,calendar:$('cal').value,is_leap_month:$('leap').value==='true',gender:$('gender').value,birth_place:$('place').value==='__custom__'?'서울특별시':$('place').value,longitude:$('place').value==='__custom__'?parseFloat($('lon').value):null,calculation_profile:$('prof').value,years:years(),domains:doms.length?doms:['overall'],depth:$('depth').value,store_birth:$('store').checked,first_question:$('q').value};
   const send=b=>{lastBody=b;return call(ONESHOT?'/api/v1/oneshot/analyze':'/api/v1/consultations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})};
   const r=await send(body);
+  busy(false);
   if(r.status===409&&r.j&&r.j.detail&&r.j.detail.code==='VARIANT_REQUIRED'){const v=$('variants');v.hidden=false;v.textContent='';
     v.append(el('p','명식 선택','kicker'),el('h2','명식이 여러 개로 갈립니다'));
     v.append(el('p','시간 보정·23시 규칙에 따라 명식이 여러 개로 갈립니다. 하나를 직접 선택해야 합니다(자동 선택하지 않음).'));
     r.j.detail.variants.forEach(x=>{const b=el('button',x.variant_id+': '+Object.values(x.pillars).join(' ')+(x.is_primary?' (입력한 기준)':''));b.type='button';b.className='sec';b.style.margin='.2rem .4rem .2rem 0';b.onclick=async()=>{const r2=await send(Object.assign({},body,{variant_id:x.variant_id}));v.hidden=true;if(r2.ok)begin(r2.j);else $('out').append(el('p',errText(r2),'bad'))};v.append(b)});return}
-  if(!r.ok){$('report').hidden=false;$('cover').textContent='';$('status').hidden=true;$('out').append(el('p',errText(r),'bad'));return}
+  if(!r.ok){$('f').hidden=false;$('formbar').hidden=true;busy(true,errText(r),true);$('report').hidden=false;$('cover').textContent='';$('status').hidden=true;$('out').append(el('p',errText(r),'bad'));return}
   begin(r.j)});
+/* 결과 화면에서 연도·기간을 바로 바꿔 다시 분석 */
+function reAnalyze(kind,delta){const y=parseInt($('y1').value,10)||2030;const ny=y+delta;if(ny<1901||ny>2049){formsum_msg('분석 연도는 1901~2049년 사이입니다.');return}
+  $('y1').value=ny;if(kind)$('pk').value=kind;pdesc();$('f').requestSubmit()}
+function formsum_msg(t){$('formsum').textContent=t}
+$('yprev').onclick=()=>reAnalyze(null,-1);$('ynext').onclick=()=>reAnalyze(null,1);$('to5').onclick=()=>reAnalyze('r5',0);$('to10').onclick=()=>reAnalyze('r10',0);
 $('askb').onclick=async()=>{const qv=$('q2').value;const r=ONESHOT?await call('/api/v1/oneshot/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({},lastBody,{question:qv}))}):await call('/api/v1/consultations/'+thread+'/ask',{method:'POST',headers:hdr(),body:JSON.stringify({question:qv,years:years()})});if(r.ok){renderRecord(r.j,qv);localRecords.push({kind:'answer',question:qv,narrative:r.j.narrative||''});$('q2').value=''}else $('out').append(el('p',errText(r),'bad'))};
 $('evb').onclick=async()=>{const ev={kind:'event',type:$('evt').value,year:parseInt($('evy').value,10)};const r=ONESHOT?await call('/api/v1/oneshot/reality',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({},lastBody,{event:ev}))}):await call('/api/v1/consultations/'+thread+'/reality',{method:'POST',headers:hdr(),body:JSON.stringify(ev)});if(ONESHOT&&r.ok)localRecords.push({kind:'reality',text:ev.type+' '+ev.year+'년 → '+r.j.outcome});$('evr').textContent=r.ok?('분류: '+r.j.outcome+' — '+r.j.explanation):'오류 '+errText(r)};
 $('reb').onclick=async()=>{const r=await call('/api/v1/consultations/'+thread+'/reanalyze',{method:'POST',headers:hdr(),body:JSON.stringify({reason:'화면에서 재분석',pa_profile:$('pap').value})});$('rer').textContent=r.ok?('재분석 기록 #'+r.j.revision+' 추가. 원본 해시 유지: '+r.j.original_hash.slice(0,12)+'… 변경: '+JSON.stringify(r.j.diff)):'오류 '+errText(r)};
@@ -371,7 +456,7 @@ $('reopen').onclick=async()=>{thread=$('rt').value.trim();token=$('rk').value.tr
 /* ---------- 정적 미리보기 모드: 전송·저장 없이 합성 샘플만 시연 ---------- */
 if(STATIC){
   $('staticbanner').hidden=false;
-  document.querySelectorAll('#f fieldset').forEach(f=>f.disabled=true);
+  document.querySelectorAll('#f fieldset').forEach(f=>f.disabled=true);document.querySelectorAll('#f #adv select,#f #adv input').forEach(f=>f.disabled=true);
   $('f').querySelector('button[type=submit]').disabled=true;
   $('f').addEventListener('submit',e=>e.preventDefault());
   document.querySelector('.devline').hidden=true;$('reopenbox').hidden=true;
@@ -396,12 +481,13 @@ if(STATIC){
 /* ---------- 일회성 모드: 서버에 저장하지 않고 그 자리에서 분석 ---------- */
 if(ONESHOT){
   $('staticbanner').hidden=false;
-  $('staticbanner').innerHTML='<b>저장하지 않는 일회성 분석.</b> 입력하신 출생 정보와 질문은 서버에 저장되지 않으며 내용을 기록(로그)하지 않습니다. 계산을 위해 이 사이트의 서버로 HTTPS 전송되고, 분석이 끝나면 서버에는 남지 않습니다. 이 화면을 닫거나 새로고침하면 결과가 사라집니다. (호스팅 사업자의 일반 접속 기록에는 요청 주소·시각 등이 남을 수 있으며 입력 내용은 포함되지 않습니다.)';
+  $('staticbanner').innerHTML='<b>저장하지 않는 일회성 분석.</b> 입력하신 정보는 계산을 위해 HTTPS 로 이 사이트의 서버에 전송되지만 저장·기록되지 않습니다. <details class="inl"><summary>자세히</summary>입력하신 출생 정보와 질문은 서버에 저장되지 않으며 내용을 기록(로그)하지 않습니다. 분석이 끝나면 서버에는 남지 않고, 이 화면을 닫거나 새로고침하면 결과가 사라집니다. 로그인해서 저장을 선택하면 출생 원문은 저장하지 않고 분석 결과만 암호화해 보관합니다. (호스팅 사업자의 일반 접속 기록에는 요청 주소·시각 등이 남을 수 있으며 입력 내용은 포함되지 않습니다.)</details>';
   document.querySelector('.devline').hidden=true;$('reopenbox').hidden=true;
   $('store').closest('label').hidden=true;$('reb').closest('p').hidden=true;$('pap').closest('.grid').hidden=true;
   document.querySelectorAll('#session h3').forEach(h=>{if(h.textContent==='재분석')h.hidden=true});
   document.querySelectorAll('#session > p.small.muted').forEach(x=>{if(x.textContent.indexOf('규칙 버전')>=0)x.hidden=true});
-  $('intronote').innerHTML='<b>의뢰 전 안내.</b> 이 문서는 전통 명리학의 해석이며, 미래를 예측하거나 결과를 보장하지 않습니다. 명식 계산의 검증 범위와 고전 원문 대조 상태를 리포트 안에 함께 표시합니다. 건강·투자·승진 확정과 같은 질문에는 답하지 않습니다.';
+  $('intronote').innerHTML='<b>안내.</b> 전통 명리학의 해석이며 미래를 예측하거나 결과를 보장하지 않습니다. <details class="inl"><summary>자세히</summary>명식 계산의 검증 범위와 고전 원문 대조 상태는 리포트 안에 함께 표시합니다. 건강·투자·승진 확정과 같은 질문에는 답하지 않습니다.</details>';
+  $('intronote').closest('main').querySelector('p.lead').hidden=true;  /* 입력이 첫 화면에 보이도록 설명 문단은 접는다 */
 }
 </script>
 <script src="assets/member.js"></script>

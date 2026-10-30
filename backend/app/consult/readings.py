@@ -54,7 +54,7 @@ def plain_evidence(supporting: list[str]) -> str:
         if god not in GOD_PLAIN or pos not in POS_PLAIN:
             continue
         tail = "에 숨어 있는" if "지장간" in pos else "에 드러난"
-        phrase = f"{POS_PLAIN[pos]}{tail} {GOD_PLAIN[god]}({god})"
+        phrase = f"{POS_PLAIN[pos]}{tail} {GOD_PLAIN[god]}"
         (dst if e.strip().startswith("→") else src).append(phrase)
     src, dst = list(dict.fromkeys(src))[:1], list(dict.fromkeys(dst))[:1]
     if not src and not dst:
@@ -109,6 +109,40 @@ def for_domains(pre: dict, blocks: list[dict], nm: dict, year_notes: dict[str, s
     return sorted(final, key=lambda r: order[id(r)])
 
 
+def block_evidence(pre: dict, blocks: list[dict], nm: dict) -> list[dict]:
+    """분야별 '긍정 근거 / 주의 근거'를 용어 없이 쉬운 말로. 엔진 원문(근거 번호·한자·용어)은 화면에서 '전문가용 근거'로 따로 접어 둔다.
+    구조 이름 대신 '무엇이 어떻게 이어지는 흐름인가'로 부르고, 증거에 있는 위치·기운만 말한다."""
+    from . import compose_domains as CD
+    out = []
+    for b in blocks:
+        dom = b["domain"]
+        pos, neg, cids = [], [], []
+        cnt_pos: dict[str, list[str]] = {}  # 같은 반대 견해는 한 번만 쓰고 해당하는 흐름을 함께 적는다
+        cnt_neg: dict[str, list[str]] = {}
+        if D.DOMAINS[dom].get("kind") == "palace":
+            ex = CD.domain_extra(dom, pre) or {"evidence_for": [], "evidence_against": [], "claim_ids": []}
+            pos = [_plain(x) for x in ex["evidence_for"]]
+            neg = [_plain(x) for x in ex["evidence_against"]]
+            cids = list(ex["claim_ids"])
+        else:
+            for i in b["structures"]:
+                s = nm[i["structure"]]
+                if not s["rank"]:
+                    continue
+                st = S.STRUCT[i["structure"]]
+                why = plain_evidence(s.get("supporting", []))
+                head = st["short"] + f"({S.TIER[s['rank']]} 나타남)"
+                (pos if st["polarity"] == "support" else neg).append(head + (": " + why if why else ""))
+                for c in S._counters_plain(s, st["polarity"]):
+                    (cnt_neg if st["polarity"] == "support" else cnt_pos).setdefault(c, []).append(st["short"])
+                cids.append(s["claim_id"])
+        fmt = lambda m: [f"{c}. (해당: {', '.join(v[:2])}{' 등' if len(v) > 2 else ''})" for c, v in m.items()]
+        pos, neg = pos + fmt(cnt_pos), neg + fmt(cnt_neg)
+        out.append({"domain": dom, "name": b["name"], "positive": list(dict.fromkeys(pos)), "negative": list(dict.fromkeys(neg)), "claim_ids": list(dict.fromkeys(cids)),
+                    "basis": S.BASIS_MODERN})
+    return out
+
+
 # ------------------------------------------------------------------ 궁위·십성 신호 분야(연애·가족·건강·이직·부동산)
 PLAIN_SUBS = [("배우자성(관성)", "배우자를 뜻하는 직책·규율의 기운"), ("배우자성(재성)", "배우자를 뜻하는 재물·현실 자원의 기운"), ("배우자성", "배우자를 뜻하는 기운"), ("자녀성", "자녀를 뜻하는 기운"),
               ("관성", "직책·규율의 기운"), ("인성", "배움·보호의 기운"), ("비겁", "나와 같은 기운"), ("식상", "표현·기술의 기운"), ("재성", "재물·현실 자원의 기운"),
@@ -135,6 +169,8 @@ def _plain(t: str) -> str:
     for a, b in PLAIN_SUBS:
         t = t.replace(a, b)
     t = re.sub(r"'([一-鿿])'\(([一-鿿]{2})\)", lambda m: GOD_PLAIN.get(m.group(2), m.group(0)), t)
+    t = re.sub(r"일지 '[一-鿿]'의 본기", "일지(태어난 날의 지지) 속 중심 기운은", t)
+    t = re.sub(r"'[一-鿿]'", "", t)  # 남은 한자 글자(지지·천간) 표기는 쉬운 설명에서 뺀다
     return t.replace("관계 관계", "관계").strip()
 
 

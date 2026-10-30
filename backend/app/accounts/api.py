@@ -25,9 +25,39 @@ from .repo import DuplicateEmail, Repo, SqliteRepo
 
 
 
+LOCAL_HOSTS = ("localhost", "127.", "0.0.0.0", "::1", "host.docker.internal", "myeongri-pg", "db:")
+
+
+def _db_is_managed(url: str | None) -> tuple[bool, str]:
+    """운영형 환경에서 허용되는 DB 인지: postgres 이고 로컬/컨테이너 주소가 아니며 TLS(sslmode=require 이상)를 요구."""
+    if not url or not url.startswith(("postgres://", "postgresql://")):
+        return False, "DATABASE_URL(Postgres)이 없음"
+    host = url.split("@", 1)[-1].split("/", 1)[0].lower()
+    if any(host.startswith(h) or h in host.split(":")[0] + ":" for h in LOCAL_HOSTS):
+        return False, "로컬/컨테이너 DB 주소는 운영형 환경에서 사용할 수 없음"
+    if "sslmode=require" not in url and "sslmode=verify" not in url:
+        return False, "DATABASE_URL 에 sslmode=require 가 필요함"
+    return True, ""
+
+
+def accounts_status() -> dict:
+    """회원 기능 사용 가능 여부와 사유. 로컬 개발은 기본 허용. Vercel·운영(APP_ENV=production)에서는 관리형 Postgres·암호화 키·명시적 플래그가 모두 있어야 한다
+    (휘발성 파일 저장소나 로컬 DB 에 회원 데이터를 쓰지 않기 위함)."""
+    prodlike = bool(os.environ.get("VERCEL")) or os.environ.get("APP_ENV") == "production"
+    if not prodlike:
+        return {"enabled": True, "reason": "local"}
+    if os.environ.get("ACCOUNTS_ENABLED") != "1":
+        return {"enabled": False, "reason": "ACCOUNTS_ENABLED=1 이 아님"}
+    ok, why = _db_is_managed(os.environ.get("DATABASE_URL"))
+    if not ok:
+        return {"enabled": False, "reason": why}
+    if not os.environ.get("APP_DATA_KEY"):
+        return {"enabled": False, "reason": "APP_DATA_KEY 가 없음"}
+    return {"enabled": True, "reason": "managed"}
+
+
 def accounts_enabled() -> bool:
-    """운영(APP_ENV=production)에서는 영속 DB 어댑터가 준비되어 ACCOUNTS_ENABLED=1 로 명시할 때만 켠다. 서버리스의 휘발성 파일 저장소에 회원 데이터를 쓰지 않기 위함."""
-    return os.environ.get("ACCOUNTS_ENABLED") == "1" or os.environ.get("APP_ENV") != "production"
+    return accounts_status()["enabled"]
 
 
 def _gate() -> None:

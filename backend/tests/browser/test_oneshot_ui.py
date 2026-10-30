@@ -1,4 +1,5 @@
 """일회성 분석 모드(mingli-mode=oneshot) 브라우저 검증: 같은 출처 API(SERVE_WEB), 저장 없음, 토큰·번호 없음, 입력은 가상 값."""
+import json
 import os
 import re
 import shutil
@@ -232,4 +233,167 @@ def test_member_panel_errors_are_shown_and_anonymous_oneshot_unchanged(browser, 
     assert "저장되지 않는 일회성 분석" in p.inner_text("#cover")  # 비로그인 흐름은 기존 그대로
     assert any(u.endswith("/oneshot/analyze") for m, u, pd in reqs if m == "POST")
     assert p.evaluate("Object.keys(sessionStorage).length") == 0 and p.evaluate("Object.keys(localStorage).length") == 0
+    ctx.close()
+
+
+# ---------------------------------------------------------------- v8.0 MVP: 사람이 쓰는 순서대로
+def test_mvp_first_screen_puts_the_birth_form_first_and_hides_technical_options(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "360")
+    assert p.is_visible("#date") and p.is_visible("#submitb")
+    assert p.evaluate("document.getElementById('adv').open") is False and p.is_hidden("#prof") and p.is_hidden("#depth")  # 기술 옵션은 접혀 있다
+    assert p.is_hidden(".devline") and p.is_hidden("#store")
+    y = lambda sel: p.evaluate(f"document.querySelector('{sel}').getBoundingClientRect().top + window.scrollY")
+    assert y("#date") < y("#submitb") < y("#acct")  # 생년월일 → 분석 버튼 → (그 아래) 회원 패널
+    assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+    # 모바일(360x800) 첫 화면 안에 생년월일 입력이 들어온다: 안내문이 입력을 밀어내지 않는다
+    assert p.evaluate("document.getElementById('date').getBoundingClientRect().bottom") < 800
+    p.locator("#adv summary").click()
+    assert p.is_visible("#prof") and p.is_visible("#depth")
+    ctx.close()
+
+
+def test_mvp_human_flow_loading_year_switch_multi_year_follow_up(browser, one):
+    ctx, p, reqs, console = open_page(browser, one)
+    import time
+
+    def slow(route):  # 응답을 늦춰 로딩 상태를 관찰한다
+        time.sleep(0.8)
+        route.continue_()
+    p.route("**/api/v1/oneshot/analyze", slow)
+    p.select_option("#place", "경기도 수원시")
+    p.fill("#date", "1984-06-15")  # 가상 입력
+    p.fill("#time", "10:00")
+    p.fill("#y1", "2030")
+    for cb in p.query_selector_all("#doms input"):
+        want = cb.get_attribute("value") in ("overall", "wealth", "career")
+        if cb.is_checked() != want:
+            cb.set_checked(want)
+    p.click("#submitb")
+    p.wait_for_function("!document.getElementById('busy').hidden")
+    assert "분석 중" in p.inner_text("#busy") and p.is_disabled("#submitb")  # 로딩 표시 + 중복 제출 방지
+    p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
+    assert p.is_enabled("#submitb") and p.is_hidden("#busy")
+    # 첫 화면: 핵심 해석이 먼저, 상세는 접힘, 기술 로그 없음
+    assert p.is_visible("#keypoints h2") and "핵심 해석" in p.inner_text("#keypoints h2")
+    top = lambda sel: p.evaluate(f"document.querySelector('{sel}').getBoundingClientRect().top + window.scrollY")
+    assert top("#keypoints") < top("#acct")  # 결과가 먼저, 회원 패널은 결과 아래
+    assert p.locator("#more details.fold[open]").count() == 0
+    head2030 = " ".join(p.locator("#keypoints .sent").all_inner_texts()) + p.inner_text("#keypoints .two")
+    body = next(json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
+    assert body["birth_place"] == "경기도 수원시" and body["years"] == [2030] and body["birth_time"] == "10:00"
+    # 다른 연도 재분석: 입력을 다시 쓰지 않고 한 번에
+    p.click("#ynext")
+    p.wait_for_function("document.getElementById('formsum').textContent.includes('2031')", timeout=60000)
+    bodies = [json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze")]
+    assert bodies[-1]["years"] == [2031] and bodies[-1]["birth_date"] == "1984-06-15" and p.inner_text("#keypoints h2").strip() == "핵심 해석"
+    head2031 = " ".join(p.locator("#keypoints .sent").all_inner_texts()) + p.inner_text("#keypoints .two")
+    assert head2031 != head2030  # 연도를 바꾸면 해설도 달라진다(같은 문장을 연도만 바꿔 되풀이하지 않는다)
+    # 5년 범위: 정보 구조가 달라진다(기간 핵심 흐름 + 연도별 한 줄)
+    p.click("#to5")
+    p.wait_for_function("document.querySelector('#keypoints h2').textContent.includes('기간')", timeout=60000)
+    assert p.locator("#keypoints .yearlines > li").count() == 5 and bodies is not None
+    # 후속 질문
+    p.fill("#q2", "사업 쪽은 어떻게 보이나요?")
+    p.click("#askb")
+    p.wait_for_selector("#out .record")
+    assert "사업" in p.inner_text("#out .record")
+    assert all(("?" not in u) for m, u, pd in reqs if "/api/" in u)  # 쿼리스트링에 출생 정보 없음
+    assert not [c for c in console if "PAGEERROR" in c]
+    ctx.close()
+
+
+def test_mvp_errors_explain_cause_and_next_step(browser, one):
+    ctx, p, reqs, console = open_page(browser, one)
+    p.click("#submitb")  # 생년월일 없이
+    assert "생년월일을 입력" in p.inner_text("#busy") and p.evaluate("document.activeElement.id") == "date"
+    p.fill("#date", "1984-06-15")  # 가상 입력
+    p.fill("#y1", "1800")
+    p.click("#submitb")
+    assert "1901~2049" in p.inner_text("#busy") and p.evaluate("document.activeElement.id") == "y1"
+    p.fill("#y1", "2030")
+    # 서버 연결 실패
+    p.route("**/api/v1/oneshot/analyze", lambda r: r.abort())
+    p.click("#submitb")
+    p.wait_for_function("document.getElementById('busy').textContent.includes('연결할 수 없습니다')")
+    assert "다시 시도" in p.inner_text("#busy") and p.is_enabled("#submitb") and p.is_visible("#f")  # 입력은 남아 있고 다시 누를 수 있다
+    # 서버 오류(500)
+    p.unroute("**/api/v1/oneshot/analyze")
+    p.route("**/api/v1/oneshot/analyze", lambda r: r.fulfill(status=500, content_type="application/json", body='{"detail":"x"}'))
+    p.click("#submitb")
+    p.wait_for_function("document.getElementById('busy').textContent.includes('분석을 마치지 못했습니다')")
+    # 존재하지 않는 날짜(2월 30일) → 원인과 해결 방법
+    p.unroute("**/api/v1/oneshot/analyze")
+    p.select_option("#cal", "lunar")  # 음력인데 존재하지 않는 윤달을 고른 경우
+    p.select_option("#leap", "true")
+    p.fill("#date", "1984-03-15")  # 가상 입력
+    p.click("#submitb")
+    p.wait_for_function("document.getElementById('busy').textContent.includes('음력')")
+    assert p.is_visible("#f") and "달력·윤달" in p.inner_text("#busy")  # 원인(존재하지 않는 음력 날짜)과 해결 방법(달력·윤달 확인)
+    ctx.close()
+
+
+def test_mvp_loading_animation_shows_while_analysis_runs_and_respects_reduced_motion(browser, one):
+    import time
+    ctx, p, reqs, console = open_page(browser, one)
+    p.route("**/api/v1/oneshot/analyze", lambda r: (time.sleep(1.2), r.continue_()))
+    fill(p)
+    p.click("#submitb")
+    p.wait_for_function("!document.getElementById('progress').hidden", timeout=5000)  # 0.25초 뒤 상단 진행 막대
+    assert p.is_visible("#busy .spin") and p.get_attribute("body", "aria-busy") == "true"
+    anim = p.evaluate("[getComputedStyle(document.querySelector('#busy .spin')).animationName, getComputedStyle(document.getElementById('progress'),'::after').animationName]")
+    assert anim == ["spin", "prog"]
+    p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
+    assert p.is_hidden("#progress") and p.get_attribute("body", "aria-busy") is None  # 끝나면 사라진다
+    ctx.close()
+    # 움직임 줄이기 설정: 애니메이션 없음(표시는 남음)
+    ctx2 = browser.new_context(reduced_motion="reduce")
+    p2 = ctx2.new_page()
+    p2.goto(one["base"] + "/consult.html")
+    p2.route("**/api/v1/oneshot/analyze", lambda r: (time.sleep(1.2), r.continue_()))
+    fill(p2)
+    p2.click("#submitb")
+    p2.wait_for_function("!document.getElementById('progress').hidden", timeout=5000)
+    assert p2.evaluate("[getComputedStyle(document.querySelector('#busy .spin')).animationName, getComputedStyle(document.getElementById('progress'),'::after').animationName]") == ["none", "none"]
+    ctx2.close()
+
+
+def test_fast_responses_do_not_flash_the_progress_bar(browser, one):
+    ctx, p, reqs, console = open_page(browser, one)
+    p.evaluate("window.__shown=0;new MutationObserver(()=>{if(!document.getElementById('progress').hidden)window.__shown++}).observe(document.getElementById('progress'),{attributes:true})")
+    p.fill("#acct-mail", "x@example.com")
+    p.fill("#acct-pw", "wrong-pass-123")
+    p.click("#acct-login")  # 빠르게 끝나는 호출
+    p.wait_for_function("document.getElementById('acct-msg').textContent.length>0")
+    assert p.evaluate("window.__shown") == 0
+    ctx.close()
+
+
+def test_evidence_section_is_plain_by_default_and_jargon_terms_explain_themselves(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "360")
+    fill(p)
+    p.fill("#q", "2030년 재물과 직업이 궁금합니다")
+    for cb in p.query_selector_all("#doms input"):
+        want = cb.get_attribute("value") in ("overall", "wealth", "career")
+        if cb.is_checked() != want:
+            cb.set_checked(want)
+    p.click("#submitb")
+    p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
+    fold = p.locator("#more details.fold", has=p.locator("summary", has_text="긍정 근거와 주의 근거")).first
+    fold.locator("summary").first.click()
+    plain = fold.locator(".two").first.inner_text()
+    import re as _re
+    assert plain and not _re.search(r"\[[A-Z0-9-]+-\d{3}\]|[\u4e00-\u9fff]|지장간|식상생재|재생관|관인상생|군겁쟁재|상관견관", plain), plain  # 기본 표시에는 용어·번호·한자가 없다
+    raw = fold.locator("details.expert-raw").first
+    assert raw.evaluate("e=>e.open") is False  # 원문은 한 겹 더 접혀 있다
+    raw.locator("summary").click()
+    assert _re.search(r"\[L3-\d{3}\]", raw.inner_text())  # 펼치면 전문가용 원문(근거 번호)이 나온다
+    # 남은 전문 영역의 용어: 눌러 보면 뜻이 펼쳐진다
+    term = raw.locator("abbr.term").first
+    assert term.count() == 1
+    name = term.inner_text()
+    term.click()
+    assert term.evaluate("e=>e.getAttribute('aria-expanded')") == "true" and term.evaluate("e=>e.nextElementSibling.className") == "tipbox"
+    assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+    term.press("Enter")  # 다시 누르면 접힌다(키보드)
+    assert term.evaluate("e=>e.getAttribute('aria-expanded')") == "false" and name
     ctx.close()
