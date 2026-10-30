@@ -22,8 +22,13 @@ def one(tmp_path_factory):
     f = d / "web" / "consult.html"
     f.write_text(re.sub(r'name="mingli-mode" content="[a-z-]+"', 'name="mingli-mode" content="oneshot"', f.read_text(encoding="utf-8")), encoding="utf-8")
     consult_dir = d / "consult"
+    pg_schema = None
+    if os.environ.get("PG_TEST_URL"):  # Postgres 로 회원 흐름 검증: 테스트마다 별도 스키마
+        pg_schema = "b_" + os.urandom(5).hex()
     port = free_port()
     env = dict(os.environ, SERVE_WEB=str(d / "web"), CONSULT_DIR=str(consult_dir), APP_DB=str(d / "app.sqlite3"), APP_DATA_KEY="dGVzdC1rZXktMzItYnl0ZXMtbG9uZy10ZXN0LWtleSE=", PYTHONIOENCODING="utf-8")
+    if pg_schema:
+        env.update(DATABASE_URL=os.environ["PG_TEST_URL"], DATABASE_SCHEMA=pg_schema)
     p = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(port), "--host", "127.0.0.1", "--log-level", "warning"], cwd=BACKEND, env=env,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
@@ -31,6 +36,9 @@ def one(tmp_path_factory):
         yield {"base": f"http://127.0.0.1:{port}", "consult_dir": consult_dir}
     finally:
         p.terminate()
+        if pg_schema:
+            from app.accounts.pg_repo import PostgresRepo
+            PostgresRepo(os.environ["PG_TEST_URL"], schema=pg_schema).drop_schema()
 
 
 def open_page(browser, one, size="1440"):
@@ -173,7 +181,8 @@ def test_member_flow_save_reopen_follow_up_export_isolation_and_delete(browser, 
     p.click("#askb")
     p.wait_for_selector("#out .record")
     p.reload()
-    assert p.is_visible("#acct-in")  # 같은 탭에서는 세션 유지
+    p.wait_for_selector("#acct-in:not([hidden])")  # 같은 탭에서는 세션 유지(패널은 서버 확인 후 표시되므로 기다린다)
+    p.wait_for_selector("#mylist li button:has-text('열기')")
     p.click("#mylist li button:has-text('열기')")
     p.wait_for_selector("#out .record", timeout=30000)
     assert "사업" in p.inner_text("#out .record") and "다시 열었습니다" in p.inner_text("#cover")
@@ -186,6 +195,8 @@ def test_member_flow_save_reopen_follow_up_export_isolation_and_delete(browser, 
     p.click("#acct-logout")
     p.wait_for_selector("#acct-out:not([hidden])")
     assert p.evaluate("Object.keys(sessionStorage).length") == 0
+    # 로그아웃하면 이전 사용자의 리포트·목록이 화면에서 사라진다
+    assert p.is_hidden("#report") and p.inner_text("#out") == "" and p.inner_text("#acct-n") == "0" and p.locator("#mylist li").count() == 0
     _login_ui(p, "ui-other@example.com", register=True)
     assert p.inner_text("#acct-n") == "0"
     p.click("#acct-logout")

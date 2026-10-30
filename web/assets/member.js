@@ -39,7 +39,14 @@ async function openReport(id){const r=await origCall('/api/v1/reports/'+id,{head
 async function exportReport(id){const r=await fetch('/api/v1/reports/'+id+'/export',{headers:{'Authorization':'Bearer '+AUTH.token}});if(!r.ok){msg('내보내기에 실패했습니다.',true);return}
   const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='명리_리포트_'+id.slice(0,8)+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 async function delReport(id){const r=await origCall('/api/v1/reports/'+id,{method:'DELETE',headers:H()});if(r.ok||r.status===204){if(reportId===id)reportId=null;msg('리포트를 삭제했습니다.');refresh()}else msg(kor(r),true)}
-function logoutLocal(m){AUTH=null;reportId=null;try{sessionStorage.removeItem('mingli_token');sessionStorage.removeItem('mingli_email')}catch(e){}show();msg(m||'')}
+function clearScreen(){/* 이전 사용자의 목록·리포트·기록이 화면에 남지 않게 한다(공용 기기 보호) */
+  $('mylist').textContent='';$('acct-n').textContent='0';
+  ['out','cover','status','histout','evr'].forEach(i=>{const e=$(i);if(e)e.textContent=''});
+  const k=$('keypoints');if(k)k.remove();$('report').hidden=true;$('session').hidden=true;$('status').hidden=true;
+  localRecords.length=0;lastBody=null;
+  $('f').hidden=false;$('formbar').hidden=true;const n=$('intronote');if(n)n.hidden=false;
+  document.querySelector('.steps li:nth-child(2)').removeAttribute('aria-current');document.querySelector('.steps li:nth-child(1)').setAttribute('aria-current','step')}
+function logoutLocal(m){AUTH=null;reportId=null;try{sessionStorage.removeItem('mingli_token');sessionStorage.removeItem('mingli_email')}catch(e){}clearScreen();show();msg(m||'')}
 async function auth(kind){const email=$('acct-mail').value.trim(),pw=$('acct-pw').value;
   const r=await origCall('/api/v1/auth/'+kind,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pw})});
   if(!r.ok){msg(kor(r),true);return}

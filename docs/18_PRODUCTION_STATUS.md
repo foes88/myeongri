@@ -1,4 +1,4 @@
-# Production 1.0 진행 상태 (기능별) — 갱신: v7.6 (2026-10-30)
+# Production 1.0 진행 상태 (기능별) — 갱신: v7.8 (2026-10-30)
 
 판정: **BLOCKED**. 코드와 테스트로 확인된 것만 "완료"로 적는다. 결제·법률 검토는 사용자 결정으로 보류(추후).
 
@@ -12,11 +12,13 @@
 | 내부 Narrator | 완료 | 외부 호출·비용 없음. 문장 단위 Claim Validator(허용 사실, 반대 근거·한계 보존 유사도, 고전 위장, 수치) 통과 시에만 사용, 실패 시 결정론 fallback. 20/20 통과 |
 | 유료/외부 LLM | 보류 | 사용자 결정: 유료 LLM 대신 내부 방식. `AnthropicProvider` 는 승인·키·비용 한도 없으면 호출 거부 |
 | 고전 6종 근거 체계 | 부분 | 규칙별 상태 관리(text 27 / location 4 / convention 6). 6종 전체 판본·저작권 정리 미완 |
+| 로컬 실행 | 완료 | `scripts/run-local.bat`(Docker Postgres + API + 웹) → http://127.0.0.1:8000/consult.html |
 | 계정·인증·세션 | 로컬 완료 | scrypt, 세션 토큰(해시 저장), 로그인 시도 제한, 계정 존재 비노출 |
 | 분석 저장·재열람·후속 상담·내보내기·삭제 | 로컬 완료 | 암호화 저장(Fernet), 출생 원문 미저장, 맥락 유지 후속 질문, .md/.json 내보내기, 리포트·계정 삭제 |
 | 사용자별 격리 | 완료(테스트) | 모든 저장소 호출에 user_id, 타인 접근 404 |
 | rate limit·요청 크기·일일 한도 | 로컬 완료 | 메모리 제한기(서버리스·다중 인스턴스는 공유 저장소 필요) |
-| 관리형 DB | **BLOCKED** | SQLite 구현만 있음. Vercel 서버리스 파일시스템은 휘발성 → 운영(`APP_ENV=production`)에서는 `ACCOUNTS_ENABLED=1` 없이 회원 기능 비활성. Postgres 등 어댑터는 외부 계정 필요 |
+| PostgreSQL | **구현·로컬 검증 완료** | `PostgresRepo`(DATABASE_URL). 같은 테스트를 SQLite·Postgres 양쪽에 실행, 재시작 후 데이터 유지·동시 질문 번호·CASCADE 삭제·브라우저 회원 흐름·종단 점검(`tools.smoke_member`) 통과. 검증은 로컬 Docker(Postgres 16)에서만 수행 |
+| 관리형 Postgres 계정(Neon·Supabase·RDS 등) | **BLOCKED** | 외부 계정 필요. 연결 문자열을 `DATABASE_URL` 로 넣고 `ACCOUNTS_ENABLED=1` 로 켜면 됨(`docs/19`). 운영(`APP_ENV=production`)에서는 이 플래그 없이는 회원 기능 비활성 |
 | 결제 | 보류 | 사용자 결정(추후) |
 | PDF | 부분 | .md 내보내기와 브라우저 인쇄 스타일만. PDF 생성기 미구현 |
 | 사람 평가 | **도구 완료 / 평가 미수행** | 블라인드 패킷·오프라인 폼·집계·완료 게이트(전문가 3·일반 3·평가자당 10항목) 구현. 평가자 0명 → 완료 아님 |

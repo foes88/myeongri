@@ -56,7 +56,12 @@ def configure(repo: Repo | None = None, rl: RateLimiter | None = None) -> None:
 def repo() -> Repo:
     global _repo
     if _repo is None:
-        _repo = SqliteRepo()
+        url = os.environ.get("DATABASE_URL")
+        if url and url.startswith(("postgres://", "postgresql://")):
+            from .pg_repo import PostgresRepo  # 지연 import: SQLite 만 쓰는 환경에서는 psycopg 가 필요 없다
+            _repo = PostgresRepo(url, schema=os.environ.get("DATABASE_SCHEMA") or None)
+        else:
+            _repo = SqliteRepo()
     return _repo
 
 

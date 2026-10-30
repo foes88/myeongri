@@ -1,0 +1,19 @@
+# 로컬 개발용 Postgres (운영 DB 아님). 127.0.0.1 에만 열린다. 실행: docker compose up -d db
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: myeongri-pg
+    environment:
+      POSTGRES_USER: myeongri
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-only}
+      POSTGRES_DB: myeongri
+    ports:
+      - "127.0.0.1:55498:5432"
+    volumes:
+      - myeongri-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myeongri"]
+      interval: 3s
+      retries: 20
+volumes:
+  myeongri-pgdata:

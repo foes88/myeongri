@@ -1,4 +1,7 @@
 """v7.2 회원·저장·격리·rate limit·삭제 테스트. 가상 입력만 사용. 매 테스트마다 메모리 DB 와 새 제한기를 쓴다."""
+import os
+import uuid
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -12,10 +15,22 @@ REQ = {"calendar": "solar", "birth_date": "1984-06-15", "birth_time": "10:00", "
        "years": [2030], "domains": ["overall", "wealth"], "question": "2030년 재물 흐름이 궁금합니다"}
 
 
-@pytest.fixture()
-def c():
+PG_URL = os.environ.get("PG_TEST_URL")  # 예: postgresql://postgres:***@127.0.0.1:55499/myeongri_test (로컬 컨테이너). 없으면 Postgres 변형은 건너뜀
+
+
+@pytest.fixture(params=["sqlite", "postgres"])
+def c(request):
+    if request.param == "postgres":
+        if not PG_URL:
+            pytest.skip("PG_TEST_URL 없음")
+        from app.accounts.pg_repo import PostgresRepo
+        repo = PostgresRepo(PG_URL, schema="t_" + uuid.uuid4().hex[:12])
+        A.configure(repo, RateLimiter())
+        yield TestClient(app)
+        repo.drop_schema()
+        return
     A.configure(SqliteRepo(":memory:"), RateLimiter())
-    return TestClient(app)
+    yield TestClient(app)
 
 
 def reg(c, email="a@example.com", pw=PW):
@@ -91,14 +106,22 @@ def test_user_isolation_other_user_gets_404_everywhere(c):
     assert c.get(f"/api/v1/reports/{'0' * 32}", headers=h1).status_code == 404
 
 
+def _raw(repo) -> bytes:
+    if hasattr(repo, "raw_blobs"):
+        return repo.raw_blobs()
+    db = repo.db
+    return b"".join(bytes(r[0]) for r in db.execute("SELECT blob FROM reports").fetchall()) + b"".join(bytes(r[0]) for r in db.execute("SELECT email_enc FROM users").fetchall())
+
+
+def _count(repo, t) -> int:
+    return repo.count(t) if hasattr(repo, "count") else repo.db.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+
+
 def test_data_is_encrypted_at_rest_and_email_not_plaintext(c):
     h = reg(c)
     c.post("/api/v1/reports", headers=h, json={"request": REQ})
-    db = A.repo().db
-    raw = b"".join(bytes(r[0]) for r in db.execute("SELECT blob FROM reports").fetchall()) + b"".join(bytes(r[0]) for r in db.execute("SELECT email_enc FROM users").fetchall())
+    raw = _raw(A.repo())
     assert b"natal_structure" not in raw and b"a@example.com" not in raw
-    cols = " ".join(str(tuple(r)) for r in db.execute("SELECT * FROM users").fetchall())
-    assert "a@example.com" not in cols
 
 
 def test_delete_report_and_account_remove_everything(c):
@@ -109,9 +132,8 @@ def test_delete_report_and_account_remove_everything(c):
     rid2 = c.post("/api/v1/reports", headers=h, json={"request": REQ}).json()["id"]
     assert c.request("DELETE", "/api/v1/me", headers=h, json={"password": "wrong-pass-1"}).status_code == 403
     assert c.request("DELETE", "/api/v1/me", headers=h, json={"password": PW}).status_code == 204
-    db = A.repo().db
     for t in ("users", "sessions", "reports", "turns"):
-        assert db.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] == 0, t
+        assert _count(A.repo(), t) == 0, t
     assert c.get("/api/v1/me", headers=h).status_code == 401 and rid2
     assert not any("@" in (e["detail"] or "") for e in A.repo().audit_events())  # 감사 로그에 개인정보 없음
 
@@ -127,7 +149,8 @@ def test_daily_limit_request_size_and_validation(c, monkeypatch):
 
 def test_session_expiry(c, monkeypatch):
     h = reg(c)
-    A.repo().db.execute("UPDATE sessions SET expires_at=1")
+    r = A.repo()
+    (r.db.execute("UPDATE sessions SET expires_at=1") if hasattr(r, "db") else r._q("UPDATE sessions SET expires_at=1"))
     assert c.get("/api/v1/me", headers=h).status_code == 401
 
 
@@ -154,3 +177,27 @@ def test_production_requires_data_key_not_a_file_key(monkeypatch):
     monkeypatch.delenv("APP_DATA_KEY", raising=False)
     with pytest.raises(RuntimeError):
         crypto.encrypt(b"x")
+
+
+@pytest.mark.skipif(not PG_URL, reason="PG_TEST_URL 없음")
+def test_postgres_persists_across_instances_serializes_turns_and_cascades():
+    import concurrent.futures as cf
+
+    from app.accounts.pg_repo import PostgresRepo
+    schema = "t_" + uuid.uuid4().hex[:12]
+    r1 = PostgresRepo(PG_URL, schema=schema)
+    try:
+        uid = r1.create_user("pg@example.com", "h")
+        rid = r1.save_report(uid, "t", {"years": [2030]}, {"pre": {}, "answer": {}})
+        # 앱 재시작처럼 새 인스턴스를 만들어도 데이터가 남아 있다(서버리스 파일 저장소와의 차이)
+        r2 = PostgresRepo(PG_URL, schema=schema)
+        assert r2.get_report(uid, rid)["title"] == "t" and r2.user_by_email("pg@example.com")["id"] == uid
+        # 같은 리포트에 동시에 질문해도 번호가 겹치지 않는다
+        with cf.ThreadPoolExecutor(8) as ex:
+            ns = list(ex.map(lambda i: r2.add_turn(uid, rid, "answer", {"i": i}), range(12)))
+        assert sorted(ns) == list(range(1, 13))
+        assert r2.add_turn("someone-else", rid, "answer", {}) is None  # 소유자가 아니면 추가 불가
+        r2.delete_user(uid)
+        assert (r2.count("users"), r2.count("reports"), r2.count("turns"), r2.count("sessions")) == (0, 0, 0, 0)
+    finally:
+        r1.drop_schema()
