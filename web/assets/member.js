@@ -3,7 +3,8 @@
 (function(){
 if(typeof ONESHOT==='undefined'||!ONESHOT)return;
 const box=$('acct');if(!box)return;
-(async()=>{const h=await fetch('/api/v1/health').then(r=>r.json()).catch(()=>null);if(h&&h.accounts)box.hidden=false})();
+(async()=>{const h=await fetch('/api/v1/health').then(r=>r.json()).catch(()=>null);if(h&&h.accounts){box.hidden=false;REG=h.registration||'open';if(REG==='closed'){const g=$('acct-reg');if(g)g.hidden=true}else if(REG==='invite'){const pw=$('acct-pw'),inp=document.createElement('input');inp.id='acct-inv';inp.type='password';inp.placeholder='초대 코드(가입할 때만)';inp.maxLength=100;inp.autocomplete='off';pw.parentNode.parentNode.after(inp)}}})();
+let REG='open';
 let AUTH=null,reportId=null,curPre=null,curYears=[];
 try{const t=sessionStorage.getItem('mingli_token');if(t)AUTH={token:t,email:sessionStorage.getItem('mingli_email')||''}}catch(e){}
 const msg=(t,bad)=>{const m=$('acct-msg');m.textContent=t||'';m.className='small '+(bad?'bad':'muted')};
@@ -50,7 +51,7 @@ function clearScreen(){/* 이전 사용자의 목록·리포트·기록이 화�
   document.querySelector('.steps li:nth-child(2)').removeAttribute('aria-current');document.querySelector('.steps li:nth-child(1)').setAttribute('aria-current','step')}
 function logoutLocal(m){AUTH=null;reportId=null;try{sessionStorage.removeItem('mingli_token');sessionStorage.removeItem('mingli_email')}catch(e){}clearScreen();show();msg(m||'')}
 async function auth(kind){const email=$('acct-mail').value.trim(),pw=$('acct-pw').value;
-  const r=await origCall('/api/v1/auth/'+kind,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pw})});
+  const r=await origCall('/api/v1/auth/'+kind,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pw,invite:($('acct-inv')&&$('acct-inv').value)||null})});
   if(!r.ok){msg(kor(r),true);return}
   AUTH={token:r.j.token,email:r.j.user.email};try{sessionStorage.setItem('mingli_token',AUTH.token);sessionStorage.setItem('mingli_email',AUTH.email)}catch(e){}
   $('acct-pw').value='';msg('');show();refresh()}

@@ -145,6 +145,18 @@ def current_user(authorization: str | None) -> str:
 class Credentials(BaseModel):
     email: str = Field(max_length=254)
     password: str = Field(min_length=1, max_length=200)
+    invite: str | None = Field(default=None, max_length=100)
+
+
+def registration_mode() -> str:
+    """개인용 배포 보호: open(기본) / invite(초대 코드 필요, ACCOUNTS_INVITE_CODE) / closed(가입 불가, tools/create_owner.py 로만 계정 생성).
+    초대 코드가 설정되지 않은 invite 모드는 안전하게 closed 로 취급한다."""
+    m = os.environ.get("ACCOUNTS_REGISTRATION", "open").strip().lower()
+    if m not in ("open", "invite", "closed"):
+        return "closed"
+    if m == "invite" and not os.environ.get("ACCOUNTS_INVITE_CODE"):
+        return "closed"
+    return m
 
 
 class DeleteMe(BaseModel):
@@ -184,6 +196,11 @@ def _issue(uid: str) -> str:
 @router.post("/auth/register", status_code=201)
 def register(b: Credentials, req: Request):
     _limit("reg:" + client_ip(req), 10, 3600)
+    mode = registration_mode()
+    if mode == "closed":
+        raise HTTPException(status_code=403, detail={"code": "REGISTRATION_CLOSED", "message": "이 서비스는 새 가입을 받지 않습니다."})
+    if mode == "invite" and not hmac.compare_digest((b.invite or "").encode(), os.environ["ACCOUNTS_INVITE_CODE"].encode()):
+        raise HTTPException(status_code=403, detail={"code": "INVITE_REQUIRED", "message": "초대 코드가 올바르지 않습니다."})
     email = b.email.strip().lower()
     if not EMAIL_RE.match(email):
         raise HTTPException(status_code=422, detail={"code": "BAD_EMAIL", "message": "이메일 형식을 확인하세요."})

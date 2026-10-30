@@ -123,3 +123,36 @@ def test_public_precommit_includes_calc_and_no_internal_fields(c):
     pc = r["precommit"]
     assert pc["calc"]["title"].startswith("계산 상태") and pc["calc"]["items"]
     assert not {"verification", "content_hash", "ruleset_version", "calculation_profile_id"} & set(pc)
+
+
+# ---- 개인용 배포 보호: 가입 모드
+def _reg(c, **kw):
+    return c.post("/api/v1/auth/register", json={"email": "z@example.com", "password": "correct-horse-9", **kw})
+
+
+def test_registration_modes(c, monkeypatch):
+    monkeypatch.delenv("ACCOUNTS_REGISTRATION", raising=False)
+    assert A.registration_mode() == "open"
+    monkeypatch.setenv("ACCOUNTS_REGISTRATION", "closed")
+    r = _reg(c)
+    assert r.status_code == 403 and r.json()["detail"]["code"] == "REGISTRATION_CLOSED"
+    monkeypatch.setenv("ACCOUNTS_REGISTRATION", "invite")
+    monkeypatch.setenv("ACCOUNTS_INVITE_CODE", "open-sesame-77")
+    assert _reg(c).status_code == 403 and _reg(c, invite="wrong").status_code == 403
+    assert _reg(c, invite="open-sesame-77").status_code == 201
+    monkeypatch.delenv("ACCOUNTS_INVITE_CODE")
+    assert A.registration_mode() == "closed"          # 코드 없는 invite 는 닫힘으로 취급
+    monkeypatch.setenv("ACCOUNTS_REGISTRATION", "typo")
+    assert A.registration_mode() == "closed"          # 알 수 없는 값도 닫힘
+
+
+def test_owner_can_login_when_closed(c, monkeypatch):
+    from tools import create_owner
+    monkeypatch.setenv("ACCOUNTS_REGISTRATION", "closed")
+    create_owner.create("owner@example.com", "correct-horse-9")
+    r = c.post("/api/v1/auth/login", json={"email": "owner@example.com", "password": "correct-horse-9"})
+    assert r.status_code == 200
+    with pytest.raises(SystemExit):
+        create_owner.create("owner@example.com", "correct-horse-9")
+    with pytest.raises(SystemExit):
+        create_owner.create("o2@example.com", "short")

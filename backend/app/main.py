@@ -33,7 +33,7 @@ app.add_middleware(CORSMiddleware, allow_origins=[o for o in os.environ.get('COR
 @app.get('/api/v1/health')
 def health():
     from .accounts.api import accounts_enabled
-    return {'status':'ok', 'calendar_verified':False, 'calendar_engine':'astro-core-0.1.0', 'accounts': accounts_enabled()}
+    return {'status':'ok', 'calendar_verified':False, 'calendar_engine':'astro-core-0.1.0', 'accounts': accounts_enabled(), 'registration': (__import__('app.accounts.api', fromlist=['x']).registration_mode() if accounts_enabled() else None)}
 
 @app.get('/api/v1/verification/matrix')
 def verification_matrix(calendar: Literal['solar', 'lunar'] = 'solar'):
