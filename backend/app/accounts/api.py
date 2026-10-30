@@ -257,9 +257,9 @@ def create_report(b: ReportCreate, req: Request, authorization: str | None = Hea
     pre = M._oneshot_pre(body)
     ans = consult_agent.answer(pre, body.question or "종합 상담을 시작합니다", domains_=body.domains, years=body.years)
     title = b.title.strip() or ("분석 " + (f"{pre['years'][0]}년" if pre["years"] else "원국") + " · " + ", ".join(pre["domains"][:2]))
-    rid = repo().save_report(uid, title, _summary(pre), {"pre": pre, "answer": ans})
+    rid = repo().save_report(uid, title, _summary(pre), {"pre": pre, "answer": ans})  # 저장본은 내부 근거를 포함한 전체(암호화). 응답은 사용자용만.
     repo().audit(uid, "report_created", rid[:8])
-    return {"id": rid, "title": title, "precommit": M._oneshot_summary(pre), "answer": ans}
+    return {"id": rid, "title": title, "precommit": M.user_precommit(pre), "answer": M.user_answer(ans)}
 
 
 @router.get("/reports")
@@ -279,8 +279,11 @@ def get_report(rid: str, authorization: str | None = Header(default=None)):
     from .. import main as M
     uid = current_user(authorization)
     r = _own(uid, rid)
-    return {"id": rid, "title": r["title"], "created_at": r["created_at"], "precommit": M._oneshot_summary(r["body"]["pre"]), "answer": r["body"]["answer"],
-            "turns": repo().get_turns(uid, rid)}
+    turns = repo().get_turns(uid, rid)
+    if not M.expose_internal():
+        from ..consult import verdict as V
+        turns = [V.public_turn(t) for t in turns]
+    return {"id": rid, "title": r["title"], "created_at": r["created_at"], "precommit": M.user_precommit(r["body"]["pre"]), "answer": M.user_answer(r["body"]["answer"]), "turns": turns}
 
 
 @router.post("/reports/{rid}/ask")
@@ -300,7 +303,8 @@ def ask(rid: str, b: ReportAsk, req: Request, authorization: str | None = Header
     ans = consult_agent.answer(pre, b.question, domains_=doms, years=years, depth=b.depth or pre["depth"])
     n = repo().add_turn(uid, rid, "answer", {"question": b.question, "domains": ans.get("domains", doms), "years": ans.get("years", years), "answer": ans})
     repo().audit(uid, "ask", rid[:8])
-    return {"turn": n, "answer": ans}
+    from .. import main as M
+    return {"turn": n, "answer": M.user_answer(ans)}
 
 
 @router.post("/reports/{rid}/reality")
@@ -310,7 +314,8 @@ def reality(rid: str, b: ReportEvent, authorization: str | None = Header(default
     r = _own(uid, rid)
     res = consult_agent.classify_event(r["body"]["pre"], b.model_dump())
     n = repo().add_turn(uid, rid, "reality", {"event": b.model_dump(), "result": res})
-    return {"turn": n, **res}
+    from .. import main as M
+    return {"turn": n, **(res if M.expose_internal() else __import__("app.consult.verdict", fromlist=["x"]).public_reality(res))}
 
 
 @router.get("/reports/{rid}/export")

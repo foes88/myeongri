@@ -224,6 +224,10 @@ def answer(pre: dict, question: str, *, domains_: list[str] | None = None, years
     nar = narrator.narrate(contracts.build_bundle(out, pre), internal_narrator.InternalNarrator(), question, retries=0)
     out["consultation"] = {"text": nar.text, "source": "internal_narrator" if nar.source == "llm" else "deterministic_fallback", "validated": nar.ok, "problems": nar.problems,
                            "prompt_version": narrator.PROMPT_VERSION, "sentences": nar.sentences}
+    from . import verdict
+    out["verdict"] = verdict.build(pre, out, question)
+    from . import qa
+    out["qa"] = qa.answer_question(pre, out["verdict"], question, doms, ys)
     _check_safe(summary + " " + out["narrative"] + " " + out["synthesis"]["text"] + " " + out["consultation"]["text"] + " ".join(out["life_advice"]["items"]) + " ".join(out["limits"]))
     return out
 

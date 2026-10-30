@@ -10,18 +10,17 @@ from app.evaluation import dataset as DS
 
 OUT = Path(__file__).resolve().parents[2] / "web" / "assets" / "demo_consult.js"
 Q_MAIN = "2030년 재물과 직업의 흐름이 궁금합니다"
-Q_REC = "사업 쪽은 어떻게 보이나요?"
+Q_REC = "사업 쪽을 더 자세히 알려 주세요"
 
 
 def build() -> dict:
     spec = DS.Spec(DS.BASE, domains=("overall", "wealth", "career"), years=(2030,), cycles_first_year=2000)  # 2030년 중반에 대운이 바뀌는 합성 배열
     pre = DS.pre_of(spec)
-    answers = {d: agent.answer(pre, Q_MAIN, domains_=list(spec.domains), years=[2030], depth=d) for d in ("summary", "detailed", "expert")}
-    rec = agent.answer(pre, Q_REC, domains_=[], years=[2030], depth="detailed")
+    from app.consult import verdict as V  # 데모도 사용자와 같은 결론형(공개) 데이터만 담는다
+    answers = {d: V.public_view(agent.answer(pre, Q_MAIN, domains_=list(spec.domains), years=[2030], depth=d)) for d in ("summary", "detailed", "expert")}
+    rec = V.public_view(agent.answer(pre, Q_REC, domains_=["business"], years=[2030], depth="detailed"))
     keys = ("content_hash", "generated_at", "ruleset_version", "engine_version", "model_version", "calculation_profile_id", "variant_id", "variants_count", "verification", "domains", "years", "depth")
-    summary = {k: pre[k] for k in keys} | {"pillars": pre["natal_structure"]["pillars"]}
-    summary["verification"] = dict(summary["verification"])
-    summary["verification"]["unverified_notice"] = ["합성 데모입니다. 실제 출생 정보로 계산한 결과가 아니며 만세력 검증 대상이 아닙니다."] + summary["verification"].get("unverified_notice", [])[1:]
+    summary = V.public_precommit({k: pre[k] for k in keys} | {"pillars": pre["natal_structure"]["pillars"]})
     turns = [{"turn_no": 1, "kind": "answer", "question": Q_MAIN, "answer": answers["detailed"]}, {"turn_no": 2, "kind": "answer", "question": Q_REC, "answer": rec}]
     return {"synthetic": True, "note": "합성 명식 데모 — 실제 분석 결과가 아닙니다", "precommit": summary, "answers": answers, "record": {"question": Q_REC, "answer": rec}, "turns": turns}
 

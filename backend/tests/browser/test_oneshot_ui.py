@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 import pytest
-from .conftest import assert_report_order, expanded_text, show_form
+from .conftest import assert_verdict_layout, expanded_text, show_form
 
 from .conftest import BACKEND, OUT, free_port, wait_http
 
@@ -75,17 +75,13 @@ def test_oneshot_full_flow_without_any_storage(browser, one):
     p.wait_for_selector("#session:not([hidden])", timeout=60000)
     assert "저장되지 않는 일회성 분석" in p.inner_text("#cover")
     assert "상담 번호" not in p.inner_text("#cover") and p.locator("#status table.pillars").count() == 1
-    assert_report_order(p)
+    assert_verdict_layout(p)
     assert p.is_hidden("#f") and p.is_visible("#formbar")  # 분석 후 긴 입력란은 접힌다
-    # 후속 질문·현실 사건·기록 목록
+    # 후속 질문
     p.fill("#q2", "사업은 어떨까요?")
     p.click("#askb")
     p.wait_for_selector("#out .record")
-    p.select_option("#evt", "취업·이직")
-    p.click("#evb")
-    p.wait_for_function("document.querySelector('#evr').textContent.includes('분류:')")
-    p.click("#hist")
-    assert p.locator("#histout details").count() >= 2
+    assert p.is_hidden("#evt") and p.is_hidden("#hist")  # 개발용 도구는 사용자 화면에 없다
     # 요청: 같은 출처 oneshot API 만, 토큰/번호/저장 API 호출 없음
     api = [(m, u) for m, u, pd in reqs if "/api/" in u]
     api = [(m, u) for m, u in api if not (m == "GET" and u.endswith("/api/v1/health"))]  # 회원 기능 사용 가능 여부 확인(개인정보 없음)
@@ -248,7 +244,7 @@ def test_mvp_first_screen_puts_the_birth_form_first_and_hides_technical_options(
     # 모바일(360x800) 첫 화면 안에 생년월일 입력이 들어온다: 안내문이 입력을 밀어내지 않는다
     assert p.evaluate("document.getElementById('date').getBoundingClientRect().bottom") < 800
     p.locator("#adv summary").click()
-    assert p.is_visible("#prof") and p.is_visible("#depth")
+    assert p.is_visible("#prof") and p.is_hidden("#depth")  # 해설 깊이 선택은 없다(결론형 한 가지)
     ctx.close()
 
 
@@ -274,24 +270,29 @@ def test_mvp_human_flow_loading_year_switch_multi_year_follow_up(browser, one):
     p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
     assert p.is_enabled("#submitb") and p.is_hidden("#busy")
     # 첫 화면: 핵심 해석이 먼저, 상세는 접힘, 기술 로그 없음
-    assert p.is_visible("#keypoints h2") and "핵심 해석" in p.inner_text("#keypoints h2")
+    assert p.is_visible("#verdict .verdict-a")
     top = lambda sel: p.evaluate(f"document.querySelector('{sel}').getBoundingClientRect().top + window.scrollY")
-    assert top("#keypoints") < top("#acct")  # 결과가 먼저, 회원 패널은 결과 아래
-    assert p.locator("#more details.fold[open]").count() == 0
-    head2030 = " ".join(p.locator("#keypoints .sent").all_inner_texts()) + p.inner_text("#keypoints .two")
+    assert top("#verdict") < top("#acct")  # 결과가 먼저, 회원 패널은 결과 아래
+    assert p.locator("#verdict details[open]").count() == 0
+    head2030 = p.inner_text("#verdict")
     body = next(json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
     assert body["birth_place"] == "경기도 수원시" and body["years"] == [2030] and body["birth_time"] == "10:00"
     # 다른 연도 재분석: 입력을 다시 쓰지 않고 한 번에
     p.click("#ynext")
     p.wait_for_function("document.getElementById('formsum').textContent.includes('2031')", timeout=60000)
     bodies = [json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze")]
-    assert bodies[-1]["years"] == [2031] and bodies[-1]["birth_date"] == "1984-06-15" and p.inner_text("#keypoints h2").strip() == "핵심 해석"
-    head2031 = " ".join(p.locator("#keypoints .sent").all_inner_texts()) + p.inner_text("#keypoints .two")
+    assert bodies[-1]["years"] == [2031] and bodies[-1]["birth_date"] == "1984-06-15"
+    head2031 = p.inner_text("#verdict")
     assert head2031 != head2030  # 연도를 바꾸면 해설도 달라진다(같은 문장을 연도만 바꿔 되풀이하지 않는다)
     # 5년 범위: 정보 구조가 달라진다(기간 핵심 흐름 + 연도별 한 줄)
     p.click("#to5")
-    p.wait_for_function("document.querySelector('#keypoints h2').textContent.includes('기간')", timeout=60000)
-    assert p.locator("#keypoints .yearlines > li").count() == 5 and bodies is not None
+    p.wait_for_selector("#verdict .vperiod", timeout=60000)
+    assert p.locator("#verdict .yearlines > li").count() == 5 and bodies is not None
+    # 연도를 고르면 그 해의 자세한 풀이가 열린다(처음에는 한 줄 요약만)
+    assert p.locator("#verdict .ydetail:visible").count() == 0
+    p.locator("#verdict .yearlines > li >> nth=2").locator("button").click()
+    p.wait_for_selector("#verdict .ydetail .verdict-a")
+    assert_verdict_layout(p)
     # 후속 질문
     p.fill("#q2", "사업 쪽은 어떻게 보이나요?")
     p.click("#askb")
@@ -368,7 +369,7 @@ def test_fast_responses_do_not_flash_the_progress_bar(browser, one):
     ctx.close()
 
 
-def test_evidence_section_is_plain_by_default_and_jargon_terms_explain_themselves(browser, one):
+def test_user_screen_and_api_expose_no_internal_information(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "360")
     fill(p)
     p.fill("#q", "2030년 재물과 직업이 궁금합니다")
@@ -378,22 +379,26 @@ def test_evidence_section_is_plain_by_default_and_jargon_terms_explain_themselve
             cb.set_checked(want)
     p.click("#submitb")
     p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
-    fold = p.locator("#more details.fold", has=p.locator("summary", has_text="긍정 근거와 주의 근거")).first
-    fold.locator("summary").first.click()
-    plain = fold.locator(".two").first.inner_text()
-    import re as _re
-    assert plain and not _re.search(r"\[[A-Z0-9-]+-\d{3}\]|[\u4e00-\u9fff]|지장간|식상생재|재생관|관인상생|군겁쟁재|상관견관", plain), plain  # 기본 표시에는 용어·번호·한자가 없다
-    raw = fold.locator("details.expert-raw").first
-    assert raw.evaluate("e=>e.open") is False  # 원문은 한 겹 더 접혀 있다
-    raw.locator("summary").click()
-    assert _re.search(r"\[L3-\d{3}\]", raw.inner_text())  # 펼치면 전문가용 원문(근거 번호)이 나온다
-    # 남은 전문 영역의 용어: 눌러 보면 뜻이 펼쳐진다
-    term = raw.locator("abbr.term").first
-    assert term.count() == 1
-    name = term.inner_text()
-    term.click()
-    assert term.evaluate("e=>e.getAttribute('aria-expanded')") == "true" and term.evaluate("e=>e.nextElementSibling.className") == "tipbox"
+    assert_verdict_layout(p)
+    # 블록 순서: 종합운이 먼저, 각 블록은 결론 → 풀이 → 현실에서 생각해 볼 점
+    names = p.eval_on_selector_all("#verdict .vblock h2", "els=>els.map(e=>e.textContent)")
+    assert names == ["종합운", "재물운", "직업·승진운"]
+    blk = p.locator("#verdict .vblock").nth(1)
+    order = blk.evaluate("e=>[...e.children].map(c=>c.className||c.tagName)")
+    assert order[1].startswith("verdict-a") and "vstory" in order[2] and any("H3" in o for o in order)
+    # 이유 보기(쉬운 말)도 전문 용어·번호가 없다
+    for i in range(3):
+        p.locator("#verdict .why").nth(i).click()
+    assert_verdict_layout(p)
+    assert p.locator("#verdict .whybox:visible").count() == 3
+    # 모바일 가독성: 가로 넘침 없고 첫 결론이 첫 두 화면 안에 있다
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
-    term.press("Enter")  # 다시 누르면 접힌다(키보드)
-    assert term.evaluate("e=>e.getAttribute('aria-expanded')") == "false" and name
+    assert p.evaluate("document.querySelector('#verdict .verdict-a').getBoundingClientRect().top + window.scrollY") < 800  # 모바일 첫 화면(800px) 안에 첫 결론
+    # API 응답: 사용자용 키만, 내부 근거 문자열 없음
+    body = next(json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
+    raw = p.evaluate("async (b) => (await fetch('/api/v1/oneshot/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b)})).text()", body)
+    d = json.loads(raw)
+    assert set(d["answer"]) == {"refused", "years", "domains", "verdict", "qa"} and "internal" not in d["answer"]["verdict"] and set(d["precommit"]) == {"pillars", "years", "domains"}
+    leak = re.findall(r"L\d-[A-Z0-9-]+|claim\w*|natal_structure|synthesis|ruleset|content_hash|식상생재|지장간", raw)
+    assert not leak, leak[:5]
     ctx.close()

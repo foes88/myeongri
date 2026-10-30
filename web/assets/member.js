@@ -44,6 +44,7 @@ function clearScreen(){/* 이전 사용자의 목록·리포트·기록이 화�
   ['out','cover','status','histout','evr'].forEach(i=>{const e=$(i);if(e)e.textContent=''});
   const k=$('keypoints');if(k)k.remove();$('report').hidden=true;$('session').hidden=true;$('status').hidden=true;
   localRecords.length=0;lastBody=null;
+  ['#staticbanner','main > p.kicker','main > h1','main > p.lead','main > ol.steps'].forEach(q=>{const e=document.querySelector(q);if(e)e.hidden=false});
   $('f').after($('acct'));  $('f').hidden=false;$('formbar').hidden=true;const n=$('intronote');if(n)n.hidden=false;
   document.querySelector('.steps li:nth-child(2)').removeAttribute('aria-current');document.querySelector('.steps li:nth-child(1)').setAttribute('aria-current','step')}
 function logoutLocal(m){AUTH=null;reportId=null;try{sessionStorage.removeItem('mingli_token');sessionStorage.removeItem('mingli_email')}catch(e){}clearScreen();show();msg(m||'')}

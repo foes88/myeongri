@@ -114,6 +114,7 @@
   <section id="session" class="session-form" hidden aria-label="상담 기록 추가">
     <p class="kicker">상담 기록</p>
     <h2>기록 추가</h2>
+    <div id="chips" class="chips" role="group" aria-label="추천 질문"></div>
     <label for="q2">이어서 묻기</label>
     <input id="q2" placeholder="예: 사업 쪽은 어떻게 보이나요?" maxlength="500">
     <p><button type="button" class="sec" id="askb">기록에 추가</button> <button type="button" class="sec" id="demoask" hidden>합성 기록 예시 추가</button></p>
@@ -490,6 +491,7 @@ if(ONESHOT){
   $('intronote').closest('main').querySelector('p.lead').hidden=true;  /* 입력이 첫 화면에 보이도록 설명 문단은 접는다 */
 }
 </script>
+<script src="assets/verdict_ui.js"></script>
 <script src="assets/member.js"></script>
 </body>
 </html>

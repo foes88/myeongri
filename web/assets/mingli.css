@@ -192,3 +192,36 @@ abbr.term:focus-visible{outline:2px solid var(--seal);outline-offset:1px}
 .tipbox{color:var(--ink2);font-size:.92em;background:var(--seal-soft);padding:0 .3em}
 details.expert-raw{border-top:1px dashed var(--rule);margin-top:.6rem}
 details.expert-raw>summary{color:var(--ink2);font-size:.92rem}
+
+/* v8.1 결론형 결과 화면 */
+#verdict{margin-top:1rem}
+.vblock{background:var(--doc);border:1px solid var(--rule);border-radius:2px;padding:22px 24px;margin:16px 0}
+.vblock.lead{border-top:3px solid var(--seal)}
+@media (max-width:560px){.vblock{padding:16px 14px}}
+.vhead{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem;flex-wrap:wrap;margin-bottom:.4rem}
+.vhead h2{margin:0}
+.tone{font-size:.82rem;border:1px solid var(--rule);padding:0 .55rem;border-radius:2px;color:var(--ink2);background:var(--paper);white-space:normal}
+.t-opportunity,.t-steady{border-color:var(--ink);color:var(--ink)}
+.t-mixed{border-color:var(--seal);color:var(--seal)}
+.t-cautious{border-color:var(--seal);color:#8a3a22;background:var(--seal-soft)}
+.verdict-a{font-family:var(--serif);font-size:1.28rem;line-height:1.6;color:var(--ink);margin:.5rem 0 .8rem}
+.verdict-a.small{font-size:1.05rem}
+.vstory{line-height:1.9;margin:.5rem 0}
+.vblock h3{margin-top:1.1rem;font-size:1rem}
+.why{margin-top:.6rem}
+.whybox{margin-top:.6rem;border-top:1px dashed var(--rule);padding-top:.6rem}
+.vperiod{background:var(--doc);border:1px solid var(--rule);border-top:3px solid var(--seal);padding:22px 24px;margin:16px 0}
+@media (max-width:560px){.vperiod{padding:16px 14px}}
+.yearlines li{padding:.7rem 0}
+.yhead{display:flex;gap:.6rem;align-items:baseline;flex-wrap:wrap}
+.ychange{margin:.3rem 0;color:var(--ink2)}
+.ycaution{margin:.2rem 0;color:#8a3a22;font-size:.95rem}
+.ydetail{margin-top:.6rem}
+.ydetail .vblock{margin:.6rem 0;padding:14px}
+.vlimits{margin:18px 0;padding:14px 18px;border-left:3px solid var(--rule);background:transparent;font-size:.93rem;color:var(--ink2)}
+.vlimits h3{margin:.1rem 0 .4rem;font-size:.95rem}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin:.4rem 0 .8rem}
+.chipq{border:1px solid var(--rule);background:var(--doc);color:var(--ink);padding:.3rem .7rem;font-size:.92rem;border-radius:2px;cursor:pointer;text-align:left}
+.chipq:hover{border-color:var(--seal)}
+.pillars-card{margin-top:12px}
+.qpoints{margin:.3rem 0 .6rem;padding-left:1.1rem}

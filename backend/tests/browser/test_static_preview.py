@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
-from .conftest import assert_report_order, expanded_text
+from .conftest import assert_verdict_layout, expanded_text
 
 from .conftest import BACKEND, OUT, free_port, wait_http
 
@@ -66,17 +66,14 @@ def test_demo_report_renders_without_any_network_send(browser, static_web, depth
     p.select_option("#demodepth", depth)
     p.click("#demobtn")
     p.wait_for_selector("#session:not([hidden])")
-    assert_report_order(p)  # 펼치기 전 기본 상태에서 검사
+    assert_verdict_layout(p)  # 결론형 화면(전문 용어·번호 없음)
     text = expanded_text(p, "#report")
     assert "합성 데모" in text and "실제 분석 결과가 아닙니다" in text
-    assert ("전문가용 상세" in p.evaluate("(()=>{const e=document.querySelector('#out .expert-only');return e?getComputedStyle(e,'::before').content:''})()")) == (depth == "expert")
-    # 명식 표, 대운·세운 구간 표, 고전 근거 상세
-    assert p.locator("#status table.pillars").count() == 1 and p.locator("#out table").count() >= 1
-    assert "고전 근거" in text and p.locator("#out details summary").count() >= 3
-    # 기록 UI
+    assert p.locator("#status table.pillars").count() == 1 and p.locator("#out table").count() == 0  # 기술적 표는 내 사주(접힘) 하나뿐
+    # 후속 상담 예시
     p.click("#demoask")
     p.wait_for_selector("#out .record")
-    assert "기록 1" in p.inner_text("#out .record")
+    assert "사업" in p.inner_text("#out .record")
     # 네트워크: 정적 파일 GET 외 요청 없음, fetch/XHR 0건, 저장 없음
     assert all(m == "GET" and u.startswith(static_web) for m, u, pd in reqs), [r for r in reqs if not (r[0] == "GET" and r[1].startswith(static_web))]
     assert p.evaluate("window.__fetchCalls") == 0 and p.evaluate("window.__xhr") == 0

@@ -1,0 +1,521 @@
+"""결론형 상담(사용자용 계층). 엔진의 구조·시기 변화를 '그래서 어떤가'에 답하는 문장으로 바꾼다.
+
+- 사용자 문장에는 전문 용어·규칙 번호·claim_id·한자를 쓰지 않는다. 근거는 answer["verdict"]["internal"] 에 그대로 보존한다(사용자 응답에서는 제외).
+- 어조(tone)는 엔진이 실제로 계산한 구조 변화에서 정한다: 돕는 흐름이 커지는가(S), 부딪히거나 나누는 흐름이 커지는가(T).
+  이 점수화는 구현자 규약이며(고전 원문 규칙 아님) 사용자 문장에도 '읽는 방식'이라고 밝힌다.
+- 근거가 없으면 만들어 내지 않고 '근거 부족'이라고 말한다. 사건·수입·승진·계약 결과를 단정하지 않는다.
+- 분야마다 문장 틀·관점·반대 근거가 다르다(같은 문장에서 분야 이름만 바꾸지 않는다).
+"""
+from __future__ import annotations
+
+from . import compose_domains as CD
+from . import domains as D
+from . import readings as R
+from . import synthesis as S
+
+VERDICT_VERSION = "verdict-0.1.0"
+TONE_SHORT = {"opportunity": "기회를 살리기 좋은 흐름", "mixed": "기회와 점검할 점이 함께 오는 흐름", "cautious": "서두르기보다 다지는 흐름", "quiet": "큰 변화 없이 이어지는 흐름",
+              "thin": "말할 근거가 부족한 흐름", "steady": "안정적으로 이어지는 흐름", "balance": "생활 균형을 돌아보는 흐름"}
+
+# 분야별로 구조를 부르는 쉬운 말(전문 용어 없음)
+THEMES = {
+    "overall": {"식상생재": "능력이 수입으로 이어지는 흐름", "재생관": "쌓은 기반이 직책·평가로 이어지는 흐름", "관인상생": "조직 안에서 신뢰와 도움을 얻는 흐름",
+              "살인상생": "압박을 준비와 조력으로 풀어 가는 흐름", "상관견관": "자기 주장이 규칙·조직과 부딪히기 쉬운 흐름", "군겁쟁재": "이익을 나누거나 다투기 쉬운 흐름"},
+    "wealth": {"식상생재": "능력이 수입으로 이어지는 흐름", "재생관": "수입 기반이 안정된 자리로 이어지는 흐름", "군겁쟁재": "수입을 나누거나 새어 나가기 쉬운 흐름"},
+    "career": {"재생관": "쌓은 실적이 직책·평가로 이어지는 흐름", "관인상생": "조직 안에서 신뢰와 도움을 얻는 흐름", "살인상생": "압박을 준비와 조력으로 풀어 가는 흐름",
+             "상관견관": "자기 주장이 조직의 규칙과 부딪히기 쉬운 흐름"},
+    "business": {"식상생재": "아이디어·기술이 수익으로 이어지는 흐름", "군겁쟁재": "동업·경쟁 상대와 이익을 나누기 쉬운 흐름", "상관견관": "자기 방식이 거래처·제도와 부딪히기 쉬운 흐름"},
+    "job_change": {"재생관": "쌓은 실적이 새 자리의 평가로 이어지는 흐름", "관인상생": "새 조직에서도 신뢰와 도움을 얻는 흐름", "살인상생": "환경 변화의 압박을 준비로 풀어 가는 흐름"},
+    "docs_realestate": {"관인상생": "계약·문서가 제도 안에서 안정적으로 처리되는 흐름", "살인상생": "까다로운 절차를 준비와 도움으로 넘기는 흐름"},
+    "real_estate": {"식상생재": "능력이 자산 형성으로 이어지는 흐름", "관인상생": "거래·문서가 안정적으로 처리되는 흐름"},
+}
+PAL_PLAIN = {"year": "태어난 해의 자리(어린 시절·집안)", "month": "태어난 달의 자리(사회·직업)", "day": "태어난 날의 자리(자기 자신·배우자)", "hour": "태어난 시의 자리(자녀·말년)"}
+PAL_DOM = CD.DOMAIN_PALACES
+
+HEAD = {
+    "wealth": {
+        "opportunity": "{w}은 능력이 수입으로 이어지기 쉬운 흐름이 보이는 시기입니다. 재물 면에서 기회를 살펴볼 만합니다.",
+        "mixed": "{w}에는 수입으로 이어질 기회와 함께 나누거나 새어 나가기 쉬운 부분도 커집니다. 버는 것만큼 지키는 것을 살펴볼 시기로 읽힙니다.",
+        "cautious": "{w}은 재물 면에서 무리하게 늘리기보다 점검하고 정리하기에 어울리는 흐름으로 읽힙니다.",
+        "quiet": "{w}은 재물 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 큰 기회나 큰 위험이 두드러지지는 않습니다.",
+        "thin": "이 사주에서는 {w} 재물 흐름에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."},
+    "career": {
+        "opportunity": "{w}은 노력이 평가와 자리로 이어지기 쉬운 흐름이 보이는 시기입니다. 직장·승진 문제를 적극적으로 살펴볼 만합니다.",
+        "mixed": "{w}에는 평가와 자리로 이어질 기회와 함께 조직과 부딪히기 쉬운 부분도 커집니다. 실적을 쌓으면서 관계를 조율하는 균형이 중요한 시기로 읽힙니다.",
+        "cautious": "{w}은 직장에서 서두르기보다 지금 자리를 다지고 준비하는 쪽이 어울리는 흐름으로 읽힙니다.",
+        "quiet": "{w}은 직업 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다.",
+        "thin": "이 사주에서는 {w} 직업·승진 흐름에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."},
+    "business": {
+        "opportunity": "{w}은 아이디어와 기술이 수익으로 이어지기 쉬운 흐름이 보이는 시기입니다. 사업을 구상하거나 넓히는 일을 살펴볼 만합니다.",
+        "mixed": "{w}에는 수익 기회와 함께 동업·경쟁 상대와 이익을 나누기 쉬운 부분도 커집니다. 확장보다 조건과 배분을 분명히 하는 쪽이 어울립니다.",
+        "cautious": "{w}은 사업을 크게 벌이기보다 구조를 점검하고 지키는 쪽이 어울리는 흐름으로 읽힙니다.",
+        "quiet": "{w}은 사업 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다.",
+        "thin": "이 사주에서는 {w} 사업 흐름에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."},
+    "job_change": {
+        "opportunity": "{w}은 자리를 옮기더라도 신뢰와 평가가 이어지기 쉬운 흐름이 보입니다. 이직은 살펴볼 만한 선택지로 읽히지만, 이직을 권한다는 뜻은 아닙니다.",
+        "mixed": "{w}에는 이직을 뒷받침하는 흐름과 함께 환경 변화에 부담이 생기기 쉬운 부분도 있습니다. 옮기는 이유와 조건을 충분히 따져 볼 시기로 읽힙니다.",
+        "cautious": "{w}은 이직처럼 큰 변화를 서두르기보다 지금 자리에서 준비를 갖추는 쪽이 어울리는 흐름으로 읽힙니다.",
+        "quiet": "{w}은 이직과 관련해 뚜렷한 변화 신호가 두드러지지 않는 시기입니다. 이직 여부는 현실 조건이 더 큰 기준이 됩니다.",
+        "thin": "이 사주에서는 {w} 이직 흐름에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."},
+    "docs_realestate": {
+        "opportunity": "{w}은 계약과 문서 일이 제도 안에서 비교적 순조롭게 처리되기 쉬운 흐름이 보입니다.",
+        "mixed": "{w}에는 계약·문서 일이 순조로울 수 있는 흐름과 함께 절차에서 부딪히기 쉬운 부분도 있습니다. 조건과 서류를 꼼꼼히 확인할 시기로 읽힙니다.",
+        "cautious": "{w}은 계약·문서 일을 서두르기보다 확인과 준비에 시간을 쓰는 쪽이 어울리는 흐름으로 읽힙니다.",
+        "quiet": "{w}은 계약·문서 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다.",
+        "thin": "이 사주에서는 {w} 계약·문서 흐름에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."},
+    "real_estate": {
+        "opportunity": "{w}은 능력과 노력이 자산을 쌓는 쪽으로 이어지기 쉬운 흐름이 보입니다. 부동산 문제를 차분히 살펴볼 만합니다.",
+        "mixed": "{w}에는 자산을 쌓을 기회와 함께 절차나 조건에서 점검할 부분도 커집니다. 거래 조건과 서류를 꼼꼼히 확인할 시기로 읽힙니다.",
+        "cautious": "{w}은 부동산 거래를 서둘러 결정하기보다 조건을 비교하고 준비하는 쪽이 어울리는 흐름으로 읽힙니다.",
+        "quiet": "{w}은 부동산과 거처에 관한 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다.",
+        "thin": "이 사주에서는 {w} 부동산 흐름에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."},
+    "love_marriage": {
+        "steady": "{w}은 가까운 관계가 비교적 안정적으로 이어지기 쉬운 흐름으로 읽힙니다.",
+        "mixed": "{w}에는 관계를 이어 주는 요소와 함께 마찰이 생기기 쉬운 요소도 있습니다. 서로의 기대를 말로 맞추는 일이 중요한 시기로 읽힙니다.",
+        "cautious": "{w}은 가까운 관계에서 부딪힘이나 거리감이 생기기 쉬운 흐름이 보입니다. 감정이 앞설 때 잠시 쉬어 가는 관점이 도움이 될 수 있습니다.",
+        "quiet": "{w}은 연애·결혼 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다.",
+        "thin": "이 사주에서는 {w} 연애·결혼 흐름에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."},
+    "family": {
+        "steady": "{w}은 가족·가까운 사람들과의 관계가 비교적 안정적으로 이어지기 쉬운 흐름으로 읽힙니다.",
+        "mixed": "{w}에는 서로 의지가 되는 요소와 함께 의견이 엇갈리기 쉬운 요소도 있습니다. 거리와 역할을 조율하는 일이 중요한 시기로 읽힙니다.",
+        "cautious": "{w}은 가족·주변 관계에서 오해나 부담이 쌓이기 쉬운 흐름이 보입니다. 서운함을 미루지 않고 이야기해 보는 관점이 도움이 될 수 있습니다.",
+        "quiet": "{w}은 가족·인간관계 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다.",
+        "thin": "이 사주에서는 {w} 가족·인간관계 흐름에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."},
+    "health_traditional": {
+        "balance": "건강은 이 해석으로 판단하거나 예측할 수 없습니다. 아래 내용은 생활 리듬과 균형을 돌아보는 참고일 뿐이며, 몸에 걱정되는 점은 의료진과 상의하세요."},
+}
+THINK = {
+    "wealth": {
+        "opportunity": ["일이나 기술을 수입으로 연결할 방법(성과급, 부수입, 새 수입원 등)을 구체적으로 점검해 볼 수 있습니다.", "기회가 보일수록 지출 계획을 함께 세워 두면 균형을 잡는 데 도움이 될 수 있습니다."],
+        "mixed": ["수입을 늘리는 일과 함께 고정 지출, 동업·보증처럼 나누는 구조를 먼저 점검해 볼 수 있습니다.", "큰 결정은 한 번에 하기보다 나누어 진행하는 관점이 참고가 될 수 있습니다."],
+        "cautious": ["새 투자나 확장보다 지금의 수입과 지출 구조를 정리해 보는 관점이 참고가 될 수 있습니다.", "다른 사람과 이익을 나누는 조건은 문서로 분명히 해 두는 것을 생각해 볼 수 있습니다."],
+        "quiet": ["큰 변화가 없는 시기에는 장기 계획과 저축 습관을 다듬는 데 시간을 쓰는 관점을 생각해 볼 수 있습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 실제 재무 상황과 계획을 우선 기준으로 삼는 편이 좋습니다."]},
+    "career": {
+        "opportunity": ["지금까지 쌓은 실적과 평판을 정리해 두고 인사·평가 시기에 맞춰 보여 줄 방법을 생각해 볼 수 있습니다.", "윗사람이나 선배의 조언을 구하는 일이 도움이 될 수 있습니다."],
+        "mixed": ["성과를 내는 일과 함께 상사·동료와 의견을 조율하는 방식을 점검해 볼 수 있습니다.", "자기 주장을 전달할 때 시기와 방식을 고르는 관점이 참고가 될 수 있습니다."],
+        "cautious": ["새 직무나 큰 변화를 서두르기보다 자격·경력을 보강하는 준비에 시간을 쓰는 관점을 생각해 볼 수 있습니다.", "조직의 규칙과 부딪히는 지점이 있다면 미리 정리해 두면 도움이 될 수 있습니다."],
+        "quiet": ["뚜렷한 변화가 없는 시기에는 현재 일의 완성도를 높이는 데 집중하는 관점을 생각해 볼 수 있습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 회사의 실제 상황과 본인의 계획을 우선 기준으로 삼는 편이 좋습니다."]},
+    "business": {
+        "opportunity": ["아이디어를 작게 시험해 보고 반응을 확인하는 방식으로 접근해 볼 수 있습니다.", "수익이 커질 때 비용과 세금 구조를 함께 점검해 두면 도움이 될 수 있습니다."],
+        "mixed": ["동업이나 거래 조건(지분, 정산 방식)을 처음부터 문서로 분명히 해 두는 것을 생각해 볼 수 있습니다.", "확장은 단계를 나누어 진행하는 관점이 참고가 될 수 있습니다."],
+        "cautious": ["규모를 키우기보다 현금 흐름과 거래처 구조를 점검하는 관점을 생각해 볼 수 있습니다."],
+        "quiet": ["큰 변화가 없는 시기에는 운영 방식을 다듬고 기반을 넓히는 일에 시간을 쓰는 관점을 생각해 볼 수 있습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 시장 상황과 자금 사정을 우선 기준으로 삼는 편이 좋습니다."]},
+    "job_change": {
+        "opportunity": ["옮기고 싶은 이유와 새 자리에서 얻고 싶은 것을 먼저 적어 보는 관점이 도움이 될 수 있습니다.", "현재 자리에서 쌓은 실적을 새 자리에서 어떻게 설명할지 정리해 볼 수 있습니다."],
+        "mixed": ["이직의 좋은 점과 환경 변화의 부담을 나란히 놓고 비교해 보는 관점이 참고가 될 수 있습니다.", "새 조직의 규칙과 문화가 자신의 방식과 맞는지 미리 알아보는 일을 생각해 볼 수 있습니다."],
+        "cautious": ["서둘러 옮기기보다 현재 자리에서 경력과 자격을 보강하며 선택지를 넓혀 두는 관점을 생각해 볼 수 있습니다."],
+        "quiet": ["뚜렷한 신호가 없으니 연봉·성장·근무 조건 같은 현실 기준을 중심으로 판단하는 편이 좋습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 현실의 제안 조건을 우선 기준으로 삼는 편이 좋습니다."]},
+    "docs_realestate": {
+        "opportunity": ["계약 전 조건과 서류를 정리해 두면 순조로운 흐름을 살리는 데 도움이 될 수 있습니다."],
+        "mixed": ["계약서의 세부 조건(기간, 비용, 해지 조건)을 꼼꼼히 확인하는 관점이 참고가 될 수 있습니다.", "중요한 서류는 전문가의 확인을 받아 보는 것을 생각해 볼 수 있습니다."],
+        "cautious": ["결정을 서두르기보다 여러 조건을 비교하고 충분히 확인한 뒤 진행하는 관점을 생각해 볼 수 있습니다."],
+        "quiet": ["뚜렷한 변화가 없으니 일정과 조건을 차분히 정리하며 진행해 볼 수 있습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 계약의 실제 조건을 우선 기준으로 삼는 편이 좋습니다."]},
+    "real_estate": {
+        "opportunity": ["자금 계획과 대출 조건을 미리 정리해 두면 기회를 살피는 데 도움이 될 수 있습니다."],
+        "mixed": ["거래 조건과 비용(세금·수수료·대출 이자)을 함께 놓고 점검해 보는 관점이 참고가 될 수 있습니다."],
+        "cautious": ["서둘러 결정하기보다 시세와 조건을 충분히 비교해 보는 관점을 생각해 볼 수 있습니다."],
+        "quiet": ["뚜렷한 변화가 없으니 현재의 거처와 자산 계획을 차분히 점검해 볼 수 있습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 시세와 자금 사정을 우선 기준으로 삼는 편이 좋습니다."]},
+    "love_marriage": {
+        "steady": ["안정적인 흐름일수록 서로의 일상과 기대를 자주 나누는 관점이 도움이 될 수 있습니다."],
+        "mixed": ["서운함이나 기대를 미루지 않고 말로 확인하는 관점이 참고가 될 수 있습니다.", "중요한 결정(동거·결혼 등)은 서로의 현실 조건을 충분히 이야기한 뒤 정해 보는 것을 생각해 볼 수 있습니다."],
+        "cautious": ["감정이 격해질 때는 결론을 내리기보다 시간을 두고 다시 이야기해 보는 관점을 생각해 볼 수 있습니다."],
+        "quiet": ["큰 변화 신호가 없으니 관계를 가꾸는 일상의 노력에 시간을 쓰는 관점을 생각해 볼 수 있습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 두 사람의 실제 상황과 대화를 우선 기준으로 삼는 편이 좋습니다."]},
+    "family": {
+        "steady": ["가까운 사람들과 연락과 역할을 나누는 일을 꾸준히 이어 가는 관점이 도움이 될 수 있습니다."],
+        "mixed": ["돌봄·비용·역할처럼 의견이 갈리기 쉬운 주제는 미리 이야기해 두는 관점이 참고가 될 수 있습니다."],
+        "cautious": ["오해가 쌓이기 쉬운 시기이니 중요한 이야기는 직접, 차분히 나누는 관점을 생각해 볼 수 있습니다."],
+        "quiet": ["큰 변화 신호가 없으니 정기적인 만남과 연락으로 관계를 유지하는 관점을 생각해 볼 수 있습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 가족의 실제 상황을 우선 기준으로 삼는 편이 좋습니다."]},
+    "health_traditional": {"balance": ["수면·식사·운동 같은 생활 리듬을 규칙적으로 돌아보는 일상적 관점으로만 참고해 주세요."]},
+    "overall": {
+        "opportunity": ["직업·재물·관계 중 지금 가장 중요한 한 가지를 정해 그쪽에 힘을 모아 보는 관점을 생각해 볼 수 있습니다.", "좋은 흐름일수록 무리한 확장보다 꾸준히 이어 가는 방식이 참고가 될 수 있습니다."],
+        "mixed": ["기회와 부담이 함께 오는 시기이니 한 번에 여러 결정을 하기보다 순서를 정해 하나씩 진행하는 관점을 생각해 볼 수 있습니다."],
+        "cautious": ["큰 결정은 서두르지 말고 준비와 점검에 시간을 쓰는 관점을 생각해 볼 수 있습니다."],
+        "quiet": ["큰 변화가 두드러지지 않는 시기이니 평소의 습관과 관계를 다지는 데 시간을 쓰는 관점을 생각해 볼 수 있습니다."],
+        "thin": ["사주만으로 말할 수 있는 것이 적으니 현실의 상황과 계획을 우선 기준으로 삼는 편이 좋습니다."]},
+}
+OVERALL_HEAD = {"opportunity": "{w}은 전반적으로 기회를 살리기 좋은 흐름으로 읽힙니다.", "mixed": "{w}은 기회와 점검할 점이 함께 오는 시기로 읽힙니다.",
+                "cautious": "{w}은 서두르기보다 다지고 준비하는 쪽이 어울리는 시기로 읽힙니다.", "quiet": "{w}은 큰 변화 없이 타고난 흐름이 이어지는 시기로 읽힙니다.",
+                "thin": "이 사주에서는 {w}에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."}
+TIER_WORD = {1: "약하게", 2: "어느 정도", 3: "뚜렷하게"}
+
+
+def when_phrase(years: list[int]) -> str:
+    if not years:
+        return "타고난 흐름"
+    return f"{years[0]}년" if len(years) == 1 else f"{years[0]}~{years[-1]}년"
+
+
+def _theme(dom: str, name: str) -> str:
+    return THEMES.get(dom, THEMES["overall"]).get(name) or THEMES["overall"].get(name) or S.STRUCT[name]["short"]
+
+
+def _join(items: list[str], limit: int = 2) -> str:
+    items = list(dict.fromkeys(items))[:limit]
+    return items[0] if len(items) == 1 else (", ".join(items) if items else "")
+
+
+def _date_plain(iso: str) -> str:
+    return f"{int(iso[5:7])}월 {int(iso[8:10])}일"
+
+
+# ------------------------------------------------------------------ 어조 정하기
+def tone_for(pre: dict, dom: str, yr: dict | None, nm: dict, common_bad: list[str] | None = None) -> dict:
+    """구조 분야: 돕는 흐름(S)과 부딪히거나 나누는 흐름(T)의 크기로 정한다. 궁위 분야는 근거·관계 수로 정한다."""
+    if D.DOMAINS[dom].get("kind") == "palace":
+        return _tone_palace(pre, dom, yr)
+    rel = D.DOMAINS[dom]["structures"] or list(S.STRUCT)
+    present = {n: nm[n]["rank"] for n in rel if n in nm and nm[n]["rank"] > 0}
+    sup_n = [n for n in present if S.STRUCT[n]["polarity"] == "support"]
+    ten_n = [n for n in present if S.STRUCT[n]["polarity"] == "tension"]
+    ups = [n for n in (yr or {}).get("ups", []) if n in rel]
+    sup_up = [n for n in ups if S.STRUCT[n]["polarity"] == "support"]
+    ten_up = [n for n in ups if S.STRUCT[n]["polarity"] == "tension"]
+    bad = (yr or {}).get("bad", [])  # 같은 해는 어느 범위로 보든 같은 결론이어야 하므로 선택 범위와 무관한 절대 기준만 쓴다
+    s_score = 2 * len(sup_up) + (1 if any(present[n] >= 3 for n in sup_n) or sum(present[n] for n in sup_n) >= 4 else 0)
+    t_score = 2 * len(ten_up) + (1 if any(present[n] >= 2 for n in ten_n) else 0) + (1 if len(bad) >= 3 else 0)
+    if not present and not ups:
+        tone = "thin"
+    elif s_score == 0 and t_score == 0:
+        tone = "quiet"
+    elif s_score >= t_score + 2:
+        tone = "opportunity"
+    elif t_score >= s_score + 2:
+        tone = "cautious"
+    else:
+        tone = "mixed"
+    return {"tone": tone, "S": s_score, "T": t_score, "natal_support": sup_n, "natal_tension": ten_n, "sup_up": sup_up, "ten_up": ten_up, "present": present, "bad": bad}
+
+
+def _tone_palace(pre: dict, dom: str, yr: dict | None) -> dict:
+    if dom == "health_traditional":
+        return {"tone": "balance", "S": 0, "T": 0}
+    ex = CD.domain_extra(dom, pre) or {"evidence_for": [], "evidence_against": []}
+    pos = len([x for x in ex["evidence_for"] if "0개" not in x and "없음" not in x])
+    neg = len(ex["evidence_against"])
+    pals = PAL_DOM.get(dom, ())
+    bad_rel = good_rel = 0
+    for seg in (yr or {}).get("_segments", []):
+        for r in seg.get("relations", []):
+            if r["with"] in pals:
+                if r["type"] in S.REL_PLAIN:
+                    bad_rel += 1
+                elif r["type"] in ("육합", "천간합", "반합 형성 후보", "삼합 완성 후보"):
+                    good_rel += 1
+    if pos == 0 and neg == 0 and bad_rel == 0:
+        tone = "thin"
+    elif neg > pos + 1 or bad_rel >= 2:
+        tone = "cautious"
+    elif (neg >= 1 or bad_rel >= 1) and (pos >= 1 or good_rel >= 1):
+        tone = "mixed"
+    elif neg == 0 and bad_rel == 0 and (pos >= 1 or good_rel >= 1):
+        tone = "steady"
+    else:
+        tone = "quiet"
+    return {"tone": tone, "S": pos + good_rel, "T": neg + bad_rel, "palace_bad": bad_rel, "palace_good": good_rel, "pos": pos, "neg": neg}
+
+
+# ------------------------------------------------------------------ 분야별 한 덩어리(A~D 중 A·B·C 와 반대 견해)
+def domain_block(pre: dict, dom: str, years: list[int], yr: dict | None, nm: dict, luck_date: str | None, common_bad: list[str] | None = None) -> dict:
+    w = when_phrase(years)
+    t = tone_for(pre, dom, yr, nm, common_bad)
+    tone = t["tone"]
+    spec = D.DOMAINS[dom]
+    name = spec["name"]
+    head_tpl = HEAD.get(dom, {}).get(tone)
+    story: list[str] = []
+    counter: list[str] = []
+    if spec.get("kind") == "palace":
+        pr = R.palace_readings(pre, [{"domain": dom, "name": name}])
+        rd = pr[0] if pr else None
+        ex = CD.domain_extra(dom, pre) or {"evidence_for": [], "evidence_against": []}
+        facts = [R.natural(x) for x in ex["evidence_for"]][:2]
+        if dom != "health_traditional" and rd:
+            story.append(rd["meaning"])
+            if facts and not rd.get("thin"):
+                story.append("타고난 사주에서 확인되는 것은 다음과 같습니다. " + " ".join(facts))
+        if dom == "health_traditional":
+            story.append("오행(목·화·토·금·수)의 분포와 태어난 계절의 한난을 '균형의 상징'으로만 살펴보는 영역이며, 증상이나 질환과 연결하지 않습니다.")
+            if facts:
+                story.append(" ".join(facts))
+        if yr and t.get("palace_bad"):
+            pals = PAL_DOM.get(dom, ())
+            story.append(f"{w}에는 {' 그리고 '.join(PAL_PLAIN[p] for p in pals[:2])}에 부딪히거나 흐트러지는 관계가 들어와 평소보다 마찰에 신경 쓸 필요가 있습니다.")
+        elif yr and t.get("palace_good"):
+            story.append(f"{w}에는 {PAL_PLAIN[(PAL_DOM.get(dom) or ('day',))[0]]}를 묶어 주는 관계가 들어와 서로를 잇는 힘이 커질 수 있습니다.")
+        counter = [R.natural(x) for x in ex["evidence_against"]][:2]
+    else:
+        nat_sup = sorted(t["natal_support"], key=lambda n: -t["present"][n])
+        nat_ten = sorted(t["natal_tension"], key=lambda n: -t["present"][n])
+        if nat_sup:
+            n = nat_sup[0]
+            story.append(f"타고난 사주에는 {_theme(dom, n)}이 {TIER_WORD[t['present'][n]]} 자리 잡고 있습니다.")
+        else:
+            story.append("타고난 사주에는 이 분야와 곧바로 이어지는 뚜렷한 흐름이 많지 않습니다.")
+        if yr is not None:
+            if t["sup_up"] and t["ten_up"]:
+                story.append(f"{w}에는 {_join([_theme(dom, n) for n in t['sup_up']])}이 더 뚜렷해지지만, 동시에 {_join([_theme(dom, n) for n in t['ten_up']])}도 커집니다.")
+            elif t["sup_up"]:
+                story.append(f"{w}에는 {_join([_theme(dom, n) for n in t['sup_up']])}이 타고난 모습보다 더 뚜렷해집니다.")
+            elif t["ten_up"]:
+                story.append(("한편 " if nat_sup else "") + f"{w}에는 {_join([_theme(dom, n) for n in t['ten_up']])}이 타고난 모습보다 커집니다.")
+            else:
+                story.append(f"{w}에는 이 분야의 흐름이 타고난 모습에서 크게 달라지지 않습니다.")
+        if t["T"] > 0 and not t["ten_up"]:  # 점수에 반영된 부딪히는 흐름은 반드시 문장으로도 말한다(반대 근거 누락 방지)
+            if nat_ten:
+                story.append(f"다만 타고난 사주에도 {_theme(dom, nat_ten[0])}이 있어 한쪽으로만 읽지는 않습니다.")
+            elif len(t["bad"]) >= 3:
+                story.append("또한 타고난 사주와 부딪히거나 흐트러지는 관계가 여러 개 들어와, 흐름이 매끄럽게만 이어지지는 않을 수 있습니다.")
+        for n in nat_sup[:2]:
+            counter += S._counters_plain({"counter": next((s["counter"] for s in pre["natal_structure"]["layer3"]["structures"] if s["name"] == n), [])}, "support")
+        if t["ten_up"] or nat_ten:
+            tn = (t["ten_up"] or nat_ten)[0]
+            counter += S._counters_plain({"counter": next((s["counter"] for s in pre["natal_structure"]["layer3"]["structures"] if s["name"] == tn), [])}, "tension")[:1]
+        counter = list(dict.fromkeys(counter))[:2]
+    if luck_date and yr is not None and yr.get("luck_split") and dom != "health_traditional":
+        story.append(f"{_date_plain(luck_date)} 무렵 10년 단위로 바뀌는 큰 흐름이 바뀌므로, 그 전과 후를 나누어 보는 편이 좋습니다.")
+    for c in counter[:1]:
+        story.append(c if spec.get("kind") == "palace" else "다만 " + c.rstrip(".") + ".")
+    story = story[:4]
+    headline = (head_tpl or HEAD["wealth"]["thin"]).format(w=w)
+    think = list(THINK.get(dom, {}).get(tone, THINK["overall"]["thin"]))[:2]
+    block = {"domain": dom, "name": name, "tone": tone, "tone_label": TONE_SHORT[tone], "headline": headline, "story": story, "think": think, "counter": counter}
+    block["scores"] = {k: t[k] for k in ("S", "T")}
+    return block
+
+
+# ------------------------------------------------------------------ 종합운(다른 분야 문장을 잇지 않고 전체 이야기를 만든다)
+def overall_block(pre: dict, years: list[int], yr: dict | None, nm: dict, luck_date: str | None, others: list[dict], common_bad: list[str] | None = None) -> dict:
+    w = when_phrase(years)
+    t = tone_for(pre, "overall", yr, nm, common_bad)
+    tone = t["tone"]
+    nat_sup = sorted(t["natal_support"], key=lambda n: -t["present"][n])
+    nat_ten = sorted(t["natal_tension"], key=lambda n: -t["present"][n])
+    story = []
+    if nat_sup:
+        n = nat_sup[0]
+        story.append(f"타고난 사주는 {_theme('overall', n)}이 중심에 놓인 구조입니다.")
+    elif nat_ten:
+        story.append(f"타고난 사주에서는 돕는 흐름보다 {_theme('overall', nat_ten[0])}이 먼저 보여, 조건을 가려 가며 읽어야 하는 구조입니다.")
+    else:
+        story.append("타고난 사주에서는 뚜렷하게 앞서는 흐름이 많지 않은 편입니다.")
+    if yr is not None:
+        if t["sup_up"]:
+            story.append(f"{w}에는 {_join([_theme('overall', n) for n in t['sup_up']], 3)}이 타고난 모습보다 더 뚜렷해집니다.")
+        if t["ten_up"]:
+            story.append(f"한편 {_join([_theme('overall', n) for n in t['ten_up']], 3)}도 함께 커져, 좋은 흐름이 그대로 매끄럽게 이어지지는 않을 수 있습니다.")
+        if not t["sup_up"] and not t["ten_up"]:
+            story.append(f"{w}에는 구조상 눈에 띄는 변화가 없어, 타고난 흐름이 대체로 이어지는 시기입니다.")
+    if t["T"] > 0 and yr is not None and not t["ten_up"]:
+        if nat_ten:
+            story.append(f"다만 타고난 사주에도 {_theme('overall', nat_ten[0])}이 있어 한쪽으로만 읽지는 않습니다.")
+        elif len(t["bad"]) >= 3:
+            story.append("또한 타고난 사주와 부딪히거나 흐트러지는 관계가 여러 개 들어와, 흐름이 매끄럽게만 이어지지는 않을 수 있습니다.")
+    if luck_date and yr is not None and yr.get("luck_split"):
+        story.append(f"{_date_plain(luck_date)} 무렵 10년 단위로 바뀌는 큰 흐름이 바뀌어, 그 전과 후의 분위기가 달라질 수 있습니다.")
+    cons = [x for x in others if x["domain"] != "overall"]
+    if cons:
+        hi = [x for x in cons if x["tone"] in ("opportunity", "steady")]
+        lo = [x for x in cons if x["tone"] in ("cautious", "mixed")]
+        if hi and lo:
+            story.append(f"선택하신 분야 중에서는 {_join([x['name'] for x in hi], 2)} 쪽이 상대적으로 순조롭게, {_join([x['name'] for x in lo], 2)} 쪽은 조율이 필요하게 읽힙니다.")
+    story = story[:5]
+    head = OVERALL_HEAD[tone].format(w=w)
+    return {"domain": "overall", "name": "종합운", "tone": tone, "tone_label": TONE_SHORT[tone], "headline": head, "story": story, "think": list(THINK["overall"][tone])[:2], "counter": [],
+            "scores": {"S": t["S"], "T": t["T"]}}
+
+
+# ------------------------------------------------------------------ 한계(D)
+def limits_for(pre: dict, years: list[int], blocks: list[dict], multi_flat: bool = False) -> list[str]:
+    w = when_phrase(years)
+    out = [f"이 풀이는 전통 명리학의 해석 틀로 읽은 것이며, {w}의 결과를 예측하거나 보장하지 않습니다. 실제 결정은 현실 조건을 기준으로 해 주세요."]
+    v = pre["verification"]
+    sc = v.get("scope", {})
+    not_ok = []
+    if not sc.get("CORE_VALIDATED", {}).get("granted"):
+        not_ok.append("연·월·일 기둥")
+    if not sc.get("TIME_PROFILE_VALIDATED", {}).get("granted"):
+        not_ok.append("태어난 시각에 따른 보정")
+    if not sc.get("DAEUN_PROFILE_VALIDATED", {}).get("granted"):
+        not_ok.append("10년 단위 큰 흐름의 시작 시점")
+    if not_ok:
+        out.append("사주 계산 중 " + ", ".join(not_ok) + " 부분은 아직 독립 검증을 마치지 않아 참고용으로 보셔야 합니다.")
+    hb = (v.get("hour_boundary") or {})
+    if hb.get("near"):
+        out.append("태어난 시각이 시(2시간 단위) 경계 가까이에 있어, 시각이나 출생지가 조금만 달라도 사주의 시 부분이 바뀔 수 있습니다.")
+    if pre.get("variants_count", 1) > 1:
+        out.append("시간 보정 방식에 따라 사주가 여러 개로 갈리며, 지금 보시는 것은 선택한 하나입니다. 다른 방식으로 읽으면 일부 해석이 달라질 수 있습니다.")
+    if any(b["tone"] == "thin" for b in blocks):
+        out.append("근거가 부족한 분야는 억지로 말을 만들지 않았습니다.")
+    if multi_flat:
+        out.append("선택한 기간 안에서 해마다 뚜렷하게 구별되는 구조 변화가 없어, 연도별 결론이 비슷하게 나옵니다.")
+    out.append("'기회'·'점검' 같은 결론은 사주의 구조 변화를 읽는 한 가지 방식에 따른 것이며, 해석하는 방식에 따라 달라질 수 있습니다.")
+    return out
+
+
+# ------------------------------------------------------------------ 기간(5년·10년)
+def period_block(pre: dict, years: list[int], yrs: dict[int, dict], doms: list[str], nm: dict, luck_changes: list[dict], primary: str) -> dict:
+    rel_all = S._relevant(doms)
+    names = [y for y in years]
+    common_ups = [n for n in rel_all if all(n in yrs[y]["ups"] for y in names)]
+    common_bad = [k for k in yrs[names[0]]["bad"] if all(k in yrs[y]["bad"] for y in names)]
+    dev = {}
+    for y in names:
+        r = yrs[y]
+        dev[y] = 2 * len([n for n in r["ups"] if n not in common_ups and n in rel_all]) + 2 * len([n for n in common_ups if n not in r["ups"]]) + len([n for n in r["downs"] if n in rel_all]) + \
+            len([k for k in r["bad"] if k not in common_bad]) + (2 if r.get("luck_split") else 0)
+    top = max(dev.values())
+    standout = [y for y in names if dev[y] == top][:3] if top > min(dev.values()) else []
+    rows = []
+    tones = {}
+    for y in names:
+        r = yrs[y]
+        blk = domain_block(pre, primary, [y], r, nm, luck_changes[0]["date"] if luck_changes and str(y) == luck_changes[0]["date"][:4] else None, common_bad)
+        tones[y] = blk["tone"]
+        extra_up = [n for n in r["ups"] if n in rel_all and n not in common_ups]
+        diff = []
+        if extra_up:
+            diff.append(_join([_theme(primary, n) for n in extra_up], 2) + "이 더해짐")
+        if r.get("luck_split"):
+            lc = next((c for c in luck_changes if c["date"][:4] == str(y)), None)
+            if lc:
+                diff.append(f"{_date_plain(lc['date'])} 무렵 큰 흐름이 바뀜")
+        caution = ""
+        t_up = [n for n in r["ups"] if n in rel_all and S.STRUCT[n]["polarity"] == "tension" and n not in common_ups]
+        if t_up:
+            caution = _theme(primary, t_up[0]) + "에 유의"
+        rows.append({"year": y, "tone": blk["tone"], "line": f"{TONE_SHORT[blk['tone']]}", "change": "; ".join(diff) if diff else "다른 해와 구별되는 구조 변화는 없음", "caution": caution,
+                     "standout": y in standout})
+    uniq = len(set(tones.values()))
+    sentences = []
+    span = when_phrase(names)
+    c_sup = [n for n in common_ups if S.STRUCT[n]["polarity"] == "support"]
+    c_ten = [n for n in common_ups if S.STRUCT[n]["polarity"] == "tension"]
+    if c_sup and c_ten:
+        sentences.append(f"{span} 동안 전반적으로 {_join([_theme(primary, n) for n in c_sup], 2)}이 타고난 모습보다 더 뚜렷한 쪽으로 이어지지만, {_join([_theme(primary, n) for n in c_ten], 2)}도 함께 커져 있어 계속 유의할 점으로 남습니다.")
+    elif c_sup or c_ten:
+        sentences.append(f"{span} 동안 전반적으로 {_join([_theme(primary, n) for n in (c_sup or c_ten)], 2)}이 타고난 모습보다 더 커진 채로 이어집니다.")
+    else:
+        sentences.append(f"{span} 동안 타고난 흐름이 전반적으로 비슷하게 이어집니다.")
+    if standout:
+        sentences.append(f"가장 달라지는 해는 {', '.join(str(y) + '년' for y in standout)}입니다. 이는 변화가 크다는 뜻이지 좋거나 나쁜 일이 일어난다는 뜻은 아닙니다.")
+    else:
+        sentences.append("해마다 뚜렷하게 구별되는 구조 변화는 없어, 연도별 결론이 비슷하게 나옵니다.")
+    if luck_changes:
+        c0 = luck_changes[0]
+        sentences.append(f"{c0['date'][:4]}년 {_date_plain(c0['date'])} 무렵 10년 단위로 바뀌는 큰 흐름이 바뀌므로, 그 전후를 나누어 보는 것이 좋습니다.")
+    return {"span": span, "summary": sentences[:4], "years": rows, "standout": standout, "flat": uniq == 1 and not standout, "primary_domain": primary}
+
+
+# ------------------------------------------------------------------ 전체 조립
+def _yr_map(pre: dict, periods: list[dict], rel: list[str], nm: dict) -> dict[int, dict]:
+    out = {}
+    for p in periods:
+        r = S.year_reading(p, rel, nm)
+        r["_segments"] = p["segments"]
+        out[p["year"]] = r
+    return out
+
+
+def build(pre: dict, ans: dict, question: str = "") -> dict:
+    """answer() 가 끝난 뒤 호출. ans: blocks, periods, domains, years, synthesis 를 가진 답변."""
+    base = pre["natal_structure"]
+    nm = S._natal_map(base)
+    years = list(ans.get("years") or [])
+    doms = [d for d in ans["domains"] if d != "luck"] or ["overall"]
+    periods = ans.get("periods") or []
+    rel_all = S._relevant(doms)
+    lc = S.luck_change(periods) if periods else []
+    yrs = _yr_map(pre, periods, rel_all, nm) if periods else {}
+    sel = [d for d in doms if d != "overall"]
+    primary = sel[0] if sel else "overall"
+
+    def blocks_for(y: int | None, common_bad=None) -> list[dict]:
+        yr = yrs.get(y) if y is not None else None
+        # 분야별 시기 변화는 해당 분야 구조만 보고 정한다
+        out = []
+        ld = next((c["date"] for c in lc if y is not None and c["date"][:4] == str(y)), None)
+        for d in sel:
+            yr_d = None
+            if y is not None:
+                p = next(p for p in periods if p["year"] == y)
+                yr_d = S.year_reading(p, S._relevant([d]), nm)
+                yr_d["_segments"] = p["segments"]
+            out.append(domain_block(pre, d, [y] if y is not None else [], yr_d, nm, ld, common_bad))
+        return out
+
+    mode = "none" if not years else ("single" if len(years) == 1 else "multi")
+    result: dict = {"version": VERDICT_VERSION, "mode": mode, "years": years, "domains": doms}
+    if mode in ("none", "single"):
+        y = years[0] if years else None
+        dom_blocks = blocks_for(y)
+        ld = next((c["date"] for c in lc if y is not None and c["date"][:4] == str(y)), None)
+        blocks = ([overall_block(pre, years, yrs.get(y), nm, ld, dom_blocks)] if "overall" in doms or not dom_blocks else []) + dom_blocks
+        result["blocks"] = blocks
+        result["limits"] = limits_for(pre, years, blocks)
+    else:
+        period = period_block(pre, years, yrs, doms, nm, lc, primary)
+        result["period"] = period
+        detail = {}
+        for y in years:
+            ld = next((c["date"] for c in lc if c["date"][:4] == str(y)), None)
+            db = blocks_for(y)
+            ov = overall_block(pre, [y], yrs[y], nm, ld, db) if ("overall" in doms or not db) else None
+            detail[str(y)] = {"blocks": ([ov] if ov else []) + db}
+        result["detail"] = detail
+        result["blocks"] = []  # 다년에서는 기간 요약이 첫 결론이며 연도별 상세는 detail 에 있다
+        flat_blocks = [b for y in years for b in detail[str(y)]["blocks"]]
+        result["limits"] = limits_for(pre, years, flat_blocks, multi_flat=period["flat"])
+    # 근거를 쉬운 말로(요청 시 보여 주는 용도)
+    ev = {e["domain"]: {"positive": e["positive"], "negative": e["negative"]} for e in R.block_evidence(pre, ans["blocks"], nm)} if ans.get("blocks") else {}
+    result["reasons"] = ev
+    # 내부 근거(사용자 응답에서는 제외): 근거 번호·반대 근거·조건·검증 상태·규칙 버전
+    syn = ans.get("synthesis") or {}
+    result["internal"] = {"claim_ids": syn.get("claim_ids", []), "ruleset_version": pre["ruleset_version"], "verification_status": pre["verification"]["status"],
+                          "scores": {b["domain"]: b["scores"] for b in result.get("blocks", [])}, "tones": {b["domain"]: b["tone"] for b in result.get("blocks", [])},
+                          "counter_evidence": {b["domain"]: b["counter"] for b in result.get("blocks", [])},
+                          "conditions": ["어조는 구조 변화(돕는 흐름 S, 부딪히거나 나누는 흐름 T)의 크기로 정한 구현자 규약", "고전 원문 대조 전 규칙 포함"],
+                          "verdict_version": VERDICT_VERSION}
+    return result
+
+
+# ------------------------------------------------------------------ 사용자 응답(내부 근거 제외)
+INTERNAL_KEYS = ("internal",)
+
+
+def public_view(ans: dict) -> dict:
+    """사용자에게 내보내는 답변. 규칙 번호·근거 번호·구조 이름·원시 근거·검증기 내부 정보는 포함하지 않는다(엔진 내부와 저장본에는 그대로 있다)."""
+    if ans.get("refused"):
+        return {"refused": True, "message": ans.get("message"), "alternative": ans.get("alternative")}
+    v = {k: val for k, val in ans["verdict"].items() if k not in INTERNAL_KEYS}
+    return {"refused": False, "years": ans.get("years", []), "domains": ans.get("domains", []), "verdict": v, "qa": ans.get("qa")}
+
+
+def public_precommit(summary: dict) -> dict:
+    """사전 분석 기록 요약에서 사용자에게 필요한 것만: 네 기둥과 분석 범위. 계산 프로필·해시·규칙 버전·검증 세부는 제외."""
+    return {"pillars": summary.get("pillars"), "years": summary.get("years", []), "domains": summary.get("domains", [])}
+
+
+REALITY_PLAIN = {"consistent": "처음 해석에서 이 주제와 이어지는 흐름이 있다고 읽었던 기록과 부합합니다. 다만 흐름이 있다는 것과 실제 사건은 다르며, 적중으로 세지 않습니다.",
+                 "inconsistent": "처음 해석에서는 이 주제와 이어지는 흐름이 뚜렷하지 않다고 읽었습니다. 기록은 고치지 않고 해석 틀의 한계로 남깁니다.",
+                 "not_judged": "처음 해석에서 다루지 않은 주제나 기간이라 판단하지 않습니다.",
+                 "condition_changed": "입력 조건이 바뀌면 처음 해석을 고치지 않고 새로 분석해야 합니다."}
+
+
+def public_reality(res: dict) -> dict:
+    """현실 사건 분류 결과에서 구조 이름·근거를 걷어내고 쉬운 설명만 돌려준다."""
+    return {"outcome": res["outcome"], "explanation": REALITY_PLAIN.get(res["outcome"], "")}
+
+
+def public_turn(t: dict) -> dict:
+    b = t["body"]
+    if t["kind"] == "answer":
+        return {"n": t["n"], "created_at": t["created_at"], "kind": "answer", "body": {"question": b["question"], "answer": public_view(b["answer"])}}
+    return {"n": t["n"], "created_at": t["created_at"], "kind": "reality", "body": {"event": b["event"], "result": public_reality(b["result"])}}

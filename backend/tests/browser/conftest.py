@@ -187,3 +187,20 @@ OPEN_ADV = "(()=>{const a=document.getElementById('adv');if(a)a.open=true})()"
 def open_adv(page):
     """고급 옵션(시간 보정·해설의 깊이)은 기본으로 접혀 있다. 해당 입력을 다루는 테스트에서만 연다."""
     page.evaluate(OPEN_ADV)
+
+
+import re as _re
+
+JARGON_RE = _re.compile(r"\[?[A-Z]\d?-[A-Z0-9-]*\d{3}\]?|claim|지장간|십성|식상|재성|관성|인성|비겁|격국|용신|통근|득령|투간|생극제화|식상생재|재생관|관인상생|살인상생|상관견관|군겁쟁재|대운|세운|원국|천간|(?:^|[\s(·])지지|암장|궁위|월주|연주|일주|시주|[\u4e00-\u9fff]")
+
+
+def assert_verdict_layout(page):
+    """v8.1 결과 화면: 첫 결론이 먼저 보이고, 아코디언·기술 요소가 없으며, 사용자 문장에 전문 용어·규칙 번호·한자가 없다(내 사주 표는 접힌 영역으로 제외)."""
+    page.wait_for_selector("#verdict .verdict-a, #verdict .vperiod")
+    assert page.locator("#more").count() == 0 and page.locator("#keypoints").count() == 0 and page.locator("details.fold").count() == 0
+    assert page.locator("#status details").count() == 1 and page.evaluate("document.querySelector('#status details').open") is False
+    txt = page.evaluate("document.getElementById('verdict').textContent + document.getElementById('cover').textContent")
+    bad = JARGON_RE.findall(txt)
+    assert not bad, bad[:5]
+    first_h = page.evaluate("document.querySelector('#verdict h2').textContent")
+    assert first_h and "핵심 해석" not in first_h

@@ -264,12 +264,27 @@ def _oneshot_summary(pre: dict) -> dict:
     return {k: pre[k] for k in keys} | {'pillars': pre['natal_structure']['pillars']}
 
 
+def expose_internal() -> bool:
+    """개발·검증용: 내부 근거(규칙 번호·구조 이름·근거 목록)를 응답에 포함. 기본은 꺼짐(사용자 응답에는 결론형 데이터만)."""
+    return os.environ.get('EXPOSE_INTERNAL') == '1'
+
+
+def user_answer(ans: dict) -> dict:
+    from .consult import verdict as V
+    return ans if expose_internal() else V.public_view(ans)
+
+
+def user_precommit(pre: dict) -> dict:
+    from .consult import verdict as V
+    return _oneshot_summary(pre) if expose_internal() else V.public_precommit(_oneshot_summary(pre))
+
+
 @app.post('/api/v1/oneshot/analyze')
 def oneshot_analyze(b: OneshotBody):
-    """저장 없는 일회성 분석. 응답에 stored=false 를 명시한다."""
+    """저장 없는 일회성 분석. 응답에 stored=false 를 명시한다. 사용자 응답에는 결론형 데이터만 담는다."""
     pre = _oneshot_pre(b)
     ans = consult_agent.answer(pre, b.question or '종합 상담을 시작합니다', domains_=b.domains, years=b.years)
-    return {'stored': False, 'precommit': _oneshot_summary(pre), 'answer': ans}
+    return {'stored': False, 'precommit': user_precommit(pre), 'answer': user_answer(ans)}
 
 
 @app.post('/api/v1/oneshot/ask')
@@ -277,13 +292,17 @@ def oneshot_ask(b: OneshotBody):
     if not b.question.strip():
         raise HTTPException(status_code=422, detail='질문을 입력하세요')
     pre = _oneshot_pre(b)
-    return consult_agent.answer(pre, b.question, domains_=b.domains, years=b.years, depth=b.depth)
+    return user_answer(consult_agent.answer(pre, b.question, domains_=b.domains, years=b.years, depth=b.depth))
 
 
 @app.post('/api/v1/oneshot/reality')
 def oneshot_reality(b: OneshotReality):
     pre = _oneshot_pre(b)
-    return consult_agent.classify_event(pre, b.event.model_dump())
+    res = consult_agent.classify_event(pre, b.event.model_dump())
+    if expose_internal():
+        return res
+    from .consult import verdict as V
+    return V.public_reality(res)
 
 
 from .accounts.api import router as accounts_router  # noqa: E402
