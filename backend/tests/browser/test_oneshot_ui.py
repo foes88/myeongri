@@ -402,3 +402,48 @@ def test_user_screen_and_api_expose_no_internal_information(browser, one):
     leak = re.findall(r"L\d-[A-Z0-9-]+|claim\w*|natal_structure|synthesis|ruleset|content_hash|식상생재|지장간", raw)
     assert not leak, leak[:5]
     ctx.close()
+
+
+@pytest.mark.parametrize("size", ["360", "1440"])
+def test_v83_one_five_ten_year_views_and_year_comparison(browser, one, size):
+    ctx, p, reqs, console = open_page(browser, one, size)
+    fill(p)
+    p.fill("#y1", "2027")
+    for cb in p.query_selector_all("#doms input"):
+        want = cb.get_attribute("value") in ("overall", "wealth", "career")
+        if cb.is_checked() != want:
+            cb.set_checked(want)
+    # 1년
+    p.click("#submitb")
+    p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
+    assert_verdict_layout(p)
+    assert p.locator("#verdict .vblock").count() == 3 and p.locator("#verdict .vperiod").count() == 0
+    # 5년
+    p.click("#to5")
+    p.wait_for_selector("#verdict .vperiod", timeout=60000)
+    assert p.locator("#verdict .yearlines > li").count() == 5
+    assert_verdict_layout(p)
+    # 10년: 한 줄 요약 10개, 처음에는 연도 상세가 닫혀 있다
+    p.click("#to10")
+    p.wait_for_function("document.querySelectorAll('#verdict .yearlines > li').length===10", timeout=60000)
+    assert p.locator("#verdict .ydetail:visible").count() == 0
+    assert_verdict_layout(p)
+    first_line = p.locator("#verdict .yearlines > li").first.inner_text()
+    assert "상세" in first_line or "자세히" in first_line
+    # 연도 비교(추천 질문 칩): 두 해를 함께 답한다
+    chip = p.locator("#chips .chipq", has_text="중 어느 쪽이 더 나아")
+    assert chip.count() == 1
+    chip.click()
+    p.wait_for_selector("#out .record")
+    rec = p.locator("#out .record").last.inner_text()
+    assert "2027년" in rec and "2028년" in rec and ("우열이 아니라" in rec or "크지 않" in rec or "어렵" in rec)
+    assert not re.search(r"원국|대운|세운|(?:^|[\s(·])지지|천간|식상|재성|관성|인성|L\d-", rec)
+    # 연도 이유 질문: 추적된 이유로 답한다
+    p.fill("#q2", "2031년은 왜 달라지는 해야?")
+    p.click("#askb")
+    p.wait_for_function("document.querySelectorAll('#out .record').length>=2")
+    why = p.locator("#out .record").last.inner_text()
+    assert "2031년" in why and ("10월 2일" in why or "두드러지는 해로 뽑지 않았습니다" in why)
+    assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+    assert not [c for c in console if "PAGEERROR" in c]
+    ctx.close()

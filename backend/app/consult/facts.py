@@ -1,8 +1,20 @@
-"""시기 사실 계층: 구간(입춘·대운 교체로 나뉜 기간)별 구조 변화·관계를 '기간(일수)'으로 가중해 해(年) 단위 사실로 모은다.
+"""시기 사실 계층: 구간(입춘·대운 교체로 나뉜 기간)별 구조 변화·관계를 해(年) 단위 사실로 모은다.
 
-왜 필요한가: 양력 한 해에는 입춘 전(1월 1일~입춘 전날)처럼 전해의 세운이 적용되는 짧은 구간이 섞여 있다. 그 구간에서만 생기는 변화를
-'그해 전체의 변화'로 말하면 틀린다. 구간이 한 해의 절반 이상을 덮을 때만 '그해의 흐름'으로 세고, 그보다 짧으면 '일부 기간'으로 따로 말한다.
-이 규칙(절반 기준)은 구현자 규약이다.
+한 해의 변화를 '대표 해석'과 '일부 기간의 변화'로 나누는 기준(구현자 규약. 고전 원문 근거 없음. 자동 지표에 맞추려고 정한 값이 아니라 아래 논리로 정했다):
+
+1) 지속 일수(frac): 한 구조의 변화가 이어지는 일수 ÷ 그해 일수.
+2) 원인 글자(drivers): 변화를 만든 운 글자가 10년 큰 흐름(대운)뿐인지, 그해(세운)가 끼어 있는지(구간 증거의 '대운…/세운…' 항목으로 판별).
+   세운이 끼면 그 변화는 그 세운이 적용되는 기간(입춘~다음 입춘)에만 존재하므로 구간 길이가 곧 변화의 수명이다.
+   대운만으로 생긴 변화는 해가 끝나도 새 대운이 이어지는 동안 계속된다(수명이 해를 넘는다).
+3) 구간 위치와 종류: 입춘 전 구간(1월 1일~입춘 전날)은 전해 세운이 적용되는 기간이다. '신규 출현'과 '강화'는 구분해 말한다.
+4) 대운 교체 여부: 해 안에서 대운이 바뀌면 교체일 앞뒤를 따로 읽는다.
+5) 불확실성: 대운 교체일은 '3일=1년' 환산이라 며칠~몇 주 달라질 수 있다. 변화 구간의 경계가 교체일이면 그 사실을 밝힌다.
+
+분류(구조별):
+- year(대표): 지속 일수가 그해의 절반 이상. 그해를 대표하는 변화로 말한다.
+- persistent(이어지는 변화): 절반 미만이지만 원인이 대운뿐이고 해 끝까지 이어진다. 해의 대표 변화는 아니지만 '이후 해에도 이어질 변화의 시작'으로 따로 말한다.
+- partial(일부 기간): 그 밖의 짧은 변화. 해당 기간에 한정해 말하고 해 전체의 흐름으로 세지 않는다.
+절반(0.5) 기준은 '과반이면 그해를 대표한다'는 뜻이며, 원인·수명을 함께 보므로 임계값 하나가 판정을 정하지 않는다.
 """
 from __future__ import annotations
 
@@ -19,10 +31,34 @@ def _days(seg: dict) -> int:
     return (date.fromisoformat(seg["to"]) - date.fromisoformat(seg["from"])).days + 1
 
 
+def _drivers(seg: dict, name: str) -> set[str]:
+    """이 구간에서 구조 증거에 들어온 운 글자의 출처. 증거 항목은 '대운간 甲(…)', '→ 세운지 지장간 …' 형태."""
+    out = set()
+    for e in seg.get("struct_evidence", {}).get(name, []):
+        e = e.lstrip("→ ").strip()
+        if e.startswith("대운"):
+            out.add("luck")
+        elif e.startswith("세운"):
+            out.add("sewun")
+    return out
+
+
+def classify_change(rec: dict, year: int, total_days: int) -> str:
+    """구조 하나의 변화 기록(rec: days, ranges, drivers, ends_year_end)을 year / persistent / partial 로 분류."""
+    frac = rec["days"] / total_days
+    if frac >= MAJOR_FRAC:
+        return "year"
+    if rec["drivers"] == {"luck"} and rec["ends_year_end"]:
+        return "persistent"
+    return "partial"
+
+
 def year_reading(period: dict, rel: list[str]) -> dict:
     segs = period["segments"]
+    year = period["year"]
     days = [_days(s) for s in segs]
     total = sum(days)
+    luck_edges = {s["from"] for i, s in enumerate(segs) if i > 0 and s["luck"] != segs[i - 1]["luck"]}  # 대운이 바뀐 날(구간 시작일)
     ups: dict[str, dict] = {}
     downs: dict[str, dict] = {}
     for s, d in zip(segs, days):
@@ -32,20 +68,29 @@ def year_reading(period: dict, rel: list[str]) -> dict:
             tgt = ups if x["change"] in UP else (downs if x["change"] in DOWN else None)
             if tgt is None:
                 continue
-            r = tgt.setdefault(x["structure"], {"days": 0, "ranges": [], "claim_ids": [], "change": x["change"]})
+            r = tgt.setdefault(x["structure"], {"days": 0, "ranges": [], "claim_ids": [], "change": x["change"], "kinds": set(), "drivers": set(), "ends_year_end": False, "luck_edge": False})
             r["days"] += d
             r["ranges"].append((s["from"], s["to"]))
             r["claim_ids"].append(x["claim_id"])
-    for r in list(ups.values()) + list(downs.values()):
+            r["kinds"].add(x["change"])
+            r["drivers"] |= _drivers(s, x["structure"])
+            r["ends_year_end"] = r["ends_year_end"] or s["to"] == f"{year}-12-31"
+            r["luck_edge"] = r["luck_edge"] or s["from"] in luck_edges
+    for r in ups.values():
         r["frac"] = r["days"] / total
+        r["category"] = classify_change(r, year, total)
+    for r in downs.values():
+        r["frac"] = r["days"] / total
+        r["category"] = classify_change(r, year, total)
     bad: dict[str, int] = {}
     for s, d in zip(segs, days):
         for t in {r["type"] for r in s["relations"] if r["who"] == "year" and r["type"] in BAD_REL}:
             bad[t] = bad.get(t, 0) + d
     lucks = [s["luck"] for s in segs]
-    return {"year": period["year"], "total_days": total, "split": len(segs) > 1, "luck_split": len(set(lucks)) > 1,
-            "ups": [n for n, r in ups.items() if r["frac"] >= MAJOR_FRAC], "ups_partial": [n for n, r in ups.items() if r["frac"] < MAJOR_FRAC], "ups_detail": ups,
-            "downs": [n for n, r in downs.items() if r["frac"] >= MAJOR_FRAC], "downs_detail": downs,
+    cat = lambda dct, c: [n for n, r in dct.items() if r["category"] == c]
+    return {"year": year, "total_days": total, "split": len(segs) > 1, "luck_split": len(set(lucks)) > 1, "luck_edges": sorted(luck_edges),
+            "ups": cat(ups, "year"), "ups_persistent": cat(ups, "persistent"), "ups_partial": cat(ups, "partial"), "ups_detail": ups,
+            "downs": cat(downs, "year"), "downs_detail": downs,
             "bad": sorted(t for t, d in bad.items() if d / total >= MAJOR_FRAC), "bad_partial": sorted(t for t, d in bad.items() if d / total < MAJOR_FRAC),
             "_segments": segs, "claim_ids": sorted({c for r in list(ups.values()) + list(downs.values()) for c in r["claim_ids"]})}
 

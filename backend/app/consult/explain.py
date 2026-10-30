@@ -52,9 +52,9 @@ def natal_reason(s: dict, theme: str) -> str | None:
     return f"{link}, {theme}이 {TIER_TXT[s['rank']]} 있다고 읽습니다." + tail
 
 
-def period_reason(period: dict, name: str, theme: str, detail: dict) -> str | None:
+def period_reason(period: dict | None, name: str, theme: str, detail: dict, segments: list | None = None) -> str | None:
     """그해(또는 일부 기간)에 이 흐름이 달라지는 이유: 어떤 운 글자가 들어왔는지(10년 큰 흐름/그해)."""
-    segs = period["segments"]
+    segs = segments if segments is not None else period["segments"]
     rng = detail["ranges"]
     seg = next((s for s in segs if (s["from"], s["to"]) == rng[0]), None)
     if not seg:
@@ -106,7 +106,9 @@ def trace_year(pre: dict, ans: dict, year: int, domains: list[str] | None = None
                                  "rule_id": s["claim_nodes"].get(d["claim_id"], {}).get("rule_id"),
                                  "added_by": [e for e in s.get("struct_evidence", {}).get(d["structure"], []) if e.lstrip("→ ").startswith(("대운", "세운"))]} for d in s["delta"] if d["structure"] in rel]})
     return {"year": year, "total_days": fr["total_days"], "segments": segs,
-            "weighted": {"ups_major(해 전체의 변화로 셈)": fr["ups"], "ups_partial(일부 기간만)": {n: {"days": r["days"], "frac": round(r["frac"], 2), "ranges": r["ranges"]} for n, r in fr["ups_detail"].items() if n in fr["ups_partial"]},
+            "weighted": {"ups_major(해 전체의 변화로 셈)": fr["ups"], "ups_persistent(이어지는 변화)": fr["ups_persistent"],
+                         "ups_partial(일부 기간만)": {n: {"days": r["days"], "frac": round(r["frac"], 2), "ranges": r["ranges"]} for n, r in fr["ups_detail"].items() if n in fr["ups_partial"]},
+                         "classification": {n: {"category": r["category"], "frac": round(r["frac"], 2), "drivers": sorted(r["drivers"]), "ends_year_end": r["ends_year_end"], "luck_edge": r["luck_edge"], "kinds": sorted(r["kinds"])} for n, r in fr["ups_detail"].items()},
                          "downs": fr["downs"], "bad_relations_major": fr["bad"], "bad_partial": fr["bad_partial"], "luck_split": fr["luck_split"]},
             "natal_ranks": {n: nm[n]["rank"] for n in rel if n in nm}, "rule_status": {r: RULES[r]["classical_status"] for r in {RULES_OF[n] for n in rel if n in RULES_OF}}}
 

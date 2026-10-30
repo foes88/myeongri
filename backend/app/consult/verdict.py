@@ -201,7 +201,7 @@ NAT_NONE = ["타고난 사주에는 이 분야와 곧바로 이어지는 뚜렷�
 P_SUP = ["{w}에는 {t}이 타고난 모습보다 더 뚜렷해집니다.", "{w} 동안 {t}이 한층 살아나는 쪽으로 움직입니다."]
 P_FLAT = ["{w}에는 이 분야의 흐름이 타고난 모습에서 크게 달라지지 않습니다.", "{w}은 이 분야에서 눈에 띄게 달라지는 점이 없는 해입니다."]
 CONTRAST = ["타고난 사주에는 {t}도 함께 있어, 좋은 면만 보고 판단하지는 않습니다.", "한편 이 사주에는 {t}도 자리하고 있어 균형을 함께 봅니다.", "다만 {t}도 타고난 부분이라 같이 살펴야 합니다."]
-SKELETON = {"wealth": ["period", "natal", "relation", "contrast", "where", "counter", "timing"], "career": ["natal", "relation", "period", "contrast", "timing", "counter"],
+SKELETON = {"wealth": ["period", "emphasis", "relation", "natal", "contrast", "counter", "timing"], "career": ["emphasis", "relation", "period", "natal", "contrast", "timing", "counter"],
             "business": ["period", "contrast", "natal", "relation", "timing"], "job_change": ["relation", "period", "natal", "contrast", "timing"],
             "docs_realestate": ["relation", "natal", "period", "contrast", "timing"], "real_estate": ["natal", "period", "relation", "contrast", "timing"]}
 IMPL_BAD = {"wealth": "수입·지출 구조나 재정 환경이 바뀌는 일을 점검해 볼 만합니다", "career": "직장 환경이나 맡은 역할이 바뀌는 일에 민감할 수 있습니다",
@@ -246,11 +246,13 @@ def _first_sentence(t: str) -> str:
     return t if i < 0 else t[:i + 1]
 
 
-def _headline(dom: str, tone: str, w: str, t: dict, flat: bool, base_tpl: str | None) -> str:
+def _headline(dom: str, tone: str, w: str, t: dict, flat: bool, base_tpl: str | None, weak: bool = False) -> str:
     """결론(A): 어조 문장(분야별 틀) + 이 사주의 실제 구조 내용을 담은 한 문장. 같은 어조라도 구조가 다르면 결론이 달라진다."""
     tpl = base_tpl or HEAD["wealth"]["thin"]
     head = tpl.format(w=w)
     th = lambda names: _join([_theme(dom, n) for n in names], 2)
+    if weak:
+        return f"{_first_sentence(head)} 다만 이 분야를 뒷받침하는 구조가 겉으로 드러나지 않고 속에 숨은 정도로만 있어, 뚜렷한 결론은 내리지 않았습니다."
     nat_sup = sorted(t.get("natal_support", []), key=lambda n: -t["present"][n]) if t.get("present") else []
     nat_ten = sorted(t.get("natal_tension", []), key=lambda n: -t["present"][n]) if t.get("present") else []
     if flat and nat_sup and nat_ten:
@@ -269,12 +271,6 @@ def _structs(pre: dict) -> dict:
     return {s["name"]: s for s in pre["natal_structure"]["layer3"]["structures"]}
 
 
-def _where_sentence(s: dict) -> str | None:
-    ev = E._parse(s.get("supporting", []))
-    areas = list(dict.fromkeys(p["area"] for p in ev if p["area"]))
-    return f"이 흐름은 주로 {' · '.join(areas[:2])}에서 나타납니다." if areas else None
-
-
 def _rule_ids(names: list[str]) -> list[str]:
     return [S.RULE_OF[n] for n in names if n in S.RULE_OF]
 
@@ -290,14 +286,17 @@ def tone_for(pre: dict, dom: str, yr: dict | None, nm: dict, common_bad: list[st
     ten_n = [n for n in present if S.STRUCT[n]["polarity"] == "tension"]
     ups = [n for n in (yr or {}).get("ups", []) if n in rel]
     part = [n for n in (yr or {}).get("ups_partial", []) if n in rel]
+    pers = [n for n in (yr or {}).get("ups_persistent", []) if n in rel]
     sup_up = [n for n in ups if S.STRUCT[n]["polarity"] == "support"]
     ten_up = [n for n in ups if S.STRUCT[n]["polarity"] == "tension"]
     sup_part = [n for n in part if S.STRUCT[n]["polarity"] == "support"]
     ten_part = [n for n in part if S.STRUCT[n]["polarity"] == "tension"]
+    sup_pers = [n for n in pers if S.STRUCT[n]["polarity"] == "support"]
+    ten_pers = [n for n in pers if S.STRUCT[n]["polarity"] == "tension"]
     bad = (yr or {}).get("bad", [])  # 같은 해는 어느 범위로 보든 같은 결론이어야 하므로 선택 범위와 무관한 절대 기준만 쓴다
-    s_score = 2 * len(sup_up) + len(sup_part) + (1 if any(present[n] >= 3 for n in sup_n) or sum(present[n] for n in sup_n) >= 4 else 0)
-    t_score = 2 * len(ten_up) + len(ten_part) + (1 if any(present[n] >= 2 for n in ten_n) else 0) + (1 if len(bad) >= 3 else 0)
-    if not present and not ups and not part:
+    s_score = 2 * len(sup_up) + len(sup_part) + len(sup_pers) + (1 if any(present[n] >= 3 for n in sup_n) or sum(present[n] for n in sup_n) >= 4 else 0)
+    t_score = 2 * len(ten_up) + len(ten_part) + len(ten_pers) + (1 if any(present[n] >= 2 for n in ten_n) else 0) + (1 if len(bad) >= 3 else 0)
+    if not present and not ups and not part and not pers:
         tone = "thin"
     elif s_score == 0 and t_score == 0:
         tone = "quiet"
@@ -307,7 +306,7 @@ def tone_for(pre: dict, dom: str, yr: dict | None, nm: dict, common_bad: list[st
         tone = "cautious"
     else:
         tone = "mixed"
-    return {"tone": tone, "S": s_score, "T": t_score, "natal_support": sup_n, "natal_tension": ten_n, "sup_up": sup_up, "ten_up": ten_up, "sup_part": sup_part, "ten_part": ten_part,
+    return {"tone": tone, "S": s_score, "T": t_score, "natal_support": sup_n, "natal_tension": ten_n, "sup_up": sup_up, "ten_up": ten_up, "sup_part": sup_part, "ten_part": ten_part, "sup_pers": sup_pers, "ten_pers": ten_pers,
             "present": present, "bad": bad}
 
 
@@ -340,6 +339,88 @@ def _tone_palace(pre: dict, dom: str, yr: dict | None) -> dict:
 
 
 # ------------------------------------------------------------------ 분야별 한 덩어리
+def _where_sentence(s: dict, theme: str | None = None) -> str | None:
+    ev = E._parse(s.get("supporting", []))
+    areas = list(dict.fromkeys(p["area"] for p in ev if p["area"]))
+    if not areas:
+        return None
+    return f"{theme}은 주로 {' · '.join(areas[:2])}에서 나타납니다." if theme else f"이 흐름은 주로 {' · '.join(areas[:2])}에서 나타납니다."
+
+
+EMPHASIS_CAREER = {"재생관": ("쌓은 실적이 직책·평가로 이어지는 쪽", "성과가 눈에 보이는 일에서 평가받기 쉬운 구조로 읽습니다."),
+                   "관인상생": ("조직 안에서 신뢰와 도움을 얻는 쪽", "윗사람·조직의 신뢰와 자격·문서 같은 후원이 자리를 지켜 주는 구조로 읽습니다."),
+                   "살인상생": ("압박을 준비와 조력으로 풀어 가는 쪽", "압박이 큰 환경에서 준비와 도움으로 버티며 인정받는 구조로 읽습니다.")}
+
+
+def _emphasis(dom: str, present: dict) -> str | None:
+    """이 분야에서 이 사주의 근거가 어느 쪽에 무게가 실려 있는지(구조 간 강약 차이). 분야마다 비교하는 갈래가 다르다."""
+    if dom == "wealth":
+        a, b = present.get("식상생재", 0), present.get("재생관", 0)
+        if a and b and a > b:
+            return "재물은 ‘직접 버는 힘’(능력이 수입으로 이어지는 쪽)에 무게가 실리고, 안정된 자리에서 나오는 수입은 상대적으로 약하게 읽힙니다."
+        if a and b and b > a:
+            return "재물은 ‘안정된 자리에서 나오는 수입’(기반이 직책·평가로 이어지는 쪽)에 무게가 실리고, 직접 버는 힘은 상대적으로 약하게 읽힙니다."
+        if a and b:
+            return "재물은 ‘직접 버는 힘’과 ‘안정된 자리에서 나오는 수입’이 비슷한 비중으로 읽힙니다."
+        if a or b:
+            return "재물 흐름은 " + ("‘직접 버는 힘’" if a else "‘안정된 자리에서 나오는 수입’") + " 한 갈래에 기대는 구조로 읽힙니다."
+    if dom == "career":
+        cand = {n: present[n] for n in EMPHASIS_CAREER if present.get(n)}
+        if cand:
+            top = max(cand.values())
+            lead = [n for n, v in cand.items() if v == top]
+            if len(lead) == 1:
+                th, imp = EMPHASIS_CAREER[lead[0]]
+                return f"직업에서는 ‘{th}’에 무게가 실립니다. {imp}"
+            return "직업에서는 " + " 그리고 ".join(f"‘{EMPHASIS_CAREER[n][0]}’" for n in lead[:2]) + "이 비슷한 비중으로 자리합니다."
+    if dom == "business":
+        a, b = present.get("식상생재", 0), present.get("군겁쟁재", 0)
+        if a and b:
+            return "사업은 ‘아이디어·기술이 수익으로 이어지는 힘’과 ‘동업·경쟁에서 이익을 나누는 부담’이 함께 읽혀, 수익 구조와 배분 조건을 같이 보게 됩니다."
+    return None
+
+
+def _change_sentences(dom: str, w: str, yr: dict, t: dict, years: list[int], key: str, covered: set[str]) -> tuple[str, list[str]]:
+    """그해의 구조 변화를 대표 변화(year) / 이어지는 변화(persistent) / 일부 기간(partial)으로 나누어 서술한다. 결론이 이미 말한 변화는 원인 글자(새 정보)로 설명한다."""
+    parts: list[str] = []
+    reasons: list[str] = []
+    det = yr["ups_detail"]
+    th = lambda names: _join([_theme(dom, n) for n in names])
+    if t["sup_up"] and t["ten_up"]:
+        parts.append(f"{w}에는 {th(t['sup_up'])}이 더 뚜렷해지지만, 동시에 {th(t['ten_up'])}도 커집니다.")
+    elif t["sup_up"]:
+        parts.append(_pick(P_SUP, key + "p").format(w=w, t=th(t["sup_up"])))
+    elif t["ten_up"]:
+        parts.append(("한편 " if t["natal_support"] else "") + f"{w}에는 {th(t['ten_up'])}이 타고난 모습보다 커집니다.")
+    pers = [n for n in yr["ups_persistent"] if n in t.get("sup_pers", []) + t.get("ten_pers", [])]
+    if pers:
+        start = det[pers[0]]["ranges"][0][0]
+        note = " (교체일은 3일=1년 환산이라 며칠~몇 주 달라질 수 있습니다)" if det[pers[0]]["luck_edge"] else ""
+        parts.append(f"{_date_plain(start)}부터는 {th(pers)}이 더 뚜렷해지는데, 이는 10년 큰 흐름이 바뀐 영향이라 다음 해에도 이어질 수 있습니다{note}.")
+    part_names = t["sup_part"] + t["ten_part"]
+    if part_names:
+        d0 = det[part_names[0]]
+        pre = d0["ranges"][0][0].endswith("-01-01") and d0["ranges"][0][1] < f"{years[0]}-02-10"
+        year_wide = bool(t["sup_up"] or t["ten_up"])  # 해 전체의 변화가 따로 있으면 '크게 달라지지 않는다'고 말하지 않는다
+        if year_wide:
+            why_short = " 입춘 전이라 전해의 기운이 적용되는 기간입니다." if pre else ""
+        else:
+            why_short = " 입춘 전이라 전해의 기운이 적용되는 기간이며, 해 전체의 흐름은 크게 달라지지 않습니다." if pre else " 해 전체의 흐름은 크게 달라지지 않습니다."
+        kind = "새로 나타납니다" if "신규 출현" in d0["kinds"] else "잠시 더해집니다"
+        parts.append(f"{_rng(d0['ranges'])} 동안에는 {th(part_names)}이 {kind}.{why_short}")
+    if not parts:
+        parts.append(_pick(P_FLAT, key + "p").format(w=w))
+    # 결론이 이미 말한 변화는 풀이에서 '무엇이 들어와 만들었는지'(새 정보)로 설명한다
+    for n in yr["ups"] + yr["ups_persistent"] + yr["ups_partial"]:
+        r = E.period_reason(None, n, _theme(dom, n), det[n], yr["_segments"])
+        if r:
+            reasons.append(r)
+    sent = " ".join(parts)
+    if covered & set(yr["ups"]) and reasons:
+        sent = reasons[0] if not (yr["ups_persistent"] or yr["ups_partial"]) else sent
+    return sent, reasons
+
+
 def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm: dict, luck_date: str | None, salt: int = 0, show_timing: bool = True) -> dict:
     w = when_phrase(years)
     spec = D.DOMAINS[dom]
@@ -352,47 +433,56 @@ def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm:
     think_tone = tone
     key = f"{pre['natal_structure']['pillars']}|{dom}|{years}|{salt}"
     flat = False
-    if tone == "mixed" and yr is not None and spec.get("kind") != "palace" and not t["sup_up"] and not t["ten_up"] and dom in MIXED_FLAT:  # 해 전체의 변화가 없으면(일부 기간만 있어도) 결론에서 '커집니다'라고 말하지 않는다
+    if tone == "mixed" and yr is not None and spec.get("kind") != "palace" and not t["sup_up"] and not t["ten_up"] and dom in MIXED_FLAT:  # 해 전체의 변화가 없으면(일부 기간·이어지는 변화만 있어도) 결론에서 '커집니다'라고 말하지 않는다
         flat = True
-        tone, think_tone, head_tpl = "quiet", "mixed", MIXED_FLAT[dom]  # 그해 구조 변화가 없으면 '커진다'고 말하지 않는다
+        tone, think_tone, head_tpl = "quiet", "mixed", MIXED_FLAT[dom]
     if spec.get("kind") == "palace":
         return _palace_block(pre, dom, w, name, period, yr, t, tone, head_tpl, luck_date if show_timing else None)
     layer3 = _structs(pre)
     nat_sup = sorted(t["natal_support"], key=lambda n: -t["present"][n])
     nat_ten = sorted(t["natal_tension"], key=lambda n: -t["present"][n])
+    changed = bool(yr and (yr["ups"] or yr["ups_persistent"] or yr["ups_partial"]))
+    weak = bool(t["present"]) and max(t["present"].values()) <= 1 and not changed
+    # 결론(A)이 이미 말하는 구조 → 풀이(B)는 같은 말을 되풀이하지 않고 새 정보(나타나는 삶의 영역, 변화를 만든 글자)를 준다
+    covered: set[str] = set()
+    if flat and nat_sup and nat_ten:
+        covered = {nat_sup[0], nat_ten[0]}
+    elif tone == "opportunity" and t["sup_up"]:
+        covered = set(t["sup_up"])
+    elif tone == "mixed" and t["sup_up"] and t["ten_up"]:
+        covered = set(t["sup_up"]) | set(t["ten_up"])
+    elif tone == "cautious" and (t["ten_up"] or nat_ten):
+        covered = {(t["ten_up"] or nat_ten)[0]}
     slots: dict[str, str] = {}
     why = {"natal": [], "period": [], "against": [], "nature": ""}
     if nat_sup:
         n = nat_sup[0]
-        slots["natal"] = _pick(NAT[t["present"][n]], key + "n").format(t=_theme(dom, n))
-        wsent = _where_sentence(layer3[n])
-        if wsent:
-            slots["where"] = wsent
+        wh = _where_sentence(layer3[n], _theme(dom, n))
+        if n in covered:
+            if wh:
+                slots["where"] = wh                      # 결론이 강약을 말했으므로 풀이는 '어디에서 나타나는지'를 말한다(시기 사실보다 뒤)
+        else:
+            slots["natal"] = _pick(NAT[t["present"][n]], key + "n").format(t=_theme(dom, n))
+            if wh:
+                slots["where"] = wh
+    elif t["present"] == {} and not changed:
+        slots["natal"] = "이 사주에는 이 분야와 곧바로 이어지는 짜임이 보이지 않고, 이 시기의 운에서도 새로 생기는 변화가 없어 말씀드릴 근거가 부족합니다."
     else:
         slots["natal"] = _pick(NAT_NONE, key + "n")
+    if weak:
+        slots["natal"] = "이 분야와 이어지는 짜임은 있지만 겉으로 드러나지 않고 속에 숨어 있어 힘이 약합니다. 그래서 뚜렷한 결론은 내리지 않았습니다."
     for n in (nat_sup[:2] + nat_ten[:1]):
         r = E.natal_reason(layer3[n], _theme(dom, n))
         if r:
             why["natal"].append(r)
+    emph = _emphasis(dom, t["present"])
+    if emph:
+        slots["emphasis"] = emph
+        why["natal"].append(emph)
     if yr is not None:
-        if t["sup_up"] and t["ten_up"]:
-            slots["period"] = f"{w}에는 {_join([_theme(dom, n) for n in t['sup_up']])}이 더 뚜렷해지지만, 동시에 {_join([_theme(dom, n) for n in t['ten_up']])}도 커집니다."
-        elif t["sup_up"]:
-            slots["period"] = _pick(P_SUP, key + "p").format(w=w, t=_join([_theme(dom, n) for n in t["sup_up"]]))
-        elif t["ten_up"]:
-            slots["period"] = ("한편 " if nat_sup else "") + f"{w}에는 {_join([_theme(dom, n) for n in t['ten_up']])}이 타고난 모습보다 커집니다."
-        elif t["sup_part"] or t["ten_part"]:
-            names = t["sup_part"] + t["ten_part"]
-            det = yr["ups_detail"][names[0]]
-            note = " 입춘 전이라 전해의 기운이 적용되는 기간이며, 해 전체의 흐름은 크게 달라지지 않습니다." if det["ranges"][0][0].endswith("-01-01") and det["ranges"][0][1] < f"{years[0]}-02-10" else " 해 전체의 흐름은 크게 달라지지 않습니다."
-            slots["period"] = f"{_rng(det['ranges'])} 동안에는 {_join([_theme(dom, n) for n in names])}이 잠시 더해집니다.{note}"
-        else:
-            slots["period"] = _pick(P_FLAT, key + "p").format(w=w)
-        for n in yr["ups"] + yr["ups_partial"]:
-            r = E.period_reason(period, n, _theme(dom, n), yr["ups_detail"][n])
-            if r:
-                why["period"].append(r)
-        if not (yr["ups"] or yr["ups_partial"]):
+        slots["period"], reasons = _change_sentences(dom, w, yr, t, years, key, covered)
+        why["period"] += reasons
+        if not (yr["ups"] or yr["ups_persistent"] or yr["ups_partial"]):
             why["period"].append(f"{w}에는 이 분야의 흐름을 바꾸는 운의 글자가 새로 들어오지 않아, 타고난 모습 그대로 이어지는 것으로 읽습니다.")
         palaces = PAL_DOM.get(dom, ())
         prels = FA.palace_relations(period, palaces) if palaces else []
@@ -401,10 +491,15 @@ def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm:
             flat_year = tone == "quiet" and not (t["sup_up"] or t["ten_up"])
             slots["relation"] = ("구조 변화와는 별개로, " + rs) if flat_year else rs
             why["period"].append(rs)
-    contrast_t = (t["ten_up"] or nat_ten)[:1]
     if t["T"] > 0 and not t["ten_up"]:
         if nat_ten:
-            slots["contrast"] = _pick(CONTRAST, key + "c").format(t=_theme(dom, nat_ten[0]))
+            n = nat_ten[0]
+            if n in covered:
+                wh = _where_sentence(layer3[n], _theme(dom, n))
+                if wh:
+                    slots["where2"] = wh
+            else:
+                slots["contrast"] = _pick(CONTRAST, key + "c").format(t=_theme(dom, n))
         elif len(t["bad"]) >= 3:
             slots["contrast"] = "또한 타고난 사주와 부딪히거나 흐트러지는 관계가 여러 개 들어와, 흐름이 매끄럽게만 이어지지는 않을 수 있습니다."
     counter = []
@@ -416,11 +511,16 @@ def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm:
     if counter:
         slots["counter"] = counter[0]
     why["against"] = [c.rstrip(".") + "." for c in counter] or ["이 흐름에 대해 눈에 띄는 반대 견해는 확인되지 않았습니다."]
-    if luck_date and yr is not None and yr["luck_split"] and show_timing:  # 교체 시점은 종합운과 첫 분야에서만 말한다(분야마다 같은 문장을 되풀이하지 않는다)
-        slots["timing"] = f"{_date_plain(luck_date)} 무렵 10년 단위로 바뀌는 큰 흐름이 바뀌므로, 그 전과 후를 나누어 보는 편이 좋습니다."
-    why["nature"] = E.nature_note(_rule_ids(nat_sup + nat_ten + t["sup_up"] + t["ten_up"] + t["sup_part"] + t["ten_part"]))
-    story = _compose(dom, slots, must=["period", "contrast", "timing"], skeleton=SKELETON.get(dom, ["period", "natal", "contrast", "counter", "timing"]))
-    headline = _headline(dom, tone, w, t, flat, head_tpl)
+    if luck_date and yr is not None and yr["luck_split"] and show_timing:  # 교체 시점은 종합운과 첫 분야에서만 말한다
+        slots["timing"] = f"{_date_plain(luck_date)} 무렵 10년 단위로 바뀌는 큰 흐름이 바뀌므로, 그 전과 후를 나누어 보는 편이 좋습니다. 교체일은 3일=1년 환산이라 며칠~몇 주 달라질 수 있습니다."
+    why["nature"] = E.nature_note(_rule_ids(nat_sup + nat_ten + t["sup_up"] + t["ten_up"] + t["sup_part"] + t["ten_part"] + t["sup_pers"] + t["ten_pers"]))
+    skeleton = list(SKELETON.get(dom, ["period", "natal", "contrast", "counter", "timing"]))
+    if "emphasis" not in skeleton:
+        skeleton = skeleton[:2] + ["emphasis"] + skeleton[2:]
+    skeleton += [k for k in ("where", "where2") if k not in skeleton]
+    explain_missing = weak or (t["present"] == {} and not changed)  # 근거가 약하거나 없으면 '왜 결론을 내리지 않는지'를 반드시 말한다
+    story = _compose(dom, slots, must=["period", "contrast", "timing"] + (["natal"] if explain_missing else []), skeleton=skeleton)
+    headline = _headline(dom, tone, w, t, flat, head_tpl, weak)
     think = list(THINK.get(dom, {}).get(think_tone, THINK["overall"]["thin"]))[:2]
     claim_ids = [layer3[n]["claim_id"] for n in nat_sup + nat_ten] + (yr["claim_ids"] if yr else [])
     return {"domain": dom, "name": name, "tone": tone, "tone_label": TONE_SHORT[tone], "headline": headline, "story": story, "think": think, "counter": counter, "why": why,
@@ -498,11 +598,29 @@ def overall_block(pre: dict, years: list[int], period: dict | None, nm: dict, lu
     key = f"{pre['natal_structure']['pillars']}|overall|{years}|{salt}"
     nat_sup = sorted(t["natal_support"], key=lambda n: -t["present"][n])
     nat_ten = sorted(t["natal_tension"], key=lambda n: -t["present"][n])
+    # 결론이 말하는 것: 구조 강약(flat) 또는 그해 변화. 풀이는 같은 말을 반복하지 않는다.
+    head = (OVERALL_FLAT_MIXED if flat_mixed else OVERALL_HEAD[tone]).format(w=w)
+    covered: set[str] = set()
+    if flat_mixed and nat_sup and nat_ten:
+        head = (f"{_first_sentence(head)} 타고난 대로 {_theme('overall', nat_sup[0])}은 {TIER_WORD[t['present'][nat_sup[0]]]}, "
+                f"{_theme('overall', nat_ten[0])}은 {TIER_WORD[t['present'][nat_ten[0]]]} 자리하고 있습니다.")
+        covered = {nat_sup[0], nat_ten[0]}
+    elif tone == "opportunity" and t["sup_up"]:
+        head = f"{_first_sentence(head)} 특히 {_join([_theme('overall', n) for n in t['sup_up']], 2)}이 눈에 띕니다."
+        covered = set(t["sup_up"])
+    elif tone == "mixed" and t["sup_up"] and t["ten_up"]:
+        head = f"{_first_sentence(head)} {_join([_theme('overall', n) for n in t['sup_up']], 2)} 쪽은 힘을 받고, {_join([_theme('overall', n) for n in t['ten_up']], 2)} 쪽은 점검이 필요합니다."
+        covered = set(t["sup_up"]) | set(t["ten_up"])
     slots: dict[str, str] = {}
     why = {"natal": [], "period": [], "against": [], "nature": ""}
     if nat_sup:
         n = nat_sup[0]
-        slots["natal"] = _pick(["타고난 사주는 {t}이 중심에 놓인 구조입니다.", "이 사주의 중심 줄기는 {t}입니다.", "{t}이 이 사주를 이끄는 가장 큰 특징으로 보입니다."], key + "n").format(t=_theme("overall", n))
+        wh = _where_sentence(layer3[n], _theme("overall", n))
+        if n in covered:
+            if wh:
+                slots["where"] = wh
+        else:
+            slots["natal"] = _pick(["타고난 사주는 {t}이 중심에 놓인 구조입니다.", "이 사주의 중심 줄기는 {t}입니다.", "{t}이 이 사주를 이끄는 가장 큰 특징으로 보입니다."], key + "n").format(t=_theme("overall", n))
     elif nat_ten:
         slots["natal"] = f"타고난 사주에서는 돕는 흐름보다 {_theme('overall', nat_ten[0])}이 먼저 보여, 조건을 가려 가며 읽어야 하는 구조입니다."
     else:
@@ -512,33 +630,31 @@ def overall_block(pre: dict, years: list[int], period: dict | None, nm: dict, lu
         if r:
             why["natal"].append(r)
     if yr is not None:
-        if t["sup_up"]:
-            slots["period"] = f"{w}에는 {_join([_theme('overall', n) for n in t['sup_up']], 3)}이 타고난 모습보다 더 뚜렷해집니다."
-        elif t["sup_part"] or t["ten_part"]:
-            names = t["sup_part"] + t["ten_part"]
-            det = yr["ups_detail"][names[0]]
-            slots["period"] = f"{_rng(det['ranges'])} 동안에는 {_join([_theme('overall', n) for n in names], 2)}이 잠시 더해지지만, 해 전체의 흐름은 크게 달라지지 않습니다."
-        elif not t["ten_up"]:
+        slots["period"], reasons = _change_sentences("overall", w, yr, t, years, key, covered)
+        if not (yr["ups"] or yr["ups_persistent"] or yr["ups_partial"]):
             slots["period"] = f"{w}에는 구조상 눈에 띄는 변화가 없어, 타고난 흐름이 대체로 이어지는 시기입니다."
+        why["period"] += reasons
         if t["ten_up"]:
             slots["contrast"] = f"한편 {_join([_theme('overall', n) for n in t['ten_up']], 3)}도 함께 커져, 좋은 흐름이 그대로 매끄럽게 이어지지는 않을 수 있습니다."
         elif t["T"] > 0:
             if nat_ten:
-                slots["contrast"] = _pick(CONTRAST, key + "c").format(t=_theme("overall", nat_ten[0]))
+                n = nat_ten[0]
+                if n in covered:
+                    wh = _where_sentence(layer3[n], _theme("overall", n))
+                    if wh:
+                        slots["where2"] = wh
+                else:
+                    slots["contrast"] = _pick(CONTRAST, key + "c").format(t=_theme("overall", n))
             elif len(t["bad"]) >= 3:
                 slots["contrast"] = "또한 타고난 사주와 부딪히거나 흐트러지는 관계가 여러 개 들어와, 흐름이 매끄럽게만 이어지지는 않을 수 있습니다."
-        for n in yr["ups"] + yr["ups_partial"]:
-            r = E.period_reason(period, n, _theme("overall", n), yr["ups_detail"][n])
-            if r:
-                why["period"].append(r)
-        if not (yr["ups"] or yr["ups_partial"]):
+        if not (yr["ups"] or yr["ups_persistent"] or yr["ups_partial"]):
             why["period"].append(f"{w}에는 구조를 바꾸는 운의 글자가 새로 들어오지 않아, 타고난 모습 그대로 이어지는 것으로 읽습니다.")
         rs = relation_sentence("overall", FA.palace_relations(period, ("year", "month", "day", "hour")), w, with_luck=True, year=years[0])
         if rs:
             slots["relation"] = ("구조 변화와는 별개로, " + rs) if flat_mixed or not (t["sup_up"] or t["ten_up"]) else rs
             why["period"].append(rs)
     if luck_date and yr is not None and yr["luck_split"]:
-        slots["timing"] = f"{_date_plain(luck_date)} 무렵 10년 단위로 바뀌는 큰 흐름이 바뀌어, 그 전과 후의 분위기가 달라질 수 있습니다."
+        slots["timing"] = f"{_date_plain(luck_date)} 무렵 10년 단위로 바뀌는 큰 흐름이 바뀌어, 그 전과 후의 분위기가 달라질 수 있습니다. 교체일은 3일=1년 환산이라 며칠~몇 주 달라질 수 있습니다."
     cons = [x for x in others if x["domain"] != "overall"]
     hi = [x for x in cons if x["tone"] in ("opportunity", "steady")]
     lo = [x for x in cons if x["tone"] in ("cautious", "mixed")]
@@ -546,15 +662,7 @@ def overall_block(pre: dict, years: list[int], period: dict | None, nm: dict, lu
         slots["cross"] = f"선택하신 분야 중에서는 {_join([x['name'] for x in hi], 2)} 쪽이 상대적으로 순조롭게, {_join([x['name'] for x in lo], 2)} 쪽은 조율이 필요하게 읽힙니다."
     why["against"] = [f"타고난 사주에 {_theme('overall', n)}이 있어 한쪽으로만 읽지 않습니다." for n in nat_ten[:2]] or ["눈에 띄는 반대 근거는 확인되지 않았습니다."]
     why["nature"] = E.nature_note(_rule_ids(nat_sup + nat_ten + t["sup_up"] + t["ten_up"]))
-    story = _compose("overall", slots, must=["natal", "period", "contrast", "timing", "cross"], skeleton=["natal", "period", "relation", "contrast", "timing", "cross"], cap=5)
-    head = (OVERALL_FLAT_MIXED if flat_mixed else OVERALL_HEAD[tone]).format(w=w)
-    if flat_mixed and nat_sup and nat_ten:
-        head = (f"{_first_sentence(head)} 타고난 대로 {_theme('overall', nat_sup[0])}은 {TIER_WORD[t['present'][nat_sup[0]]]}, "
-                f"{_theme('overall', nat_ten[0])}은 {TIER_WORD[t['present'][nat_ten[0]]]} 자리하고 있습니다.")
-    elif tone == "opportunity" and t["sup_up"]:
-        head = f"{_first_sentence(head)} 특히 {_join([_theme('overall', n) for n in t['sup_up']], 2)}이 눈에 띕니다."
-    elif tone == "mixed" and t["sup_up"] and t["ten_up"]:
-        head = f"{_first_sentence(head)} {_join([_theme('overall', n) for n in t['sup_up']], 2)} 쪽은 힘을 받고, {_join([_theme('overall', n) for n in t['ten_up']], 2)} 쪽은 점검이 필요합니다."
+    story = _compose("overall", slots, must=["natal", "period", "contrast", "timing", "cross"], skeleton=["natal", "period", "relation", "contrast", "timing", "cross", "where", "where2"], cap=5)
     think_tone = tone
     if flat_mixed:
         tone = "quiet"
@@ -599,7 +707,7 @@ def period_block(pre: dict, years: list[int], periods: dict[int, dict], yrs: dic
     dev = {}
     for y in names:
         r = yrs[y]
-        dev[y] = 2 * len([n for n in r["ups"] if n not in common_ups]) + 2 * len([n for n in common_ups if n not in r["ups"]]) + len(r["ups_partial"]) + len(r["downs"]) + \
+        dev[y] = 2 * len([n for n in r["ups"] if n not in common_ups]) + 2 * len([n for n in common_ups if n not in r["ups"]]) + len(r["ups_partial"]) + len(r["ups_persistent"]) + len(r["downs"]) + \
             len([k for k in r["bad"] if k not in common_bad]) + (2 if r["luck_split"] else 0)
     top = max(dev.values())
     standout = [y for y in names if dev[y] == top][:3] if (top > min(dev.values()) and top >= 2) else []
@@ -613,9 +721,12 @@ def period_block(pre: dict, years: list[int], periods: dict[int, dict], yrs: dic
         diff = []
         if extra_up:
             diff.append(_join([_theme(primary, n) for n in extra_up], 2) + "이 더해짐")
+        for n in r["ups_persistent"]:
+            det = r["ups_detail"][n]
+            diff.append(f"{_date_plain(det['ranges'][0][0])}부터 {_theme(primary, n)}이 더해지고 이후로 이어질 수 있음(10년 큰 흐름 교체 영향)")
         for n in r["ups_partial"]:
             det = r["ups_detail"][n]
-            diff.append(f"{_rng(det['ranges'])} 동안에만 {_theme(primary, n)}이 잠시 더해짐")
+            diff.append(f"{_rng(det['ranges'])} 동안에만 {_theme(primary, n)}이 " + ("새로 나타남" if "신규 출현" in det["kinds"] else "잠시 더해짐"))
         if r["luck_split"] and ld:
             diff.append(f"{_date_plain(ld)} 무렵 큰 흐름이 바뀜")
         t_up = [n for n in r["ups"] if S.STRUCT[n]["polarity"] == "tension" and n not in common_ups]
@@ -659,6 +770,20 @@ def period_block(pre: dict, years: list[int], periods: dict[int, dict], yrs: dic
 
 
 # ------------------------------------------------------------------ 전체 조립
+def _dedupe_across_blocks(blocks: list[dict]) -> list[dict]:
+    """같은 답변 안에서 앞 블록이 이미 한 문장을 뒤 블록이 되풀이하지 않게 한다. 한 블록은 최소 2문장을 유지하고, 결론(headline)·반대 근거 문장은 건드리지 않는다."""
+    seen: set[str] = set()
+    for b in blocks:
+        keep = []
+        for sent in b["story"]:
+            if sent in seen and len([x for x in b["story"] if x not in seen]) >= 2:  # 이미 말한 문장이고, 빼도 새 문장이 2개 이상 남을 때만 뺀다
+                continue
+            keep.append(sent)
+        b["story"] = keep
+        seen.update(keep)
+    return blocks
+
+
 def build(pre: dict, ans: dict, question: str = "") -> dict:
     """answer() 가 끝난 뒤 호출. ans: blocks, periods, domains, years, synthesis 를 가진 답변."""
     base = pre["natal_structure"]
@@ -677,9 +802,8 @@ def build(pre: dict, ans: dict, question: str = "") -> dict:
         ld = next((c["date"] for c in lc if y is not None and c["date"][:4] == str(y)), None)
         has_overall = "overall" in doms or not sel
         db = [domain_block(pre, d, [y] if y is not None else [], P.get(y) if y is not None else None, nm, ld, salt=i + 1, show_timing=(i == 0 and not has_overall)) for i, d in enumerate(sel)]
-        if "overall" in doms or not db:
-            return [overall_block(pre, [y] if y is not None else [], P.get(y) if y is not None else None, nm, ld, db, salt=0)] + db
-        return db
+        blocks = ([overall_block(pre, [y] if y is not None else [], P.get(y) if y is not None else None, nm, ld, db, salt=0)] + db) if ("overall" in doms or not db) else db
+        return _dedupe_across_blocks(blocks)
 
     mode = "none" if not years else ("single" if len(years) == 1 else "multi")
     result: dict = {"version": VERDICT_VERSION, "mode": mode, "years": years, "domains": doms}

@@ -12,15 +12,17 @@ import random
 import statistics
 from collections import defaultdict
 
-CRITERIA = [
-    ("logic", "전통 명리 논리의 일관성"), ("trace", "근거 추적 가능성"), ("specific", "해석의 구체성"), ("easy", "이해하기 쉬움"),
-    ("fit", "질문에 대한 답변 적합성"), ("consistent", "모순 없음"), ("satisfy", "상담 만족도"),
-]
+# 파일럿(v8.3): 명리학 전문지식이 없어도 평가할 수 있는 5개 항목. (전문가 평가용 항목은 CRITERIA_EXPERT 로 별도 유지)
+CRITERIA = [("understand", "이해도: 읽고 내용을 이해할 수 있다"), ("specific", "구체성: 내 사주·그 시기에 맞는 구체적인 설명이다"), ("useful", "유용성: 내 질문에 답이 되고 생각해 볼 거리를 준다"),
+            ("natural", "자연스러움: 사람이 쓴 듯 읽기 편하다(같은 말의 반복이나 어색함이 없다)"), ("trust", "신뢰도: 근거 없이 단정하지 않고 믿을 만하다")]
+CRITERIA_EXPERT = [("logic", "전통 명리 논리의 일관성"), ("trace", "근거 추적 가능성"), ("consistent", "모순 없음")]
 CRITERIA_KEYS = [k for k, _ in CRITERIA]
 SLOTS = "XYZ"
 MIN_EXPERTS = 3
 MIN_LAY = 3
 MIN_ITEMS_PER_RATER = 10
+PILOT_MIN_RATERS = 5          # 파일럿 완료: 평가자 5명 이상(역할 무관), 각자 10항목 이상, 같은 항목에 2명 이상 중복 평가
+ROLES = ("general", "lay", "expert")
 
 
 def build_packet(items: list[dict], seed: int = 20261030) -> tuple[dict, dict]:
@@ -43,8 +45,8 @@ def build_packet(items: list[dict], seed: int = 20261030) -> tuple[dict, dict]:
 
 def validate_rating(r: dict, packet: dict) -> list[str]:
     probs = []
-    if r.get("role") not in ("expert", "lay"):
-        probs.append("role 은 expert 또는 lay")
+    if r.get("role") not in ROLES:
+        probs.append("role 은 general(비전문) / expert(명리 전문가)")
     if not r.get("rater_id"):
         probs.append("rater_id 없음")
     ids = {i["id"]: set(i["texts"]) for i in packet["items"]}
@@ -74,6 +76,7 @@ def aggregate(packet: dict, key: dict, rating_files: list[dict]) -> dict:
     pref = defaultdict(int)
     pref_by_item = defaultdict(lambda: defaultdict(int))
     n_pref = 0
+    reasons = defaultdict(list)
     per_role = defaultdict(set)
     per_rater_items = defaultdict(set)
     for r in valid:
@@ -89,12 +92,14 @@ def aggregate(packet: dict, key: dict, rating_files: list[dict]) -> dict:
                 pref[slots[x["preferred"]]] += 1
                 pref_by_item[x["id"]][slots[x["preferred"]]] += 1
                 n_pref += 1
+                if (x.get("reason") or "").strip():
+                    reasons[slots[x["preferred"]]].append(x["reason"].strip())
     means = {v: {k: round(statistics.mean(vals), 2) for k, vals in cs.items()} for v, cs in score.items()}
     overall = {v: round(statistics.mean([x for vals in cs.values() for x in vals]), 2) for v, cs in score.items()}
     # 항목별 평가자 간 일치: 같은 항목에 2명 이상이 선호를 낸 경우 최다 선택 비율의 평균
     agree = [max(c.values()) / sum(c.values()) for c in pref_by_item.values() if sum(c.values()) >= 2]
     return {"raters": {r: len(s) for r, s in per_role.items()}, "rejected": rejected, "means": means, "overall": overall,
-            "preference": dict(pref), "n_preferences": n_pref, "agreement": round(statistics.mean(agree), 2) if agree else None,
+            "preference": dict(pref), "n_preferences": n_pref, "reasons": {k: v for k, v in reasons.items()}, "n_valid_raters": len(valid), "agreement": round(statistics.mean(agree), 2) if agree else None,
             "rater_item_counts": {k: len(v) for k, v in per_rater_items.items()}}
 
 
@@ -104,11 +109,69 @@ def gate(agg: dict) -> dict:
     raters = agg["raters"]
     if raters.get("expert", 0) < MIN_EXPERTS:
         reasons.append(f"전문가 평가자 {raters.get('expert', 0)}/{MIN_EXPERTS}")
-    if raters.get("lay", 0) < MIN_LAY:
-        reasons.append(f"일반 평가자 {raters.get('lay', 0)}/{MIN_LAY}")
+    lay = raters.get("lay", 0) + raters.get("general", 0)  # general(일반)·lay 는 같은 비전문 평가자
+    if lay < MIN_LAY:
+        reasons.append(f"일반 평가자 {lay}/{MIN_LAY}")
     short = [r for r, n in agg["rater_item_counts"].items() if n < MIN_ITEMS_PER_RATER]
     if short:
         reasons.append(f"평가 항목 수 부족 평가자 {len(short)}명(최소 {MIN_ITEMS_PER_RATER}항목)")
     if agg["agreement"] is None:
         reasons.append("평가자 간 일치도를 계산할 중복 평가 없음")
     return {"completed": not reasons, "reasons": reasons}
+
+
+def pilot_gate(agg: dict) -> dict:
+    """파일럿 상태. 응답이 없으면 '미평가'를 유지하고, 파일럿이 끝나도 '상담 품질 검증 완료'로 표시하지 않는다(그것은 gate() 의 전문가·일반 기준)."""
+    n = agg.get("n_valid_raters", sum(agg["raters"].values()))
+    if n == 0:
+        return {"status": "미평가", "pilot_complete": False, "validation_complete": False, "reasons": ["유효한 평가 응답 0건"]}
+    reasons = []
+    if n < PILOT_MIN_RATERS:
+        reasons.append(f"평가자 {n}/{PILOT_MIN_RATERS}명")
+    short = [r for r, c in agg["rater_item_counts"].items() if c < MIN_ITEMS_PER_RATER]
+    if short:
+        reasons.append(f"{MIN_ITEMS_PER_RATER}항목 미만 평가자 {len(short)}명")
+    if agg["agreement"] is None:
+        reasons.append("같은 항목을 2명 이상이 평가한 선호 응답 없음")
+    done = not reasons
+    return {"status": "파일럿 완료(예비 결과)" if done else "진행 중", "pilot_complete": done, "validation_complete": bool(gate(agg)["completed"]), "reasons": reasons,
+            "note": "파일럿은 표본이 작아 통계적 결론이 아니다. 상담 품질 검증 완료는 전문가 3명·일반 3명 이상 기준(gate)을 따로 충족해야 한다."}
+
+
+# ------------------------------------------------------------------ CSV 입출력(평가 폼이 내려받는 형식)
+CSV_COLUMNS = ["rater_id", "role", "item_id", "slot", "understand", "specific", "useful", "natural", "trust", "preferred", "reason"]
+
+
+def ratings_from_csv(text: str) -> list[dict]:
+    """평가 폼 CSV → 평가자별 평가 딕셔너리(aggregate 입력). 같은 rater_id 의 여러 파일/행을 한 평가자로 합친다."""
+    import csv
+    import io
+    by: dict[str, dict] = {}
+    for row in csv.DictReader(io.StringIO(text.lstrip("\ufeff"))):
+        rid = (row.get("rater_id") or "").strip()
+        r = by.setdefault(rid, {"rater_id": rid, "role": (row.get("role") or "").strip(), "ratings": {}})
+        it = r["ratings"].setdefault(row["item_id"], {"id": row["item_id"], "scores": {}, "preferred": None, "reason": ""})
+        sc = {}
+        for k in CRITERIA_KEYS:
+            v = (row.get(k) or "").strip()
+            if v:
+                try:
+                    sc[k] = int(v)
+                except ValueError:
+                    sc[k] = v  # validate_rating 이 거른다
+        if sc:
+            it["scores"][row["slot"].strip()] = sc
+        if str(row.get("preferred", "")).strip() in ("1", "Y", "y", "true", "True"):
+            it["preferred"] = row["slot"].strip()
+            it["reason"] = (row.get("reason") or "").strip()
+    return [{**r, "ratings": list(r["ratings"].values())} for r in by.values()]
+
+
+def summary_rows(agg: dict) -> list[dict]:
+    """버전별 항목 평균 + 선호 수를 표로(CSV 저장용)."""
+    out = []
+    for v in sorted(set(agg["means"]) | set(agg["preference"])):
+        row = {"variant": v, "overall_mean": agg["overall"].get(v), "preferred_count": agg["preference"].get(v, 0)}
+        row.update({k: agg["means"].get(v, {}).get(k) for k in CRITERIA_KEYS})
+        out.append(row)
+    return out

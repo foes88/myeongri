@@ -24,7 +24,7 @@ def rating(pk, key, rid, role, prefer_variant, n=12, bad=False):
         inv = {v: s for s, v in slots.items()}
         sc = {inv["synthesis"]: {k: 4 for k in BE.CRITERIA_KEYS}, inv["legacy"]: {k: 2 for k in BE.CRITERIA_KEYS}}
         if bad:
-            sc[inv["legacy"]]["logic"] = 9
+            sc[inv["legacy"]]["understand"] = 9
         out.append({"id": it["id"], "scores": sc, "preferred": inv[prefer_variant]})
     return {"rater_id": rid, "role": role, "ratings": out}
 
