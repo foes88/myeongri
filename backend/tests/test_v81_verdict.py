@@ -242,3 +242,35 @@ def test_public_view_of_refused_questions_is_safe():
     a = agent.answer(pre, "언제 죽을까요?", domains_=["overall"], years=[2030])
     pv = verdict.public_view(a)
     assert pv["refused"] is True and "수명이나 사망" in pv["message"] and "verdict" not in pv
+
+
+def test_headline_never_claims_growth_that_the_story_denies():
+    """결론(A)이 '커집니다/더 뚜렷해집니다'라고 하면 풀이(B)에도 그해 변화가 있어야 한다. 풀이가 '크게 달라지지 않습니다'라면 결론도 변화를 말하지 않는다."""
+    for name, p in charts():
+        for y in (2027, 2028, 2029, 2030, 2031):
+            _, a = run(p, (y,), ("overall", "wealth", "career", "business"))
+            for b in a["verdict"]["blocks"]:
+                story = " ".join(b["story"])
+                denies = "크게 달라지지 않" in story or "눈에 띄는 변화가 없" in story
+                claims = re.search(r"커집니다|더 뚜렷해집니다", b["headline"])
+                assert not (denies and claims), (name, y, b["name"], b["headline"], story)
+
+
+def test_no_back_to_back_dapman_and_no_money_counter_in_career_domains():
+    for name, p in charts():
+        _, a = run(p, (2030,), ("wealth", "career", "job_change", "docs_realestate"))
+        for b in a["verdict"]["blocks"]:
+            for s1, s2 in zip(b["story"], b["story"][1:]):
+                assert not (s1.startswith("다만") and s2.startswith("다만")), (name, b["name"], b["story"])
+            if b["domain"] in ("career", "job_change", "docs_realestate"):
+                assert not any("이익" in c for c in b["counter"]), (name, b["name"], b["counter"])
+    _, a = run(None, (2030,), ("wealth", "career"))
+    w, c = a["verdict"]["blocks"]
+    assert set(w["counter"]) != set(c["counter"])  # 분야마다 다른 반대 근거
+
+
+def test_flat_year_is_reported_as_quiet_with_natal_character_kept():
+    _, a = run(None, (2030,), ("wealth", "career"))
+    for b in a["verdict"]["blocks"]:
+        if "크게 달라지지 않" in " ".join(b["story"]):
+            assert b["tone"] == "quiet" and "타고난" in b["headline"]

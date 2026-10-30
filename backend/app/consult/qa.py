@@ -114,7 +114,8 @@ def _compare(v: dict, ys: list[int], dom: str | None, name: str) -> dict:
     else:
         better, worse = (ys[0], ys[1]) if da > db_ else (ys[1], ys[0])
         text = f"{name} 기준으로 {la}, {lb}으로 읽힙니다. 해석상으로는 {better}년 쪽이 기회가 더 두드러지고 {worse}년은 점검할 부분이 상대적으로 큽니다. 다만 좋고 나쁨의 우열이 아니라 시기의 성격 차이로 봐 주세요."
-    return {"years": ys, "domain": dom, "text": text, "points": [f"{ys[0]}년: " + ba["headline"], f"{ys[1]}년: " + bb["headline"]]}
+    same = ba["headline"].replace(str(ys[0]), "#") == bb["headline"].replace(str(ys[1]), "#")
+    return {"years": ys, "domain": dom, "text": text, "points": [] if same else [f"{ys[0]}년: " + ba["headline"], f"{ys[1]}년: " + bb["headline"]]}
 
 
 def _why(v: dict, dom: str | None, name: str) -> dict:

@@ -136,11 +136,21 @@ THINK = {
     "health_traditional": {"balance": ["수면·식사·운동 같은 생활 리듬을 규칙적으로 돌아보는 일상적 관점으로만 참고해 주세요."]},
     "overall": {
         "opportunity": ["직업·재물·관계 중 지금 가장 중요한 한 가지를 정해 그쪽에 힘을 모아 보는 관점을 생각해 볼 수 있습니다.", "좋은 흐름일수록 무리한 확장보다 꾸준히 이어 가는 방식이 참고가 될 수 있습니다."],
-        "mixed": ["기회와 부담이 함께 오는 시기이니 한 번에 여러 결정을 하기보다 순서를 정해 하나씩 진행하는 관점을 생각해 볼 수 있습니다."],
+        "mixed": ["기회와 부담이 함께 있는 시기이니 한 번에 여러 결정을 하기보다 순서를 정해 하나씩 진행하는 관점을 생각해 볼 수 있습니다."],
         "cautious": ["큰 결정은 서두르지 말고 준비와 점검에 시간을 쓰는 관점을 생각해 볼 수 있습니다."],
         "quiet": ["큰 변화가 두드러지지 않는 시기이니 평소의 습관과 관계를 다지는 데 시간을 쓰는 관점을 생각해 볼 수 있습니다."],
         "thin": ["사주만으로 말할 수 있는 것이 적으니 현실의 상황과 계획을 우선 기준으로 삼는 편이 좋습니다."]},
 }
+MIXED_FLAT = {
+    "wealth": "{w}은 재물 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 타고난 대로 수입으로 이어질 기회와 나누거나 새어 나가기 쉬운 부분이 함께 있으니, 버는 것만큼 지키는 것을 살펴볼 만합니다.",
+    "career": "{w}은 직업 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 타고난 대로 평가와 자리로 이어질 기회와 조직과 부딪히기 쉬운 부분이 함께 있습니다.",
+    "business": "{w}은 사업 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 타고난 대로 수익 기회와 이익을 나누기 쉬운 부분이 함께 있습니다.",
+    "job_change": "{w}은 이직과 관련한 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 타고난 대로 뒷받침하는 요소와 부담이 되는 요소가 함께 있어, 이직 여부는 현실 조건이 더 큰 기준이 됩니다.",
+    "docs_realestate": "{w}은 계약·문서 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 타고난 대로 순조로운 면과 절차에서 부딪히기 쉬운 면이 함께 있습니다.",
+    "real_estate": "{w}은 부동산 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 타고난 대로 자산을 쌓을 기회와 점검할 부분이 함께 있습니다.",
+}
+OVERALL_FLAT_MIXED = "{w}은 큰 변화 없이 타고난 흐름이 이어지는 시기로 읽힙니다. 타고난 대로 기회와 점검할 점이 함께 있습니다."
+DOM_COUNTER_EXCLUDE = {"career": ("이익",), "job_change": ("이익",), "docs_realestate": ("이익",), "real_estate": ("이익",)}  # 돈 이야기가 아닌 분야에는 돈 관련 반대 견해를 붙이지 않는다
 OVERALL_HEAD = {"opportunity": "{w}은 전반적으로 기회를 살리기 좋은 흐름으로 읽힙니다.", "mixed": "{w}은 기회와 점검할 점이 함께 오는 시기로 읽힙니다.",
                 "cautious": "{w}은 서두르기보다 다지고 준비하는 쪽이 어울리는 시기로 읽힙니다.", "quiet": "{w}은 큰 변화 없이 타고난 흐름이 이어지는 시기로 읽힙니다.",
                 "thin": "이 사주에서는 {w}에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."}
@@ -230,6 +240,9 @@ def domain_block(pre: dict, dom: str, years: list[int], yr: dict | None, nm: dic
     spec = D.DOMAINS[dom]
     name = spec["name"]
     head_tpl = HEAD.get(dom, {}).get(tone)
+    think_tone = tone
+    if tone == "mixed" and yr is not None and spec.get("kind") != "palace" and not t["sup_up"] and not t["ten_up"] and dom in MIXED_FLAT:
+        tone, think_tone, head_tpl = "quiet", "mixed", MIXED_FLAT[dom]  # 그해 구조 변화가 없으면 '커진다'고 말하지 않는다
     story: list[str] = []
     counter: list[str] = []
     if spec.get("kind") == "palace":
@@ -278,14 +291,15 @@ def domain_block(pre: dict, dom: str, years: list[int], yr: dict | None, nm: dic
         if t["ten_up"] or nat_ten:
             tn = (t["ten_up"] or nat_ten)[0]
             counter += S._counters_plain({"counter": next((s["counter"] for s in pre["natal_structure"]["layer3"]["structures"] if s["name"] == tn), [])}, "tension")[:1]
-        counter = list(dict.fromkeys(counter))[:2]
+        counter = [c for c in dict.fromkeys(counter) if not any(x in c for x in DOM_COUNTER_EXCLUDE.get(dom, ()))][:2]
     if luck_date and yr is not None and yr.get("luck_split") and dom != "health_traditional":
         story.append(f"{_date_plain(luck_date)} 무렵 10년 단위로 바뀌는 큰 흐름이 바뀌므로, 그 전과 후를 나누어 보는 편이 좋습니다.")
     for c in counter[:1]:
-        story.append(c if spec.get("kind") == "palace" else "다만 " + c.rstrip(".") + ".")
+        lead = "또한 " if story and story[-1].startswith("다만") else "다만 "
+        story.append(c if spec.get("kind") == "palace" else lead + c.rstrip(".") + ".")
     story = story[:4]
     headline = (head_tpl or HEAD["wealth"]["thin"]).format(w=w)
-    think = list(THINK.get(dom, {}).get(tone, THINK["overall"]["thin"]))[:2]
+    think = list(THINK.get(dom, {}).get(think_tone, THINK["overall"]["thin"]))[:2]
     block = {"domain": dom, "name": name, "tone": tone, "tone_label": TONE_SHORT[tone], "headline": headline, "story": story, "think": think, "counter": counter}
     block["scores"] = {k: t[k] for k in ("S", "T")}
     return block
@@ -296,6 +310,7 @@ def overall_block(pre: dict, years: list[int], yr: dict | None, nm: dict, luck_d
     w = when_phrase(years)
     t = tone_for(pre, "overall", yr, nm, common_bad)
     tone = t["tone"]
+    flat_mixed = tone == "mixed" and yr is not None and not t["sup_up"] and not t["ten_up"]
     nat_sup = sorted(t["natal_support"], key=lambda n: -t["present"][n])
     nat_ten = sorted(t["natal_tension"], key=lambda n: -t["present"][n])
     story = []
@@ -327,8 +342,11 @@ def overall_block(pre: dict, years: list[int], yr: dict | None, nm: dict, luck_d
         if hi and lo:
             story.append(f"선택하신 분야 중에서는 {_join([x['name'] for x in hi], 2)} 쪽이 상대적으로 순조롭게, {_join([x['name'] for x in lo], 2)} 쪽은 조율이 필요하게 읽힙니다.")
     story = story[:5]
-    head = OVERALL_HEAD[tone].format(w=w)
-    return {"domain": "overall", "name": "종합운", "tone": tone, "tone_label": TONE_SHORT[tone], "headline": head, "story": story, "think": list(THINK["overall"][tone])[:2], "counter": [],
+    head = (OVERALL_FLAT_MIXED if flat_mixed else OVERALL_HEAD[tone]).format(w=w)
+    think_tone = tone
+    if flat_mixed:
+        tone = "quiet"
+    return {"domain": "overall", "name": "종합운", "tone": tone, "tone_label": TONE_SHORT[tone], "headline": head, "story": story, "think": list(THINK["overall"][think_tone])[:2], "counter": [],
             "scores": {"S": t["S"], "T": t["T"]}}
 
 
