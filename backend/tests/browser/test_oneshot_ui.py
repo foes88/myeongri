@@ -398,7 +398,7 @@ def test_user_screen_and_api_expose_no_internal_information(browser, one):
     body = next(json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
     raw = p.evaluate("async (b) => (await fetch('/api/v1/oneshot/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b)})).text()", body)
     d = json.loads(raw)
-    assert set(d["answer"]) == {"refused", "years", "domains", "verdict", "qa"} and "internal" not in d["answer"]["verdict"] and set(d["precommit"]) == {"pillars", "years", "domains"}
+    assert set(d["answer"]) == {"refused", "years", "domains", "verdict", "qa"} and "internal" not in d["answer"]["verdict"] and set(d["precommit"]) == {"pillars", "years", "domains", "calc"}
     leak = re.findall(r"L\d-[A-Z0-9-]+|claim\w*|natal_structure|synthesis|ruleset|content_hash|식상생재|지장간", raw)
     assert not leak, leak[:5]
     ctx.close()

@@ -21,7 +21,7 @@ call=async function(path,opt){
   if(path==='/api/v1/oneshot/reality'&&reportId){return origCall('/api/v1/reports/'+reportId+'/reality',{method:'POST',headers:H(),body:JSON.stringify(body.event)})}
   return origCall(path,opt)};
 const origBegin=begin;
-begin=function(j){origBegin(j);curPre=j.precommit||curPre;curYears=(j.answer&&j.answer.years)||curYears;if(AUTH&&j.id){reportId=j.id;const n=$('cover').querySelector('p.small.muted:last-child');if(n)n.textContent='이 분석은 암호화되어 내 리포트에 저장되었습니다. 출생 정보 원문은 저장하지 않았습니다. 나중에 로그인하면 다시 열어 후속 질문을 이어갈 수 있습니다.';refresh()}};
+begin=function(j){origBegin(j);if(AUTH)setTimeout(fbBar,0);curPre=j.precommit||curPre;curYears=(j.answer&&j.answer.years)||curYears;if(AUTH&&j.id){reportId=j.id;const n=$('cover').querySelector('p.small.muted:last-child');if(n)n.textContent='이 분석은 암호화되어 내 리포트에 저장되었습니다. 출생 정보 원문은 저장하지 않았습니다. 나중에 로그인하면 다시 열어 후속 질문을 이어갈 수 있습니다.';refresh()}};
 
 function show(){const on=!!AUTH;$('acct-out').hidden=on;$('acct-in').hidden=!on;if(on){$('acct-email').textContent=AUTH.email}}
 async function refresh(){if(!AUTH)return;const r=await origCall('/api/v1/reports',{headers:H()});if(r.status===401){logoutLocal('세션이 만료되었습니다. 다시 로그인하세요.');return}
@@ -35,12 +35,12 @@ async function refresh(){if(!AUTH)return;const r=await origCall('/api/v1/reports
     li.append(bo,document.createTextNode(' '),be,document.createTextNode(' '),bd);u.append(li)})}
 async function openReport(id){const r=await origCall('/api/v1/reports/'+id,{headers:H()});if(!r.ok){msg(kor(r),true);return}
   const views=r.j.turns.filter(t=>t.kind==='answer'&&t.body.view);const lastView=views.length?views[views.length-1].body.answer:null;
-  origBegin({answer:lastView||r.j.answer,precommit:r.j.precommit});reportId=id;curPre=r.j.precommit;curYears=(lastView||r.j.answer).years||[];
+  origBegin({answer:lastView||r.j.answer,precommit:r.j.precommit});reportId=id;if(AUTH)fbBar();curPre=r.j.precommit;curYears=(lastView||r.j.answer).years||[];
   const n=$('cover').querySelector('p.small.muted:last-child');if(n)n.textContent='저장된 리포트를 다시 열었습니다('+r.j.title+'). 아래에서 후속 질문을 이어갈 수 있습니다.';
-  r.j.turns.forEach(t=>{if(t.kind==='answer'&&t.body.view)return;if(t.kind==='answer')renderRecord(t.body.answer,t.body.question);else{localRecords.push({kind:'reality',text:(t.body.event.type||'')+' '+(t.body.event.year||'')+'년 → '+t.body.result.outcome})}});}
+  r.j.turns.forEach(t=>{if(t.kind==='feedback'||(t.kind==='answer'&&t.body.view))return;if(t.kind==='answer')renderRecord(t.body.answer,t.body.question);else{localRecords.push({kind:'reality',text:(t.body.event.type||'')+' '+(t.body.event.year||'')+'년 → '+t.body.result.outcome})}});}
 async function exportReport(id){const r=await fetch('/api/v1/reports/'+id+'/export',{headers:{'Authorization':'Bearer '+AUTH.token}});if(!r.ok){msg('내보내기에 실패했습니다.',true);return}
   const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='명리_리포트_'+id.slice(0,8)+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-async function delReport(id){const r=await origCall('/api/v1/reports/'+id,{method:'DELETE',headers:H()});if(r.ok||r.status===204){if(reportId===id)reportId=null;msg('리포트를 삭제했습니다.');refresh()}else msg(kor(r),true)}
+async function delReport(id){const r=await origCall('/api/v1/reports/'+id,{method:'DELETE',headers:H()});if(r.ok||r.status===204){if(reportId===id){reportId=null;curPre=null;curYears=[];clearScreen()}msg('리포트를 삭제했습니다.');refresh()}else msg(kor(r),true)}
 function clearScreen(){/* 이전 사용자의 목록·리포트·기록이 화면에 남지 않게 한다(공용 기기 보호) */
   $('mylist').textContent='';$('acct-n').textContent='0';
   ['out','cover','status','histout','evr'].forEach(i=>{const e=$(i);if(e)e.textContent=''});
@@ -59,6 +59,17 @@ $('acct-login').onclick=()=>auth('login');$('acct-reg').onclick=()=>auth('regist
 $('acct-logout').onclick=async()=>{await origCall('/api/v1/auth/logout',{method:'POST',headers:H()});logoutLocal('로그아웃했습니다.')};
 $('delacct').onclick=async()=>{const r=await origCall('/api/v1/me',{method:'DELETE',headers:H(),body:JSON.stringify({password:$('delpw').value})});
   if(r.ok||r.status===204){$('delpw').value='';logoutLocal('계정과 저장된 모든 리포트를 삭제했습니다.')}else msg(kor(r),true)};
+/* 내 평가(1~5점): 해석 내용이 아니라 점수와 짧은 메모만 저장. 상담 품질 ‘검증’이 아니라 개인 사용 기록 */
+function fbBar(){
+  let f=$('fbk');if(f){const m0=$('fbm');if(m0)m0.textContent='';return f}const anchor=$('chips');if(!anchor||!anchor.parentNode)return null;
+  f=document.createElement('div');f.id='fbk';f.className='small';f.setAttribute('role','group');f.setAttribute('aria-label','이 풀이에 대한 내 평가');
+  f.append(el('span','이 풀이가 도움이 되었나요? '));
+  for(let i=1;i<=5;i++){const bt=el('button',String(i),'sec');bt.type='button';bt.setAttribute('aria-label',i+'점');bt.onclick=async()=>{
+    if(!AUTH||!reportId)return;const note=($('fbn')&&$('fbn').value)||'';
+    const r=await origCall('/api/v1/reports/'+reportId+'/feedback',{method:'POST',headers:H(),body:JSON.stringify({rating:i,target:'reading',note:note})});
+    $('fbm').textContent=r.ok?'평가를 저장했습니다. 고맙습니다.':kor(r)};f.append(bt,document.createTextNode(' '))}
+  const n=document.createElement('input');n.id='fbn';n.maxLength=300;n.placeholder='한 줄 메모(선택)';n.setAttribute('aria-label','메모');f.append(n);
+  const m=el('span','','muted');m.id='fbm';m.setAttribute('role','status');f.append(document.createTextNode(' '),m);anchor.parentNode.insertBefore(f,anchor);return f}
 /* 저장된 명식으로 연도·기간만 바꿔 다시 풀이(출생 정보 재입력 없음) */
 async function reYears(years){
   if(years.some(y=>y<1901||y>2049)){msg('분석 연도는 1901~2049년 사이입니다.',true);return}

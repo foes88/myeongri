@@ -42,7 +42,11 @@ def to_markdown(report: dict, turns: list[dict]) -> str:
     body = [verdict_md(ans["verdict"])]
     for t in turns:
         b = t["body"]
-        if t["kind"] == "answer":
+        if t["kind"] == "feedback":
+            continue
+        if t["kind"] == "answer" and b.get("view"):
+            body += ["", f"## 다시 풀이 {t['n']}", "", verdict_md(b["answer"]["verdict"])]
+        elif t["kind"] == "answer":
             qa = b["answer"].get("qa") or {}
             body += ["", f"## 후속 질문 {t['n']}: {b['question']}", "", qa.get("text", "")] + [f"- {p}" for p in qa.get("points", [])]
         else:

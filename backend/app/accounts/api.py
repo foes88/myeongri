@@ -180,6 +180,12 @@ class ReportAnalyze(BaseModel):
     domains: list[str] | None = Field(default=None, max_length=12)
 
 
+class ReportFeedback(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    target: Literal["reading", "year", "followup"] = "reading"
+    note: str = Field(default="", max_length=300)
+
+
 class ReportEvent(BaseModel):
     kind: Literal["event", "condition"] = "event"
     type: str | None = Field(default=None, max_length=40)
@@ -349,6 +355,17 @@ def analyze(rid: str, b: ReportAnalyze, req: Request, authorization: str | None 
     n = repo().add_turn(uid, rid, "answer", {"question": "", "view": True, "domains": ans.get("domains", doms), "years": ans.get("years", b.years), "answer": ans})
     repo().audit(uid, "analyze", rid[:8])
     return {"turn": n, "answer": M.user_answer(ans)}
+
+
+@router.post("/reports/{rid}/feedback", status_code=201)
+def feedback(rid: str, b: ReportFeedback, authorization: str | None = Header(default=None)):
+    """본인 평가(1~5점·짧은 메모). 해석 내용이 아니라 평가만 저장한다. 상담 품질 ‘검증’이 아니라 개인 사용 기록이다."""
+    uid = current_user(authorization)
+    _limit("fb:" + uid, 120, 3600)
+    _own(uid, rid)
+    n = repo().add_turn(uid, rid, "feedback", b.model_dump())
+    repo().audit(uid, "feedback", rid[:8])
+    return {"turn": n}
 
 
 @router.post("/reports/{rid}/reality")

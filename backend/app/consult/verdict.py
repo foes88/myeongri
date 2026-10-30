@@ -907,5 +907,7 @@ def public_reality(res: dict) -> dict:
 def public_turn(t: dict) -> dict:
     b = t["body"]
     if t["kind"] == "answer":
-        return {"n": t["n"], "created_at": t["created_at"], "kind": "answer", "body": {"question": b["question"], "answer": public_view(b["answer"])}}
+        return {"n": t["n"], "created_at": t["created_at"], "kind": "answer", "body": {"question": b["question"], "view": bool(b.get("view")), "answer": public_view(b["answer"])}}
+    if t["kind"] == "feedback":
+        return {"n": t["n"], "created_at": t["created_at"], "kind": "feedback", "body": {"rating": b.get("rating"), "target": b.get("target"), "note": b.get("note", "")}}
     return {"n": t["n"], "created_at": t["created_at"], "kind": "reality", "body": {"event": b["event"], "result": public_reality(b["result"])}}

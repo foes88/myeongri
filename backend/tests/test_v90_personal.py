@@ -156,3 +156,20 @@ def test_owner_can_login_when_closed(c, monkeypatch):
         create_owner.create("owner@example.com", "correct-horse-9")
     with pytest.raises(SystemExit):
         create_owner.create("o2@example.com", "short")
+
+
+# ---- 본인 평가 기록 / 공개 응답에서도 보기 복원이 되는지
+@pytest.mark.public_view
+def test_feedback_and_public_turns_keep_view_flag(c):
+    h = reg(c)
+    rid = mk(c, h)
+    assert c.post(f"/api/v1/reports/{rid}/analyze", json={"years": [2028]}, headers=h).status_code == 200
+    assert c.post(f"/api/v1/reports/{rid}/feedback", json={"rating": 4, "target": "reading", "note": "읽기 쉬웠다"}, headers=h).status_code == 201
+    assert c.post(f"/api/v1/reports/{rid}/feedback", json={"rating": 9}, headers=h).status_code == 422
+    g = c.get(f"/api/v1/reports/{rid}", headers=h).json()
+    kinds = [(t["kind"], t["body"].get("view")) for t in g["turns"]]
+    assert ("answer", True) in kinds and any(k == "feedback" for k, _ in kinds)
+    md = c.get(f"/api/v1/reports/{rid}/export?format=md", headers=h)
+    assert md.status_code == 200 and "다시 풀이" in md.text
+    h2 = reg(c, "b@example.com")
+    assert c.post(f"/api/v1/reports/{rid}/feedback", json={"rating": 3}, headers=h2).status_code == 404
