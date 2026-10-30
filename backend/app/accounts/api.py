@@ -163,6 +163,11 @@ class ReportAsk(BaseModel):
     depth: Literal["summary", "detailed", "expert"] | None = None
 
 
+class ReportAnalyze(BaseModel):
+    years: list[int] = Field(min_length=1, max_length=10)
+    domains: list[str] | None = Field(default=None, max_length=12)
+
+
 class ReportEvent(BaseModel):
     kind: Literal["event", "condition"] = "event"
     type: str | None = Field(default=None, max_length=40)
@@ -304,6 +309,26 @@ def ask(rid: str, b: ReportAsk, req: Request, authorization: str | None = Header
     n = repo().add_turn(uid, rid, "answer", {"question": b.question, "domains": ans.get("domains", doms), "years": ans.get("years", years), "answer": ans})
     repo().audit(uid, "ask", rid[:8])
     from .. import main as M
+    return {"turn": n, "answer": M.user_answer(ans)}
+
+
+@router.post("/reports/{rid}/analyze")
+def analyze(rid: str, b: ReportAnalyze, req: Request, authorization: str | None = Header(default=None)):
+    """저장된 명식으로 연도·분야만 바꿔 다시 풀이한다(출생 정보를 다시 입력하지 않는다). 결과는 답변 기록으로 남아 다음 후속 질문의 맥락이 된다."""
+    from ..consult import agent as consult_agent
+    from .. import main as M
+    uid = current_user(authorization)
+    _limit("ask:" + uid, 60, 3600)
+    r = _own(uid, rid)
+    pre = r["body"]["pre"]
+    if any(y < 1901 or y > 2049 for y in b.years):
+        raise HTTPException(status_code=422, detail={"code": "BAD_YEAR", "message": "분석 연도는 1901~2049 범위입니다."})
+    turns = repo().get_turns(uid, rid)
+    last = next((t["body"] for t in reversed(turns) if t["kind"] == "answer"), None)
+    doms = b.domains or (last and last.get("domains")) or pre["domains"]
+    ans = consult_agent.answer(pre, "종합 상담을 시작합니다", domains_=doms, years=b.years, depth=pre["depth"])
+    n = repo().add_turn(uid, rid, "answer", {"question": "", "view": True, "domains": ans.get("domains", doms), "years": ans.get("years", b.years), "answer": ans})
+    repo().audit(uid, "analyze", rid[:8])
     return {"turn": n, "answer": M.user_answer(ans)}
 
 
