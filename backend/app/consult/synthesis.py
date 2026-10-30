@@ -43,11 +43,11 @@ SUPPORT_COUNTER = [
     (r"암장", "겉으로 뚜렷하게 드러나지 않고 속에 있어 힘이 약하다고 보는 견해가 있습니다"),
 ]
 TENSION_RELIEF = [
-    (r"제겁", "관성이 있어 다툼을 눌러 조절한다고 보는 견해가 있습니다"),
-    (r"화겁생재", "식상이 있어 경쟁의 기운을 수입으로 돌린다고 보는 견해가 있습니다"),
-    (r"상관패인", "인성이 있어 거친 표현을 다듬어 준다고 보는 견해가 있습니다"),
-    (r"상관생재", "재성이 있어 표현의 기운을 재물로 풀어 준다고 보는 견해가 있습니다"),
-    (r"억부론 견해", "일간이 약한 편이면 같은 기운이 오히려 도움이 된다고 보는 견해가 있습니다"),
+    (r"제겁", "직책·규율의 기운이 있어 다툼을 눌러 조절한다고 보는 견해가 있습니다"),
+    (r"화겁생재", "표현·기술의 기운이 있어 경쟁의 기운을 수입으로 돌린다고 보는 견해가 있습니다"),
+    (r"상관패인", "배움·보호의 기운이 있어 거친 표현을 다듬어 준다고 보는 견해가 있습니다"),
+    (r"상관생재", "재물·현실 자원의 기운이 있어 표현의 기운을 재물로 풀어 준다고 보는 견해가 있습니다"),
+    (r"억부론 견해", "나 자신이 약한 편이면 같은 기운이 오히려 도움이 된다고 보는 견해가 있습니다"),
     (r"군겁.{0,6}부르기 어렵", "다툼으로 볼 만큼 같은 기운이 많지 않다고 보는 견해가 있습니다"),
 ]
 
@@ -413,6 +413,8 @@ def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], y
                          "standout": [r["year"] for r in standout], "luck_changes": lc,
                          "standout_note": "두드러지는 해는 확률이 아니라 원국 대비 구조 변화·관계 수로 고른 것입니다." if standout else "",
                          "year_sentences": {r["year"]: year_sentences(r) for r in yrs}})
+    if natal["insufficient"] and any(r["score"] for r in yrs):
+        headline.insert(0, _sent("원국만으로는 이 분야에서 뚜렷한 구조가 확인되지 않고, 대운·세운이 들어오는 시기에 비로소 나타나는 구조를 중심으로 읽습니다.", [], BASIS_ENGINE, kind="limit"))
     # 한계·불확실성
     uncertainty = [_sent("같은 구조라도 실제 삶에서 어떻게 나타나는지는 사람마다 다르며, 이 풀이는 가능한 전통적 주제를 보여 줄 뿐입니다.", [], BASIS_ENGINE, kind="limit")]
     if not base["layer1"]["deukryeong"]["agree"]:
@@ -422,6 +424,20 @@ def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], y
     elif any(r["split"] for r in yrs):
         uncertainty.append(_sent("입춘을 기준으로 세운이 바뀌는 구간은 따로 읽었고, 입춘 전후의 해석은 서로 이어 붙이지 않습니다.", [], BASIS_ENGINE, kind="limit"))
     summaries = [domain_summary(pre, b, yrs, nm) for b in blocks]
+    from . import readings as R  # 순환 import 방지
+    ups_by = {}
+    for r in yrs:
+        for n in r["ups"]:
+            ups_by.setdefault(n, []).append(r["year"])
+    yn = {n: (f"{ys[0]}년" if len(ys) == 1 else f"{ys[0]}~{ys[-1]}년") + " 흐름" for n, ys in ups_by.items()}
+    readings = R.for_domains(pre, blocks, nm, yn)
+    for rd in readings:
+        ys = ups_by.get(rd["structure"], [])
+        if ys:
+            where = f"{ys[0]}년" if len(ys) == 1 else ", ".join(f"{y}년" for y in ys[:4]) + (" 등" if len(ys) > 4 else "")
+            rd["period"] = f"선택한 기간 중 {where}에 이 흐름이 원국보다 {'더 두드러집니다' if rd['polarity'] == 'support' else '커집니다'}."
+        elif yrs:
+            rd["period"] = "선택한 기간에는 이 구조가 원국보다 달라지는 해가 확인되지 않습니다."
     seen_s: set[str] = set()
     for d in summaries:  # 분야 사이에서 같은 문장이 되풀이되지 않게 한다(첫 분야에서 한 말은 이후 분야에서 생략)
         keep = []
@@ -438,7 +454,7 @@ def build(pre: dict, blocks: list[dict], periods: list[dict], doms: list[str], y
     favorable, cautions = favorable[:3], cautions[:4]
     all_s = headline + favorable + cautions + uncertainty
     return {"version": SYNTH_VERSION, "mode": mode, "verification": verification, "headline": headline, "favorable": favorable, "cautions": cautions, "more": more,
-            "domain_summaries": summaries, "period_flow": flow, "uncertainty": uncertainty, "natal": {"present": natal["present"], "center": natal["center"], "month": natal["month"]},
+            "domain_summaries": summaries, "readings": readings, "period_flow": flow, "uncertainty": uncertainty, "natal": {"present": natal["present"], "center": natal["center"], "month": natal["month"]},
             "insufficient_evidence": bool(natal["insufficient"] and not any(r["score"] for r in yrs)),
             "claim_ids": list(dict.fromkeys(c for s in all_s for c in s["claim_ids"])),
-            "text": "\n".join([s["text"] for s in all_s] + [d["text"] for d in summaries] + [y["one_line"] for y in flow.get("years", [])])}
+            "text": "\n".join([s["text"] for s in all_s] + [d["text"] for d in summaries] + [y["one_line"] for y in flow.get("years", [])] + [" ".join([x["meaning"], x["why"], x["reality"], " ".join(x["counter"]), x["scope"], x.get("period", "")]) for x in readings])}

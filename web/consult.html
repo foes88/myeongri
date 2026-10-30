@@ -244,6 +244,12 @@ function keyChapter(a,pre){
   const cau=el('div',null,'caution');cau.append(el('h4','주의하거나 상반되는 조건'),S.cautions.length?sentList(S.cautions):ul(['눈에 띄는 상반 조건은 확인되지 않았습니다.']));
   two.append(pos,cau);keys.append(two);
   if(S.domain_summaries.length){keys.append(el('h3','관심 분야별 핵심 요약'));const dl=el('dl',null,'facts domsum');S.domain_summaries.forEach(d=>{dl.append(el('dt',d.name));const dd=el('dd',d.text);dd.dataset.claims=(d.claim_ids||[]).join(',');dl.append(dd)});keys.append(dl)}
+  if((S.readings||[]).length){
+    const by={};S.readings.forEach(r=>{(by[r.name]=by[r.name]||[]).push(r)});
+    Object.entries(by).forEach(([nm,list])=>{const d=el('details',null,'reading');d.open=false;d.append(el('summary',nm+' — 왜 그렇게 보는지, 어떤 상황과 연결해 볼 수 있는지'));
+      list.forEach(r=>{const l=el('dl',null,'facts five');l.dataset.claims=(r.claim_ids||[]).join(',');
+        [['의미',r.meaning],['판단 근거',r.why],['현실 연결(살펴볼 상황의 예)',r.reality],['반대 근거',r.counter.join(' / ')],['선택한 기간',r.period],['해석 범위',r.scope]].forEach(([k,v])=>{if(v){l.append(el('dt',k),el('dd',v))}});
+        const h=el('h4',r.structure+(r.polarity==='tension'?' (조심해서 볼 흐름)':''));d.append(h,l)});keys.append(d)})}
   const f=S.period_flow||{};
   if(f.mode==='multi'){
     keys.append(el('h3','연도별 한 줄 요약'));

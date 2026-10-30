@@ -1,0 +1,109 @@
+"""분야별 5단 해석(의미 · 판단 근거 · 현실 연결 · 반대 근거 · 해석 범위). synthesis 가 고른 구조에 대해 설명 문장을 만든다.
+
+- 판단 근거는 엔진의 지지 증거(supporting)를 위치·십성 뜻풀이로 옮긴 것이며, 증거에 없는 글자나 위치는 말하지 않는다.
+- 현실 연결은 '살펴볼 수 있는 상황의 예'이며 특정 결과(승진·수입·계약)가 생긴다는 뜻이 아니다. 현대적 설명으로 표시한다.
+"""
+from __future__ import annotations
+
+import re
+
+from . import domains as D
+from . import synthesis as S
+
+GOD_PLAIN = {"比肩": "나와 같은 기운", "劫財": "나와 같은 기운", "食神": "표현·기술의 기운", "傷官": "표현·기술의 기운", "偏財": "재물·현실 자원의 기운", "正財": "재물·현실 자원의 기운",
+             "七殺": "압박·경쟁의 기운", "正官": "직책·규율의 기운", "偏印": "배움·보호의 기운", "正印": "배움·보호의 기운"}
+POS_PLAIN = {"연간": "태어난 해의 천간", "월간": "태어난 달의 천간", "시간": "태어난 시의 천간", "연지 지장간": "태어난 해 지지 속", "월지 지장간": "태어난 달 지지 속",
+             "일지 지장간": "배우자 자리(일지) 속", "시지 지장간": "태어난 시 지지 속", "대운간": "대운 천간", "세운간": "세운 천간"}
+EV_RE = re.compile(r"(연간|월간|시간|연지 지장간|월지 지장간|일지 지장간|시지 지장간)\s+(\S)\(([^)·]+)(?:·([^)]+))?\)")
+
+# 구조 × 분야 군 → 현실에서 살펴볼 상황의 예. 결과를 단정하지 않는 '살펴볼 수 있는' 문장만 쓴다.
+LENS = {
+    "식상생재": {"wealth": "맡은 일이나 기술, 결과물이 수입으로 연결되는 방식(성과급, 부수입, 사업·프리랜서 수입 등)을 살펴볼 수 있습니다.",
+             "business": "자신의 기술이나 아이디어를 상품·서비스로 만들어 수익으로 잇는 방식을 살펴볼 수 있습니다.",
+             "career": "전문성이나 결과물이 평가와 보상으로 이어지는 경로를 살펴볼 수 있습니다.",
+             "default": "자신의 능력이 현실의 이익으로 이어지는 경로를 살펴볼 수 있습니다."},
+    "재생관": {"career": "쌓아 온 실적과 현실적 기반이 직책·평가·승진 논의와 맞물리는 방식을 살펴볼 수 있습니다.",
+            "wealth": "수입의 기반이 안정된 자리나 직책으로 이어지는 경로를 살펴볼 수 있습니다.",
+            "default": "현실적 기반이 지위나 평가로 이어지는 경로를 살펴볼 수 있습니다."},
+    "관인상생": {"career": "조직 안에서 윗사람의 신뢰, 자격이나 학습, 문서(평가서·계약서·인사 서류)가 자리를 다지는 데 어떻게 작용하는지 살펴볼 수 있습니다.",
+             "docs": "계약이나 문서 관련 일이 조직·제도의 틀 안에서 안정적으로 처리되는 방식을 살펴볼 수 있습니다.",
+             "default": "제도와 조직 안에서 배움이나 후원이 자리를 지켜 주는 방식을 살펴볼 수 있습니다."},
+    "살인상생": {"career": "강한 업무 압박이나 경쟁 상황을 공부·자격·조력자의 도움으로 풀어 가는 방식을 살펴볼 수 있습니다.",
+             "default": "압박이나 경쟁을 준비와 도움으로 누그러뜨리는 방식을 살펴볼 수 있습니다."},
+    "상관견관": {"career": "자기 주장이나 표현 방식이 조직의 규칙·상사와 부딪히는 상황에서 어떻게 조율할지 살펴볼 수 있습니다.",
+             "default": "표현과 규칙이 부딪힐 때 조율하는 방식을 살펴볼 수 있습니다."},
+    "군겁쟁재": {"wealth": "동료·동업자·경쟁자와 이익을 나누거나 비용이 새는 상황을 점검해 볼 수 있습니다.",
+             "business": "동업이나 경쟁 관계에서 이익 배분이 어떻게 정해지는지 점검해 볼 수 있습니다.",
+             "default": "비슷한 처지의 사람과 이익을 나누는 상황을 점검해 볼 수 있습니다."},
+}
+OUTCOME = {"wealth": "수입·재산", "career": "승진·평가·직무", "business": "사업 성과", "overall": "구체적인 사건", "docs_realestate": "계약·거래", "real_estate": "부동산 거래", "job_change": "이직·취업"}
+
+
+def _lens_key(dom: str) -> str:
+    return {"wealth": "wealth", "career": "career", "business": "business", "docs_realestate": "docs", "real_estate": "wealth", "job_change": "career"}.get(dom, "default")
+
+
+def plain_evidence(supporting: list[str]) -> str:
+    """엔진 지지 증거 문구('시간 丙(食神)', '→ 월지 지장간 戊(偏財·여기)')를 위치·뜻풀이 문장으로 옮긴다. 증거에 있는 것만 말한다."""
+    src, dst = [], []
+    for e in supporting:
+        m = EV_RE.search(e)
+        if not m:
+            continue
+        pos, ch, god, role = m.groups()
+        if god not in GOD_PLAIN or pos not in POS_PLAIN:
+            continue
+        tail = "에 숨어 있는" if "지장간" in pos else "에 드러난"
+        phrase = f"{POS_PLAIN[pos]}{tail} {GOD_PLAIN[god]}({god})"
+        (dst if e.strip().startswith("→") else src).append(phrase)
+    src, dst = list(dict.fromkeys(src))[:1], list(dict.fromkeys(dst))[:1]
+    if not src and not dst:
+        return ""
+    return " → ".join(src + dst)
+
+
+def build_reading(pre: dict, dom: str, name: str, s: dict, year_note: str | None) -> dict:
+    """한 구조에 대한 5단 해석. s 는 layer3 구조 항목."""
+    st = S.STRUCT[name]
+    status = S._rule_status(S.RULE_OF[name])
+    tier = S.TIER[s["rank"]]
+    pol = st["polarity"]
+    why_e = plain_evidence(s.get("supporting", []))
+    meaning = f"{st['theme']}이 {tier} 나타난다는 뜻입니다." if pol == "support" else f"{st['theme']}이 {tier} 보인다는 뜻입니다."
+    why = (f"원국의 근거: {why_e}. 이 짜임을 바탕으로 {'읽습니다' if s['rank'] >= 2 else '조심스럽게 읽습니다'}." if why_e else "원국의 글자 배치에서 이 구조의 두 축이 모두 확인되어 읽습니다.")
+    if s["rank"] == 1:
+        why += " 다만 겉으로 드러나지 않고 속에 숨은 글자가 중심이라 힘이 크지 않다고 봅니다."
+    lens = LENS[name].get(_lens_key(dom), LENS[name]["default"])
+    counters = S._counters_plain(s, pol)[:2]
+    out_name = OUTCOME.get(dom, "구체적인 사건")
+    scope = f"원국의 글자 구조{'와 ' + year_note if year_note else ''}만 근거로 한 전통적 해석이며, {out_name}에 대한 실제 결과를 확정하지 않습니다."
+    if status != "text_confirmed":
+        scope += f" 이 풀이가 기대는 규칙은 '{S.STATUS_KO.get(status, status)}' 단계입니다."
+    claim_ids = [s["claim_id"]]
+    return {"domain": dom, "structure": name, "polarity": pol, "tier": s["rank"],
+            "meaning": meaning, "why": why, "reality": lens, "counter": counters or ["이 구조에 대해 눈에 띄는 반대 견해는 확인되지 않았습니다."], "scope": scope,
+            "claim_ids": claim_ids, "rule_status": status, "rule_status_ko": S.STATUS_KO.get(status, status), "basis": S.BASIS_MODERN}
+
+
+def for_domains(pre: dict, blocks: list[dict], nm: dict, year_notes: dict[str, str]) -> list[dict]:
+    """분야마다 중심 구조(돕는 쪽 1개)와, 있으면 부딪히는 구조 1개에 5단 해석을 붙인다. 구조가 없으면 만들지 않는다."""
+    out = []
+    for b in blocks:
+        dom = b["domain"]
+        if D.DOMAINS[dom].get("kind") == "palace":
+            continue
+        items = [(i["structure"], nm[i["structure"]]) for i in b["structures"] if nm[i["structure"]]["rank"] > 0]
+        sup = sorted([x for x in items if S.STRUCT[x[0]]["polarity"] == "support"], key=lambda x: -x[1]["rank"])[:1]
+        ten = sorted([x for x in items if S.STRUCT[x[0]]["polarity"] == "tension"], key=lambda x: -x[1]["rank"])[:1]
+        for n, s in sup + ten:
+            r = build_reading(pre, dom, n, s, year_notes.get(n))
+            r["name"] = b["name"]
+            out.append(r)
+    seen, final = set(), []
+    for r in sorted(out, key=lambda x: x["domain"] == "overall"):  # 구체 분야에서 이미 설명한 구조는 종합운에서 되풀이하지 않는다
+        if r["structure"] in seen and r["domain"] == "overall":
+            continue
+        seen.add(r["structure"])
+        final.append(r)
+    order = {id(r): i for i, r in enumerate(out)}
+    return sorted(final, key=lambda r: order[id(r)])
