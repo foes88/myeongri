@@ -3,13 +3,11 @@
 공개 서비스가 아니라 본인 한 사람(또는 소수)이 쓰는 비공개 환경을 전제로 한다. 유료 외부 AI 호출은 없다(후속 상담은 내장 규칙 기반 답변이며 자유 대화형 AI가 아니다).
 
 ## 실행(내 PC)
-1. `scripts\run-local.bat` — Docker Postgres + API + 웹(127.0.0.1 에서만 접속). 주소: http://127.0.0.1:8000/consult.html
-2. 환경변수(서버 시작 전):
-   - `APP_DATA_KEY` — 저장 내용 암호화 키(Fernet). **잃어버리면 저장본을 복호화할 수 없다. 별도 위치에 백업.**
-   - `ACCOUNTS_REGISTRATION=closed` — 새 가입 차단. 본인 계정은 `python -m tools.create_owner you@example.com` 으로 만든다(비밀번호는 입력창, 기록되지 않음).
-     - `invite` + `ACCOUNTS_INVITE_CODE=...` — 초대 코드가 있어야 가입. 코드 없이 invite 로 두면 닫힘으로 처리된다.
-3. 백업: Postgres 는 `pg_dump`, SQLite 는 `APP_DB` 파일 복사 + `APP_DATA_KEY`.
-4. 외부 공개(인터넷 노출)는 이 문서의 범위가 아니다. 노출하려면 관리형 Postgres, HTTPS, 속도 제한 공유 저장소가 먼저 필요하다.
+1. **처음 한 번**: `scripts\create-owner.bat 내이메일@주소` — 암호화 키 파일(`%USERPROFILE%\.myeongripp_data_key.txt`)이 자동 생성되고, 비밀번호를 입력창에 입력해 소유자 계정을 만든다(10자 이상, 영문+숫자).
+2. **매번**: `scriptsun-local.bat` — Docker Postgres(127.0.0.1:55498) + API + 웹을 한 번에 실행. 주소: **http://127.0.0.1:8765/consult.html** (이 PC에서만 접속 가능, 가입 차단 `ACCOUNTS_REGISTRATION=closed`). 포트가 사용 중이면 `set PORT=번호` 후 실행.
+3. **암호화 키 백업**: 키 파일을 잃어버리면 저장된 상담을 복호화할 수 없다. 파일을 비밀번호 관리자·외장 저장소에 따로 복사해 두고, Git·클라우드 동기화 폴더에는 두지 않는다.
+4. **DB 백업**: `docker exec myeongri-pg pg_dump -U myeongri myeongri > backup.sql` (키 파일과 함께 보관해야 복원 가능).
+5. 다른 Docker 컨테이너(예: 55432)와 포트가 겹치지 않는다. 외부 공개(인터넷 노출)는 범위 밖이며 관리형 Postgres, HTTPS, 공유 속도 제한이 먼저 필요하다.
 
 ## 저장되는 것 / 안 되는 것
 - 저장: 네 기둥·대운·계산 요약, 풀이 결과, 후속 질문·답변, 본인 평가(1~5점, 짧은 메모) — 모두 암호화.
