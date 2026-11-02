@@ -393,7 +393,9 @@ def test_user_screen_and_api_expose_no_internal_information(browser, one):
     assert p.locator("#verdict .vblock .whybox:visible").count() == 3   # 분야 블록의 근거 상자(종합 통변 상자는 따로 검증)
     # 모바일 가독성: 가로 넘침 없고 첫 결론이 첫 두 화면 안에 있다
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
-    assert p.evaluate("document.querySelector('#verdict .verdict-a').getBoundingClientRect().top + window.scrollY") < 800  # 모바일 첫 화면(800px) 안에 첫 결론
+    # v10: 맨 앞은 이야기 카드(자연물 비유 제목)이므로 제목이 첫 화면 안에, 핵심 결론은 그다음 두 화면 이내에 온다
+    assert p.evaluate("document.querySelector('#verdict .storytitle').getBoundingClientRect().top + window.scrollY") < 800
+    assert p.evaluate("document.querySelector('#verdict .verdict-a').getBoundingClientRect().top + window.scrollY") < 2000
     # API 응답: 사용자용 키만, 내부 근거 문자열 없음
     body = next(json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
     raw = p.evaluate("async (b) => (await fetch('/api/v1/oneshot/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b)})).text()", body)

@@ -88,7 +88,7 @@ def johu_check(pre: dict) -> dict | None:
     need = j.get("direction_elements") or []
     if not need:
         return None
-    tally = j.get("element_tally", {})
+    tally = shape_of(pre["natal_structure"].get("pillars"))
     present = [e for e in need if tally.get(e, 0) > 0]
     missing = [e for e in need if tally.get(e, 0) == 0]
     axis = AXIS_PLAIN.get(j.get("month_axis"), "계절의 한난이 한쪽으로 치우친 쪽")
@@ -104,6 +104,94 @@ def johu_check(pre: dict) -> dict | None:
         txt = f"{axis}에 태어나 {what} 기운이 필요한데, 타고난 사주에는 일부만 드러나 있습니다."
         state = "partial"
     return {"state": state, "text": txt, "need": need, "present": present, "missing": missing}
+
+
+# ---- 첫 장면: 자연물 비유 + 계절 + 필요한 기운이 들어오는 시기
+# 일간(태어난 날의 천간)을 자연물에 빗대어 읽는 것은 전통 명리의 오래된 설명 방식이다. 여기서는 구조를 쉽게 떠올리기 위한 비유로만 쓰며, 성격·운명을 단정하는 근거가 아니다.
+# 이 비유 사전은 구현자가 정한 표현이고 원문 대조를 마치지 않았다(그래서 화면에 '비유'라고 밝힌다).
+STEM_IMAGE = {"甲": "큰 나무", "乙": "풀과 꽃", "丙": "한낮의 해", "丁": "촛불과 등불", "戊": "큰 산", "己": "논밭의 흙", "庚": "바위와 쇳덩이", "辛": "보석", "壬": "큰 강과 바다", "癸": "비와 이슬"}
+STEM_ELEM = {"甲": "木", "乙": "木", "丙": "火", "丁": "火", "戊": "土", "己": "土", "庚": "金", "辛": "金", "壬": "水", "癸": "水"}
+BRANCH_ELEM = {"子": "水", "丑": "土", "寅": "木", "卯": "木", "辰": "土", "巳": "火", "午": "火", "未": "土", "申": "金", "酉": "金", "戌": "土", "亥": "水"}
+BRANCH_SEASON = {"寅": "봄", "卯": "봄", "辰": "봄", "巳": "여름", "午": "여름", "未": "여름", "申": "가을", "酉": "가을", "戌": "가을", "亥": "겨울", "子": "겨울", "丑": "겨울"}
+ELEM_KO_ORDER = ["木", "火", "土", "金", "水"]
+
+
+def _topic(word: str) -> str:
+    """주제 조사 은/는: 마지막 글자에 받침이 있으면 은, 없으면 는."""
+    c = word[-1]
+    return "은" if "가" <= c <= "힣" and (ord(c) - 0xAC00) % 28 else "는"
+
+
+def shape_of(pillars: dict) -> dict[str, int]:
+    """네 기둥(비어 있을 수 있음)의 천간·지지 글자를 다섯 가지 기운으로 센 것. 일간(나)도 센다. 지장간(속에 숨은 기운)은 세지 않는다."""
+    out = {e: 0 for e in ELEM_KO_ORDER}
+    for v in (pillars or {}).values():
+        for c in v or "":
+            e = STEM_ELEM.get(c) or BRANCH_ELEM.get(c)
+            if e:
+                out[e] += 1
+    return out
+
+
+def _elems(pillar: str) -> set[str]:
+    return {STEM_ELEM[c] for c in pillar if c in STEM_ELEM} | {BRANCH_ELEM[c] for c in pillar if c in BRANCH_ELEM}
+
+
+def _dominant_segment(p: dict) -> dict:
+    from .facts import _days
+    return max(p["segments"], key=_days)
+
+
+def story(pre: dict, P: dict, years: list[int]) -> dict | None:
+    """결과 첫 장면. 일간 비유 + 태어난 계절 + 필요한 기운(조후 방향)이 타고난 사주·대운·세운에 있는가를 시간 순으로 말한다.
+    판정이 아니라 사실 배치이며, 필요한 기운 점검은 구현자 수준(참고)임을 밝힌다."""
+    pil = pre["natal_structure"].get("pillars") or {}
+    day, month = pil.get("day"), pil.get("month")
+    if not day or not month or day[0] not in STEM_IMAGE:
+        return None
+    season = BRANCH_SEASON.get(month[1])
+    image = f"{season}에 선 {STEM_IMAGE[day[0]]}" if season else STEM_IMAGE[day[0]]
+    johu = pre["natal_structure"]["layer4"]["johu"]
+    need = [e for e in (johu.get("direction_elements") or []) if e in ELEM_PLAIN]
+    shape = shape_of(pil)
+    beats: list[str] = [f"이 사주를 자연에 빗대면 ‘{image}’의 모습입니다."]
+    top = [e for e in ELEM_KO_ORDER if shape[e] == max(shape.values())] if any(shape.values()) else []
+    gone = [e for e in ELEM_KO_ORDER if shape[e] == 0]
+    if top:
+        beats.append("타고난 글자 중 가장 많은 기운은 " + "·".join(ELEM_PLAIN[e] for e in top) + (f"이고, {'·'.join(ELEM_PLAIN[e] for e in gone)}{_topic(ELEM_PLAIN[gone[-1]])} 겉으로 드러나지 않습니다." if gone else "입니다."))
+    timeline: list[dict] = []
+    luck_now = None
+    if need:
+        nm = "·".join(ELEM_PLAIN[e] for e in need)
+        what = AXIS_NEED.get(johu.get("month_axis"), "균형을 맞추는")
+        ax = AXIS_PLAIN.get(johu.get("month_axis"), "")
+        natal_has = [e for e in need if shape.get(e, 0) > 0]
+        beats.append(f"{ax}에 태어나 {what} {nm}의 기운이 필요하다고 보는데, 타고난 사주에는 " + ("이 기운이 드러나 있습니다." if natal_has else "이 기운이 겉으로 드러나 있지 않습니다."))
+        for y in years[:10]:
+            seg = _dominant_segment(P[y]) if P.get(y) else None
+            if not seg:
+                continue
+            lh = sorted(set(need) & _elems(seg["luck"]), key=ELEM_KO_ORDER.index)
+            yh = sorted(set(need) & _elems(seg["sewun"]), key=ELEM_KO_ORDER.index)
+            timeline.append({"year": y, "luck_hit": bool(lh), "year_hit": bool(yh)})
+        if timeline:
+            lucks = [r["luck_hit"] for r in timeline]
+            if all(lucks):
+                beats.append(f"선택한 시기의 10년 큰 흐름은 필요한 {nm}의 기운을 가져옵니다.")
+            elif not any(lucks):
+                beats.append(f"선택한 시기의 10년 큰 흐름에는 필요한 {nm}의 기운이 들어 있지 않습니다.")
+            else:
+                beats.append(f"선택한 시기 중 10년 큰 흐름이 바뀌며 필요한 {nm}의 기운이 들어오는 때와 아닌 때가 나뉩니다.")
+            both = [r["year"] for r in timeline if r["luck_hit"] and r["year_hit"]]
+            only_year = [r["year"] for r in timeline if r["year_hit"] and not r["luck_hit"]]
+            if both:
+                beats.append("그해의 기운까지 겹쳐 필요한 기운이 더 분명하게 들어오는 해: " + ", ".join(f"{y}년" for y in both[:5]) + ".")
+            elif only_year:
+                beats.append("그해의 기운으로 필요한 기운이 들어오는 해: " + ", ".join(f"{y}년" for y in only_year[:5]) + ".")
+            luck_now = timeline[0]["luck_hit"]
+    return {"image": image, "stem_image": STEM_IMAGE[day[0]], "season": season, "beats": beats, "shape": {ELEM_PLAIN[e]: shape[e] for e in ELEM_KO_ORDER},
+            "need": [ELEM_PLAIN[e] for e in need], "timeline": timeline,
+            "note": "자연물 비유와 ‘필요한 기운’ 점검은 전통에서 쓰는 설명 방식을 쉽게 풀어 쓴 것입니다. 성격이나 일어날 일을 말하는 것이 아니며, 일간별 계절 표(궁통보감)는 쓰지 않은 일반 원칙 수준의 참고입니다."}
 
 
 def luck_year(pre: dict, P: dict, years: list[int]) -> list[dict]:
@@ -255,8 +343,9 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
     if not conds:
         conds.append("출생 시각이나 날짜가 달라지면 결과가 달라집니다. 입력한 정보가 정확한지 확인해 주세요.")
 
-    internal = {"version": PROFILE_VERSION, "center": c, "schools_state": sv["state"], "luck_year": [{k: v for k, v in r.items() if k != "text"} for r in ly],
+    st = story(pre, P, years)
+    internal = {"story_used": bool(st), "version": PROFILE_VERSION, "center": c, "schools_state": sv["state"], "luck_year": [{k: v for k, v in r.items() if k != "text"} for r in ly],
                 "rule_ids": [S.RULE_OF[n] for n in c["names"] if n in S.RULE_OF], "claim_ids": [layer3[n]["claim_id"] for n in c["names"] if n in layer3],
                 "unconfirmed_center_rules": weak_rules, "johu_check": ({k: v for k, v in jc.items() if k != "text"} if jc else None)}
-    return {"version": PROFILE_VERSION, "withheld": bool(withheld or (not c["names"] and sv["state"] == "none")), "conclusion": concl, "why": why, "reality": reality, "conditions": conds,
+    return {"story": st, "version": PROFILE_VERSION, "withheld": bool(withheld or (not c["names"] and sv["state"] == "none")), "conclusion": concl, "why": why, "reality": reality, "conditions": conds,
             "views": sv["views"], "internal": internal}

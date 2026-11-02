@@ -146,7 +146,11 @@ def test_profile_blocks_use_the_first_selected_year():
 
 # ---------------------------------------------------------------- v9.4 계절 균형(한난) 점검
 def pre_johu(axis, need, tally):
-    return {"natal_structure": {"layer4": {"johu": {"month_axis": axis, "direction_elements": need, "element_tally": tally}}}}
+    """tally: {오행: 개수} → 그 개수만큼 해당 오행 글자를 가진 가짜 네 기둥으로 바꿔 준다(점검은 네 기둥 글자를 센다)."""
+    ch = {"木": "甲", "火": "丙", "土": "戊", "金": "庚", "水": "壬"}
+    letters = [ch[e] for e, n in tally.items() for _ in range(n)]
+    pil = {"year": "".join(letters[:2]) or None, "month": "".join(letters[2:4]) or None, "day": "".join(letters[4:6]) or None, "hour": "".join(letters[6:8]) or None}
+    return {"natal_structure": {"pillars": pil, "layer4": {"johu": {"month_axis": axis, "direction_elements": need, "element_tally": tally}}}}
 
 
 def test_johu_check_states_and_plain_words():
@@ -174,3 +178,53 @@ def test_johu_check_never_changes_tones_and_always_carries_its_limit(answers):
     import inspect
     from app.consult import judge
     assert "johu" not in inspect.getsource(judge).lower().replace("johu_", "x")
+
+
+# ---------------------------------------------------------------- 첫 장면(이야기 카드)
+def story_pre(pillars, axis, need):
+    return {"natal_structure": {"pillars": pillars, "layer4": {"johu": {"month_axis": axis, "direction_elements": need, "element_tally": {}}}}}
+
+
+def seg(luck, sewun, days=365):
+    return {"segments": [{"from": "2030-01-01", "to": "2030-12-31", "luck": luck, "sewun": sewun}]}
+
+
+def test_shape_counts_all_eight_letters_including_the_day_master():
+    sh = PF.shape_of({"year": "壬申", "month": "辛亥", "day": "甲子", "hour": "乙亥"})
+    assert sh == {"木": 2, "火": 0, "土": 4, "金": 0, "水": 2} and sum(sh.values()) == 8
+    assert sum(PF.shape_of({"year": "壬申", "month": "辛亥", "day": "甲子", "hour": None}).values()) == 6        # 시주를 모르면 여섯 글자
+
+
+def test_story_image_uses_day_master_and_birth_season_and_says_it_is_a_metaphor(monkeypatch):
+    import app.consult.facts as FA
+    monkeypatch.setattr(FA, "_days", lambda s: 365)
+    st = PF.story(story_pre({"year": "壬申", "month": "辛亥", "day": "甲子", "hour": "乙亥"}, "한(寒)", ["火"]), {2030: seg("丁卯", "庚午")}, [2030])
+    assert st["image"] == "겨울에 선 큰 나무" and st["need"] == ["불"]
+    assert st["timeline"] == [{"year": 2030, "luck_hit": True, "year_hit": True}]
+    text = " ".join(st["beats"])
+    assert "불의 기운이 필요" in text and "겉으로 드러나 있지 않습니다" in text and "10년 큰 흐름은 필요한 불의 기운을 가져옵니다" in text and "2030년" in text
+    assert "비유" in st["note"] and "성격이나 일어날 일을 말하는 것이 아니며" in st["note"] and "궁통보감" in st["note"]
+    assert not re.search(r"[一-鿿]", " ".join(st["beats"]) + st["image"])
+
+
+def test_story_marks_years_when_need_does_not_arrive_and_never_claims_events(monkeypatch):
+    import app.consult.facts as FA
+    monkeypatch.setattr(FA, "_days", lambda s: 365)
+    st = PF.story(story_pre({"year": "丙午", "month": "丁巳", "day": "庚午", "hour": "庚申"}, "난(熱)", ["水"]), {2027: seg("丁卯", "丁未"), 2028: seg("丁卯", "戊申"), 2029: seg("丁卯", "壬子")}, [2027, 2028, 2029])
+    assert [r["luck_hit"] for r in st["timeline"]] == [False] * 3 and [r["year_hit"] for r in st["timeline"]] == [False, False, True]
+    assert "큰 흐름에는 필요한 물의 기운이 들어 있지 않습니다" in " ".join(st["beats"])
+    assert not re.search(r"반드시|틀림없|성공|실패|좋은 일|나쁜 일|합격|이직합니다", " ".join(st["beats"]))
+
+
+def test_story_skips_need_part_in_balanced_seasons_and_returns_none_without_day_pillar():
+    st = PF.story(story_pre({"year": "壬申", "month": "乙卯", "day": "甲子", "hour": None}, "한난 중간(봄)", []), {}, [])
+    assert st["image"] == "봄에 선 큰 나무" and st["need"] == [] and st["timeline"] == [] and len(st["beats"]) == 2
+    assert PF.story(story_pre({"year": "壬申", "month": "乙卯", "day": None, "hour": None}, "한(寒)", ["火"]), {}, []) is None
+
+
+def test_topic_particle_follows_final_consonant():
+    assert PF._topic("쇠") == "는" and PF._topic("불") == "은" and PF._topic("흙") == "은" and PF._topic("물") == "은"
+    st = PF.story(story_pre({"year": "丙午", "month": "丁巳", "day": "丙午", "hour": "丙午"}, "한난 중간(봄)", []), {}, [])
+    assert "나무·흙·쇠·물은 겉으로 드러나지 않습니다" in " ".join(st["beats"])      # 마지막 낱말(물)에 받침이 있어 '은'
+    st2 = PF.story(story_pre({"year": "甲子", "month": "乙丑", "day": "甲寅", "hour": "乙卯"}, "한난 중간(봄)", []), {}, [])
+    assert "불·쇠는 겉으로 드러나지 않습니다" in " ".join(st2["beats"])      # 마지막 낱말(쇠)은 받침이 없어 '는' 
