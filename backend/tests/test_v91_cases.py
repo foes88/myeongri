@@ -25,7 +25,8 @@ def birth(y, m, d):
 def rec(i, tc="A", scope="both", place="서울특별시", y=None):
     t = None if tc == "D" else f"{(7 + i) % 24:02d}:{(10 * i) % 60:02d}"
     return {"case_id": f"SYN-{i:03d}", "calendar": "solar", "leap": False, "birth_date": birth(y or 1996 + i, 1 + i % 12, 3 + i), "birth_time": t, "birth_place": place,
-            "gender": "male" if i % 2 else "female", "time_confidence": tc, "consent": {"given": True, "scope": scope, "note": "합성"}}
+            "gender": "male" if i % 2 else "female", "time_confidence": tc, "consent": {"given": True, "scope": scope, "note": "합성"}, "kind": "synthetic",
+            "observation": {"from": 2015, "to": 2026, "complete_domains": ["career", "love_marriage", "job_change"]}}
 
 
 def ev(year, dom="job_change", month=6, conf="high"):
@@ -112,11 +113,11 @@ def test_tampered_or_stale_ruleset_predictions_are_excluded_and_validation_conta
     fr["SYN-008"]["years"][0]["domains"]["career"]["tone"] = "opportunity" if fr["SYN-008"]["years"][0]["domains"]["career"]["tone"] != "opportunity" else "cautious"
     st._write("frozen", fr)
     monkeypatch.setattr(C, "current_ruleset", lambda: "mingli-new")      # 봉인 뒤 규칙이 바뀐 상황
-    rep = C.build_report(st)
+    rep = C.build_report(st, include_synthetic=True)
     assert rep["skipped"]["tampered"] == 1 and rep["skipped"]["ruleset_changed"] == 1
     # 같은 검증 세트가 다른 규칙 버전에서 이미 평가된 기록이 있으면 오염
     st.log_eval({"split": "validation", "ruleset_version": "mingli-old", "at": "x", "cases": 1})
-    assert C.build_report(st)["validation_contaminated"] is True
+    assert C.build_report(st, include_synthetic=True)["validation_contaminated"] is True
 
 
 def test_remove_case_deletes_everything(st):
@@ -136,7 +137,7 @@ def test_detection_table_matches_hand_calculation_and_excludes_boundary_and_low_
     for y in (2001, 2003, 2005):
         tones[y] = "opportunity"
     events = [ev(2003, "career"), ev(2007, "career"), ev(2005, "career", month=1), ev(2008, "career", conf="low")]
-    t = C.detection_table([{"predictions": fake_pred(tones), "events": events}], "career", "strong", n_perm=200)
+    t = C.detection_table([{"predictions": fake_pred(tones), "events": events, "observation": {"from": 2000, "to": 2009, "complete_domains": ["career"]}}], "career", "strong", n_perm=200)
     # 2005 는 1월 사건이라 입춘 경계로 제외, 2008(출처 low)은 사건으로 세지 않는다 → 해 9개: 사건 {2003, 2007}, 주장 {2001, 2003}
     assert (t["tp"], t["fp"], t["fn"], t["tn"]) == (1, 1, 1, 6)
     assert t["detection"] == 0.5 and t["false_alarm"] == pytest.approx(1 / 7) and t["precision"] == 0.5
@@ -146,7 +147,7 @@ def test_detection_table_matches_hand_calculation_and_excludes_boundary_and_low_
 
 def test_weak_mixed_claims_count_only_in_any_level():
     tones = {2000: "mixed", 2001: "quiet", 2002: "quiet"}
-    p = [{"predictions": fake_pred(tones), "events": [ev(2000, "career")]}]
+    p = [{"predictions": fake_pred(tones), "events": [ev(2000, "career")], "observation": {"from": 2000, "to": 2009, "complete_domains": ["career"]}}]
     assert C.detection_table(p, "career", "any", n_perm=10)["tp"] == 1
     assert C.detection_table(p, "career", "strong", n_perm=10)["tp"] == 0
 
@@ -157,13 +158,13 @@ def test_permutation_test_is_deterministic_and_separates_signal_from_noise():
     sig_t = {y: ("opportunity" if y % 3 == 0 else "quiet") for y in range(n)}
     sig_e = [ev(1000 + y if False else 1900 + y, "career") for y in range(n) if y % 3 == 0]
     sig_t = {1900 + y: t for y, t in sig_t.items()}
-    s = C.detection_table([{"predictions": fake_pred(sig_t), "events": sig_e}], "career", "strong", n_perm=300)
+    s = C.detection_table([{"predictions": fake_pred(sig_t), "events": sig_e, "observation": {"from": 1900, "to": 2100, "complete_domains": ["career"]}}], "career", "strong", n_perm=300)
     assert s["sufficient"] and s["p_perm"] < 0.01 and s["lift"] > 2
     noise_t = {1900 + y: ("opportunity" if y % 3 == 0 else "quiet") for y in range(n)}
     noise_e = [ev(1900 + y, "career") for y in range(n) if y % 3 == 1]
-    z = C.detection_table([{"predictions": fake_pred(noise_t), "events": noise_e}], "career", "strong", n_perm=300)
+    z = C.detection_table([{"predictions": fake_pred(noise_t), "events": noise_e, "observation": {"from": 1900, "to": 2100, "complete_domains": ["career"]}}], "career", "strong", n_perm=300)
     assert z["tp"] == 0 and z["p_perm"] > 0.5
-    assert C.detection_table([{"predictions": fake_pred(sig_t), "events": sig_e}], "career", "strong", n_perm=50) == C.detection_table([{"predictions": fake_pred(sig_t), "events": sig_e}], "career", "strong", n_perm=50)
+    assert C.detection_table([{"predictions": fake_pred(sig_t), "events": sig_e, "observation": {"from": 1900, "to": 2100, "complete_domains": ["career"]}}], "career", "strong", n_perm=50) == C.detection_table([{"predictions": fake_pred(sig_t), "events": sig_e, "observation": {"from": 1900, "to": 2100, "complete_domains": ["career"]}}], "career", "strong", n_perm=50)
 
 
 def part_with(det_by_dom, primary=5):
@@ -172,13 +173,13 @@ def part_with(det_by_dom, primary=5):
 
 def test_judge_reports_unconfirmed_ability_honestly_and_never_calls_it_prediction_accuracy():
     assert C.judge({"primary_cases": 0, "detection": {}}, False)["status"] == "미평가"
-    small = {"career": {"sufficient": False, "p_perm": 0.01, "lift": 3.0}}
+    small = {"career": {"sufficient": False, "p_perm": 0.01, "lift": 3.0, "cases_scored": 5}}
     j = C.judge(part_with(small), False)
     assert j["status"] == "표본 부족" and "예측 정확도로 해석하지" in j["reason"]
-    flat = {"career": {"sufficient": True, "p_perm": 0.4, "lift": 1.02}}
+    flat = {"career": {"sufficient": True, "p_perm": 0.4, "lift": 1.02, "cases_scored": 5}}
     j = C.judge(part_with(flat), False)
     assert j["status"] == "구별 능력 미확인" and "자기 이해" in j["reason"]
-    good = {"career": {"sufficient": True, "p_perm": 0.01, "lift": 1.8}}
+    good = {"career": {"sufficient": True, "p_perm": 0.01, "lift": 1.8, "cases_scored": 5}}
     j = C.judge(part_with(good), False)
     assert j["status"] == "예비 단서(재현 필요)" and "일반화할 수 없" in j["reason"] and "정확도" not in j["status"]
 
@@ -201,7 +202,8 @@ def test_end_to_end_synthetic_pipeline_reports_insufficient_sample_and_no_real_c
         st.freeze(cid, today=TODAY)
     s = CE.cmd_status(st)
     assert s["cases"] == 5 and s["frozen"] == 5 and s["not_frozen"] == 0 and s["split"] == {"dev": 3, "validation": 2} and s["primary_analysis_cases(A·B)"] == 4
-    rep = C.build_report(st)
+    assert C.build_report(st)["skipped"]["synthetic_excluded"] == 5     # 기본 보고서는 합성 사례를 실제 성능에 넣지 않는다
+    rep = C.build_report(st, include_synthetic=True)
     dev, val = rep["split"]["dev"], rep["split"]["validation"]
     assert dev["cases"] == 3 and dev["primary_cases"] == 2 and dev["verdict"]["status"] == "표본 부족"
     assert val["verdict"]["status"] == "표본 부족" and rep["validation_contaminated"] is False
@@ -220,13 +222,16 @@ def test_generation_is_deterministic_and_range_invariant(st):
 
 def test_status_without_cases_says_unverified(st):
     assert "미검증" in CE.cmd_status(st)["real_case_validation"]
+    st.add_case(rec(1), [])                                  # 합성 사례만 있어도 실제 사례 검증은 '미검증'
+    s = CE.cmd_status(st)
+    assert "미검증" in s["real_case_validation"] and s["real_cases"] == 0 and s["synthetic_cases(도구 검증용)"] == 1
 
 
 def test_csv_import_roundtrip_rejects_unconsented_and_inconsistent_rows(st, tmp_path):
     hdr = ",".join(CE.COLS)
-    r1 = f"SYN-101,solar,false,{birth(1998, 5, 9)},,서울특별시,male,D,true,dev,합성,2020,3,wealth,합성,합성 출처,high"
-    r1b = f"SYN-101,solar,false,{birth(1998, 5, 9)},,서울특별시,male,D,true,dev,합성,2022,,career,합성,합성 출처,medium"
-    r2 = f"SYN-102,solar,false,{birth(1999, 7, 1)},{(9):02d}:{(5):02d},서울특별시,female,A,false,both,,,,,,,"
+    r1 = f"SYN-101,solar,false,{birth(1998, 5, 9)},,서울특별시,male,D,true,dev,합성,synthetic,2018,2026,wealth,2020,3,wealth,합성,합성 출처,high"
+    r1b = f"SYN-101,solar,false,{birth(1998, 5, 9)},,서울특별시,male,D,true,dev,합성,synthetic,2018,2026,wealth,2022,,career,합성,합성 출처,medium"
+    r2 = f"SYN-102,solar,false,{birth(1999, 7, 1)},{(9):02d}:{(5):02d},서울특별시,female,A,false,both,,synthetic,,,,,,,,,"
     parsed = CE.parse_csv("\n".join([hdr, r1, r1b, r2]))
     assert len(parsed["SYN-101"][1]) == 2 and parsed["SYN-101"][0]["birth_time"] is None
     st.add_case(*parsed["SYN-101"])
@@ -251,9 +256,9 @@ def test_cli_end_to_end_with_synthetic_csv(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("APP_DATA_KEY", Fernet.generate_key().decode())
     monkeypatch.setenv("CASES_DIR", str(tmp_path / "c"))
     hdr = ",".join(CE.COLS)
-    rows = [f"SYN-201,solar,false,{birth(1997, 4, 12)},{9:02d}:{20:02d},서울특별시,male,A,true,dev,합성,2019,5,job_change,합성,합성 출처,high",
-            f"SYN-202,solar,false,{birth(1998, 9, 21)},{14:02d}:{40:02d},서울특별시,female,B,true,validation,합성,,,,,,",
-            f"SYN-203,solar,false,{birth(1999, 2, 17)},{3:02d}:{15:02d},서울특별시,female,A,false,both,,,,,,,,"]
+    rows = [f"SYN-201,solar,false,{birth(1997, 4, 12)},{9:02d}:{20:02d},서울특별시,male,A,true,dev,합성,synthetic,2016,2026,job_change,2019,5,job_change,합성,합성 출처,high",
+            f"SYN-202,solar,false,{birth(1998, 9, 21)},{14:02d}:{40:02d},서울특별시,female,B,true,validation,합성,synthetic,2016,2026,career,,,,,,",
+            f"SYN-203,solar,false,{birth(1999, 2, 17)},{3:02d}:{15:02d},서울특별시,female,A,false,both,,synthetic,,,,,,,,,"]
     f = tmp_path / "in.csv"
     f.write_text("\n".join([hdr] + rows), encoding="utf-8")
     assert CE.main(["import", str(f)]) == 0
@@ -261,7 +266,7 @@ def test_cli_end_to_end_with_synthetic_csv(tmp_path, monkeypatch, capsys):
     assert "추가: SYN-201 → dev" in out and "추가: SYN-202 → validation" in out and "거부: SYN-203" in out and "동의" in out
     assert CE.main(["freeze", "--all"]) == 0 and capsys.readouterr().out.count("봉인:") == 2
     rep = tmp_path / "rep.json"
-    assert CE.main(["report", "--out", str(rep)]) == 0
+    assert CE.main(["report", "--out", str(rep), "--include-synthetic"]) == 0
     out = capsys.readouterr().out
     assert "표본 부족" in out and "미검증" not in out
     j = json.loads(rep.read_text(encoding="utf-8"))

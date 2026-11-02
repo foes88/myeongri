@@ -16,6 +16,7 @@ import json
 import os
 import random
 import re
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -42,6 +43,7 @@ PERM_SEED = 91
 IPCHUN_BOUNDARY_MONTHS = (1, 2)                # 1~2월 사건은 입춘 전후 귀속이 모호해 점수에서 제외(별도 집계)
 DEFINITIVE = re.compile(r"반드시|틀림없|확실히 (성공|실패|일어)|100%|무조건")
 CASE_ID_RE = re.compile(r"^[A-Za-z0-9_-]{3,32}$")
+KINDS = ("real", "synthetic")                  # synthetic 은 도구 검증용이며 실제 사례 검증에 집계하지 않는다
 
 
 class CaseError(ValueError):
@@ -79,12 +81,21 @@ class Store:
         (self.dir / f"{name}.enc").write_bytes(crypto.encrypt(json.dumps(obj, ensure_ascii=False, sort_keys=True).encode("utf-8")))
 
     # -- 입력
-    def add_case(self, rec: dict, events: list[dict]) -> dict:
+    def add_case(self, rec: dict, events: list[dict], allow_duplicate: bool = False) -> dict:
         rec = validate_case(rec)
         events = [validate_event(e) for e in events]
         cases = self._read("cases", {})
         if rec["case_id"] in cases:
             raise CaseError(f"이미 있는 사례 ID: {rec['case_id']}")
+        dup = [k for k, v in cases.items() if v.get("fp") == rec["fp"]]
+        if dup and not allow_duplicate:
+            raise CaseError("같은 출생 정보의 사례가 이미 있습니다(중복 가능성). 쌍둥이 등 서로 다른 사람이면 allow_duplicate 로 명시하세요.")
+        seen = set()
+        for e in events:
+            k = (e["year"], e["month"], e["domain"], e["kind"])
+            if k in seen:
+                raise CaseError(f"같은 사건이 두 번 기록되었습니다: {e['year']}년 {e['domain']}")
+            seen.add(k)
         rec["split"] = assign_split(rec["case_id"], rec["consent"]["scope"])
         rec["added_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
         cases[rec["case_id"]] = rec
@@ -92,7 +103,7 @@ class Store:
         ev[rec["case_id"]] = events
         self._write("cases", cases)
         self._write("events", ev)
-        return {"case_id": rec["case_id"], "split": rec["split"], "events": len(events)}
+        return {"case_id": rec["case_id"], "split": rec["split"], "events": len(events), "kind": rec["kind"], "observed": rec["observation"] is not None}
 
     def remove_case(self, case_id: str) -> bool:
         """동의 철회·삭제: 사례, 사건, 봉인 예측을 모두 지운다."""
@@ -115,7 +126,31 @@ class Store:
         return CaseInput(r["case_id"], r["calendar"], r["leap"], r["birth_date"], r["birth_time"], r["birth_place"], r["gender"], r["time_confidence"])
 
     def meta(self) -> dict:
-        return {k: {"split": v["split"], "time_confidence": v["time_confidence"], "consent_scope": v["consent"]["scope"]} for k, v in self._read("cases", {}).items()}
+        return {k: {"split": v["split"], "time_confidence": v["time_confidence"], "consent_scope": v["consent"]["scope"], "kind": v.get("kind", "real"), "observation": v.get("observation")}
+                for k, v in self._read("cases", {}).items()}
+
+    def event_quality(self) -> dict:
+        """사건 기록의 품질 요약(개인정보 없음). 낮은 신뢰도·월 누락·분석 구간 밖 사건·관측 범위 밖 사건을 센다."""
+        cases, ev = self._read("cases", {}), self._read("events", {})
+        tot = Counter()
+        for cid, es in ev.items():
+            c = cases.get(cid)
+            if not c:
+                continue
+            ys = set(analysis_years(int(c["birth_date"][:4]), datetime.date.today().year))
+            obs = c.get("observation")
+            for e in es:
+                tot["events"] += 1
+                tot["src_" + e["source_confidence"]] += 1
+                tot["month_missing"] += e["month"] is None
+                tot["ipchun_boundary"] += e["month"] in IPCHUN_BOUNDARY_MONTHS
+                tot["outside_window"] += e["year"] not in ys
+                tot["outside_observation"] += bool(obs) and not (obs["from"] <= e["year"] <= obs["to"])
+                tot["no_observation_declared"] += obs is None
+        n = tot["events"] or 1
+        return {"events": tot["events"], "by_source_confidence": {k: tot["src_" + k] for k in SRC_CONF}, "month_missing_share": round(tot["month_missing"] / n, 3),
+                "ipchun_boundary(점수 제외)": tot["ipchun_boundary"], "outside_analysis_window": tot["outside_window"], "outside_declared_observation": tot["outside_observation"],
+                "events_of_cases_without_observation": tot["no_observation_declared"]}
 
     # -- 사건 접근 규칙: 봉인된 예측이 있어야만 열린다(검증·개발 모두)
     def events_for_compare(self, case_id: str) -> list[dict]:
@@ -180,8 +215,31 @@ def validate_case(r: dict) -> dict:
         raise CaseError("사용 동의가 없는 사례는 저장하지 않습니다.")
     if c.get("scope") not in ("dev", "validation", "both"):
         raise CaseError("consent.scope 는 dev/validation/both")
-    return {"case_id": cid, "calendar": cal, "leap": bool(r.get("leap", False)), "birth_date": bd, "birth_time": bt, "birth_place": str(r.get("birth_place") or "").strip(),
-            "gender": r["gender"], "time_confidence": tc, "consent": {"given": True, "scope": c["scope"], "note": str(c.get("note", ""))[:200]}}
+    kind = r.get("kind", "real")
+    if kind not in KINDS:
+        raise CaseError("kind 는 real/synthetic")
+    leap = bool(r.get("leap", False))
+    fp = hashlib.sha256(f"{cal}|{leap}|{bd}|{bt}|{r['gender']}".encode()).hexdigest()[:24]
+    return {"case_id": cid, "calendar": cal, "leap": leap, "birth_date": bd, "birth_time": bt, "birth_place": str(r.get("birth_place") or "").strip(),
+            "gender": r["gender"], "time_confidence": tc, "consent": {"given": True, "scope": c["scope"], "note": str(c.get("note", ""))[:200]}, "kind": kind,
+            "observation": validate_observation(r.get("observation")), "fp": fp}
+
+
+def validate_observation(o: dict | None) -> dict | None:
+    """관측 범위: 이 연도 구간·분야에서는 본인의 사건을 빠짐없이 확인했다(그래서 기록이 없으면 '사건 없음'으로 확인된 해다). 없으면 무사건 해를 음성으로 쓰지 않는다."""
+    if not o:
+        return None
+    try:
+        a, b = int(o["from"]), int(o["to"])
+    except (KeyError, TypeError, ValueError):
+        raise CaseError("관측 범위는 from/to 연도가 필요합니다.")
+    if not (1900 <= a <= b <= 2100):
+        raise CaseError("관측 범위 연도 오류")
+    doms = o.get("complete_domains") or []
+    bad = [d for d in doms if d not in EVENT_DOMAINS]
+    if bad or not doms:
+        raise CaseError(f"관측이 완전한 분야는 {sorted(EVENT_DOMAINS)} 중에서 하나 이상")
+    return {"from": a, "to": b, "complete_domains": sorted(set(doms))}
 
 
 def validate_event(e: dict) -> dict:
@@ -292,12 +350,17 @@ def detection_table(items: list[dict], dom: str, level: str = "any", seed: int =
     """items: [{predictions, events}] (시각 신뢰도 A·B 사례). 분야별 탐지/오탐/정밀도/기준율 대비 배수 + 순열 검정(같은 사례 안에서 주장 연도를 섞음)."""
     rng = random.Random(seed)
     per_case = []
+    not_observed = 0
     for it in items:
+        obs = it.get("observation")
+        if not obs or not any(EVENT_DOMAINS[d] == dom for d in obs["complete_domains"]):
+            not_observed += 1            # 관측 범위가 없으면 기록 없는 해를 '사건 없음'으로 단정하지 않는다 → 이 사례·분야는 제외
+            continue
         ev, bound = _event_years(it["events"], dom)
         rows = []
         for r in it["predictions"]["years"]:
             y = r["year"]
-            if y in bound:
+            if y in bound or not (obs["from"] <= y <= obs["to"]):
                 continue
             tone = r["domains"].get(dom, {}).get("tone", "thin")
             lv = claim_level(tone)
@@ -311,7 +374,7 @@ def detection_table(items: list[dict], dom: str, level: str = "any", seed: int =
     n_claim = tp + fp
     base = n_ev / (n_ev + n_no) if (n_ev + n_no) else None
     prec = tp / n_claim if n_claim else None
-    out = {"domain": dom, "level": level, "event_years": n_ev, "non_event_years": n_no, "claims": n_claim, "tp": tp, "fp": fp, "fn": fn, "tn": tn,
+    out = {"domain": dom, "level": level, "cases_scored": len(per_case), "cases_not_observed": not_observed, "event_years": n_ev, "non_event_years": n_no, "claims": n_claim, "tp": tp, "fp": fp, "fn": fn, "tn": tn,
            "detection": tp / n_ev if n_ev else None, "false_alarm": fp / n_no if n_no else None, "precision": prec, "base_rate": base,
            "lift": (prec / base) if (prec is not None and base) else None, "p_perm": None, "sufficient": n_ev >= MIN_EVENTS_FOR_CONCLUSION}
     if n_ev and n_claim and n_no:
@@ -393,12 +456,16 @@ def consistency_check(ci: CaseInput, today_year: int, sample: int = 3) -> dict:
 
 
 # ---- 보고 -------------------------------------------------------------------------------
-def build_report(store: Store, baseline: dict | None = None) -> dict:
+def build_report(store: Store, baseline: dict | None = None, include_synthetic: bool = False) -> dict:
+    """include_synthetic=False(기본): 합성 사례는 실제 사례 성능에 넣지 않는다(도구 검증 전용). 개발(dev) 사례의 결과는 최종 검증 성능이 아니다."""
     cases, fr, meta = store._read("cases", {}), store.frozen(), store.meta()
     rs_now = current_ruleset()
     sets: dict[str, list[dict]] = {"dev": [], "validation": []}
-    skipped = {"not_frozen": 0, "ruleset_changed": 0, "tampered": 0}
+    skipped = {"not_frozen": 0, "ruleset_changed": 0, "tampered": 0, "synthetic_excluded": 0}
     for cid, m in meta.items():
+        if m["kind"] == "synthetic" and not include_synthetic:
+            skipped["synthetic_excluded"] += 1
+            continue
         rec = fr.get(cid)
         if not rec:
             skipped["not_frozen"] += 1
@@ -410,10 +477,11 @@ def build_report(store: Store, baseline: dict | None = None) -> dict:
             skipped["ruleset_changed"] += 1
             continue
         p = dict(rec, birth_year=int(cases[cid]["birth_date"][:4]))
-        sets[m["split"]].append({"id": cid, "time_conf": m["time_confidence"], "predictions": p, "events": store.events_for_compare(cid)})
+        sets[m["split"]].append({"id": cid, "time_conf": m["time_confidence"], "predictions": p, "events": store.events_for_compare(cid), "observation": m["observation"]})
     log = store.eval_log()
     contaminated = any(e["ruleset_version"] != rs_now for e in log if e.get("split") == "validation")
-    out: dict = {"ruleset_version": rs_now, "skipped": skipped, "validation_contaminated": contaminated, "split": {}}
+    out: dict = {"ruleset_version": rs_now, "skipped": skipped, "validation_contaminated": contaminated, "includes_synthetic": include_synthetic, "split": {},
+                 "note": "개발(dev) 결과는 규칙을 고치는 데 쓴 사례의 결과이므로 최종 검증 성능이 아니다. 검증(validation) 결과만 일반화 논의에 쓸 수 있다."}
     for sp, items in sets.items():
         prim = [i for i in items if i["time_conf"] in PRIMARY_TIME_CONF]
         sec = [i for i in items if i["time_conf"] not in PRIMARY_TIME_CONF]
@@ -439,6 +507,8 @@ def judge(part: dict, has_baseline: bool) -> dict:
     det = part.get("detection") or {}
     if not part["primary_cases"]:
         return {"status": "미평가", "reason": "1차 분석 사례(시각 신뢰도 A·B)가 없습니다."}
+    if not any(t["strong"]["cases_scored"] for t in det.values()):
+        return {"status": "미평가", "reason": "관측 범위(사건을 빠짐없이 확인한 연도·분야)가 선언된 사례가 없어, 기록 없는 해를 '사건 없음'으로 쓸 수 없습니다."}
     enough = [(d, t["strong"]) for d, t in det.items() if t["strong"]["sufficient"]]
     if not enough:
         return {"status": "표본 부족", "reason": f"분야별 사건 해가 {MIN_EVENTS_FOR_CONCLUSION}개 미만이라 사건 구별 능력에 대한 결론을 내지 않습니다. 이 숫자를 예측 정확도로 해석하지 마세요."}
