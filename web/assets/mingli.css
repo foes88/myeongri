@@ -306,3 +306,17 @@ details.expert-raw>summary{color:var(--ink2);font-size:.92rem}
   #verdict .vprofile{padding:20px 16px !important}
   #verdict .yearlines>li{padding-left:12px}
 }
+
+/* ====== v10.1 넓은 화면 활용: 데스크톱에서는 화면 폭을 쓴다(읽기 폭은 칸마다 제한). 모바일·좁은 화면은 그대로 한 열 ====== */
+@media (min-width:1000px){:root{--col:1060px}}
+@media (min-width:1300px){:root{--col:1360px}}
+@media (min-width:1000px){
+  .vcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:0 44px;align-items:start}
+  .vcols.one{grid-template-columns:minmax(0,1fr)}
+  #verdict .vcols>div>section:first-child{border-top:0 !important}
+  #verdict .vprofile>*{max-width:980px}
+  #verdict .vprofile .verdict-a{font-size:1.4rem}
+  #verdict .vstorycard>*{max-width:980px}
+  form.request{max-width:1000px}
+}
+@media (min-width:1300px){.vcols{gap:0 64px}}

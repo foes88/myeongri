@@ -1,6 +1,7 @@
+import json
 import os
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Literal
@@ -29,6 +30,35 @@ class BirthInput(BaseModel):
 
 app.add_middleware(CORSMiddleware, allow_origins=[o for o in os.environ.get('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',') if o],
                    allow_methods=['GET', 'POST', 'DELETE'], allow_headers=['Content-Type', 'X-Consult-Token', 'Authorization'])
+
+@app.get('/api/v1/local-defaults')
+def local_defaults(request: Request):
+    """개인용 기본 입력값. 환경변수 MYEONGRI_DEFAULTS 가 가리키는 로컬 파일(저장소 밖)이 있고 요청이 이 PC에서 올 때만 돌려준다.
+    그 밖에는 항상 빈 값이다(공개 배포·원격 접속에서는 어떤 개인 정보도 나가지 않는다). 허용 키와 형식만 통과시킨다."""
+    import re as _re
+    from fastapi.responses import JSONResponse
+    hdr = {'Cache-Control': 'no-store'}
+    path = os.environ.get('MYEONGRI_DEFAULTS')
+    host = (request.client.host if request.client else '') or ''
+    if not path or host not in ('127.0.0.1', '::1', 'localhost', 'testclient'):
+        return JSONResponse({}, headers=hdr)
+    try:
+        raw = json.loads(open(path, encoding='utf-8-sig').read())
+    except (OSError, ValueError):
+        return JSONResponse({}, headers=hdr)
+    out = {}
+    if isinstance(raw.get('birth_date'), str) and _re.fullmatch(r'\d{4}-\d{2}-\d{2}', raw['birth_date']):
+        out['birth_date'] = raw['birth_date']
+    if isinstance(raw.get('birth_time'), str) and _re.fullmatch(r'([01]\d|2[0-3]):[0-5]\d|', raw['birth_time']):
+        out['birth_time'] = raw['birth_time']
+    if raw.get('gender') in ('male', 'female'):
+        out['gender'] = raw['gender']
+    if raw.get('calendar') in ('solar', 'lunar'):
+        out['calendar'] = raw['calendar']
+    if isinstance(raw.get('birth_place'), str) and 0 < len(raw['birth_place']) <= 40:
+        out['birth_place'] = raw['birth_place']
+    return JSONResponse(out if 'birth_date' in out else {}, headers=hdr)
+
 
 @app.get('/api/v1/health')
 def health():

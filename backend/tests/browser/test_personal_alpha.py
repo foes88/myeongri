@@ -1,5 +1,6 @@
 """v9.0 Personal Alpha 실사용 E2E(실제 브라우저, 가상 입력). 새 명식 → 기본 풀이 → 계산 상태 → 연도 이동(재입력 없음) → 5년 → 후속 3회(맥락) →
 내 평가 → 새로고침·재로그인·이전 상담 열기 → 열린 상태에서 연도 이동 → 내보내기 → 삭제. 360px·1440px."""
+import json
 import re
 
 import pytest
@@ -23,6 +24,7 @@ def test_personal_end_to_end(browser, one, size):
     email = f"me-{size}@example.com"
     _login_ui(p, email, register=True)
     fill(p)
+    p.fill("#y1", "2028")
     p.fill("#q", "2028년 재물과 직업이 궁금합니다")
     p.click("#f button[type=submit]")
     p.wait_for_selector("#session:not([hidden])", timeout=60000)
@@ -156,7 +158,7 @@ def test_reading_order_conclusion_first_then_period_then_nature_metaphor_collaps
         p.select_option("#pk", "r5")
     p.click("#f button[type=submit]")
     p.wait_for_selector("#verdict .vstorycard", timeout=60000)
-    kinds = p.eval_on_selector_all("#verdict > section", "els=>els.map(e=>e.classList.contains('vprofile')?'profile':e.classList.contains('vperiod')?'period':e.classList.contains('vstorycard')?'story':e.classList.contains('vsip')?'sip':e.classList.contains('vblock')?'block':'other')")
+    kinds = p.eval_on_selector_all("#verdict section.vprofile, #verdict section.vsip, #verdict section.vperiod, #verdict section.vblock, #verdict section.vstorycard", "els=>els.map(e=>e.classList.contains('vprofile')?'profile':e.classList.contains('vperiod')?'period':e.classList.contains('vstorycard')?'story':e.classList.contains('vsip')?'sip':e.classList.contains('vblock')?'block':'other')")
     assert kinds[0] == "profile" and kinds[-1] in ("story", "other")
     assert kinds.index("story") > max(i for i, k in enumerate(kinds) if k in ("period", "block"))          # 비유는 시기·분야 요약 다음
     assert kinds[1] == "sip" and kinds[2] == ("period" if multi else "block")                              # 이 사주의 모습 → 선택한 시기의 변화/분야 요약
@@ -180,4 +182,37 @@ def test_reading_order_conclusion_first_then_period_then_nature_metaphor_collaps
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     p.screenshot(path=f"data_private/browser/order_{size}_{'multi' if multi else 'single'}.png")
     assert not [c for c in console if "PAGEERROR" in c or "Content Security" in c]
+    ctx.close()
+
+
+def test_year_defaults_to_next_year_and_personal_defaults_prefill_only_when_provided(browser, one):
+    """분석 연도는 항상 내년이 기본. 개인용 기본 입력값(서버가 로컬 설정에서 줄 때만)은 폼을 채우되 이미 입력한 값은 덮어쓰지 않는다. 설정이 없으면 빈 폼."""
+    import datetime
+    ny = datetime.date.today().year + 1
+    # 설정이 없는 서버(공개 배포와 같은 상태): 출생 정보는 비어 있고 연도만 내년
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    p = ctx.new_page()
+    p.goto(one["base"] + "/consult.html")
+    p.wait_for_load_state("networkidle")
+    assert p.input_value("#date") == "" and p.input_value("#y1") == str(ny) and p.input_value("#y2") == str(ny + 1)
+    assert str(ny) in p.inner_text("#pdesc")
+    ctx.close()
+    # 로컬 기본값이 있을 때(가상 값): 생년월일·시각·성별·출생지가 채워진다
+    vals = {"calendar": "solar", "birth_date": f"{1990:04d}-{2:02d}-{3:02d}", "birth_time": f"{4:02d}:{5:02d}", "gender": "female", "birth_place": "경기도 수원시"}
+    ctx = browser.new_context(viewport={"width": 360, "height": 800})
+    p = ctx.new_page()
+    p.route("**/api/v1/local-defaults", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(vals, ensure_ascii=False)))
+    p.goto(one["base"] + "/consult.html")
+    p.wait_for_function("document.getElementById('date').value !== ''")
+    assert p.input_value("#date") == vals["birth_date"] and p.input_value("#time") == vals["birth_time"] and p.input_value("#gender") == "female"
+    assert p.input_value("#place") == "경기도 수원시" and p.input_value("#y1") == str(ny)
+    ctx.close()
+    # 이미 입력한 값은 덮어쓰지 않는다(응답이 늦게 와도)
+    ctx = browser.new_context()
+    p = ctx.new_page()
+    p.route("**/api/v1/local-defaults", lambda r: (__import__("time").sleep(0.6), r.fulfill(status=200, content_type="application/json", body=json.dumps(vals)))[1])
+    p.goto(one["base"] + "/consult.html")
+    p.fill("#date", f"{1975:04d}-{6:02d}-{7:02d}")
+    p.wait_for_timeout(1500)
+    assert p.input_value("#date") == f"{1975:04d}-{6:02d}-{7:02d}"
     ctx.close()

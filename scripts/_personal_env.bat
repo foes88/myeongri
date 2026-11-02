@@ -12,6 +12,8 @@ if not exist "%KEYFILE%" (
 set /p APP_DATA_KEY=<"%KEYFILE%"
 if not defined APP_DATA_KEY (echo [오류] 키 파일을 읽지 못했습니다. & exit /b 1)
 set ACCOUNTS_ENABLED=1
+rem 개인용 기본 입력값(저장소 밖). 파일이 없으면 기본값 없이 빈 폼으로 시작한다.
+set "MYEONGRI_DEFAULTS=%MYEONGRI_HOME%\defaults.json"
 set ACCOUNTS_REGISTRATION=closed
 if not defined PORT set PORT=8765
 set DATABASE_URL=postgresql://myeongri:local-dev-only@127.0.0.1:55498/myeongri

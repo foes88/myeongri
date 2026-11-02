@@ -137,9 +137,12 @@ renderReport=function(a,pre,reopened){
   const out=$('out');out.textContent='';const v=a.verdict;const root=el('div');root.id='verdict';
   /* 읽는 순서: 1 핵심 결론 → 2 선택한 시기의 변화·분야별 요약 → 3 자연물 비유 → 한계 */
   if(v.profile){root.append(profileEl(v.profile))}
-  if(v.profile&&v.profile.sipsung){root.append(sipEl(v.profile.sipsung,v.mode!=='multi'))}
-  if(v.mode==='multi'){root.append(periodEl(v))}
-  else{v.blocks.forEach((b,i)=>root.append(blockEl(v,b,i===0)))}
+  /* 넓은 화면(≥1000px)에서는 왼쪽 '이 사주의 모습', 오른쪽 '시기별 흐름/분야 풀이'를 나란히 놓는다. 좁은 화면에서는 위아래로 쌓여 순서가 같다. */
+  const cols=el('div',null,'vcols');const left=el('div',null,'vleft'),right=el('div',null,'vright');
+  if(v.profile&&v.profile.sipsung){left.append(sipEl(v.profile.sipsung,v.mode!=='multi'))}
+  if(v.mode==='multi'){right.append(periodEl(v))}
+  else{v.blocks.forEach((b,i)=>right.append(blockEl(v,b,i===0)))}
+  if(left.childElementCount)cols.append(left);cols.append(right);if(!left.childElementCount)cols.classList.add('one');root.append(cols);
   if(v.profile&&v.profile.story){root.append(storyEl(v.profile.story))}
   root.append(limitsEl(v));out.append(root);
   /* 내 사주(네 기둥): 결론 아래에 접어 둔다 */

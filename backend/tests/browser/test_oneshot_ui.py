@@ -83,7 +83,7 @@ def test_oneshot_full_flow_without_any_storage(browser, one):
     p.wait_for_selector("#out .record")
     assert p.is_hidden("#evt") and p.is_hidden("#hist")  # 개발용 도구는 사용자 화면에 없다
     # 요청: 같은 출처 oneshot API 만, 토큰/번호/저장 API 호출 없음
-    api = [(m, u) for m, u, pd in reqs if "/api/" in u]
+    api = [(m, u) for m, u, pd in reqs if "/api/" in u and not u.endswith("/api/v1/local-defaults")]     # 로컬 기본값 조회(GET, 개인 정보 전송 없음)는 제외
     api = [(m, u) for m, u in api if not (m == "GET" and u.endswith("/api/v1/health"))]  # 회원 기능 사용 가능 여부 확인(개인정보 없음)
     assert api and all(m == "POST" and "/api/v1/oneshot/" in u and u.startswith(one["base"]) for m, u in api), api
     assert not [u for m, u, pd in reqs if "/consultations" in u]
@@ -372,6 +372,7 @@ def test_fast_responses_do_not_flash_the_progress_bar(browser, one):
 def test_user_screen_and_api_expose_no_internal_information(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "360")
     fill(p)
+    p.fill("#y1", "2030")      # 기본 연도는 '내년'이므로 질문의 연도와 맞춰 한 해만 본다
     p.fill("#q", "2030년 재물과 직업이 궁금합니다")
     for cb in p.query_selector_all("#doms input"):
         want = cb.get_attribute("value") in ("overall", "wealth", "career")

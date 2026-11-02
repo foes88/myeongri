@@ -192,7 +192,18 @@ function years(){const y=parseInt($('y1').value,10);const k=$('pk').value;if(!y)
   if(k==='year')return [y];if(k==='r5')return Array.from({length:5},(_,i)=>y+i);if(k==='r10')return Array.from({length:10},(_,i)=>y+i);
   const y2=parseInt($('y2').value,10);return y2?[y,y2]:[y]}
 function pdesc(){$('y2w').hidden=$('pk').value!=='cmp';$('pdesc').textContent='분석 대상 연도: '+years().join(', ')+' · 각 해는 입춘과 대운 교체일로 구간이 나뉩니다.'}
-['pk','y1','y2'].forEach(i=>$(i).addEventListener('input',pdesc));pdesc();
+['pk','y1','y2'].forEach(i=>$(i).addEventListener('input',pdesc));
+/* 분석 연도 기본값: 항상 '내년'(오늘 기준, 1901~2049로 제한). 비교 연도는 그다음 해. */
+(function(){const ny=Math.min(2049,Math.max(1901,new Date().getFullYear()+1));$('y1').value=ny;$('y2').value=Math.min(2049,ny+1)})();
+pdesc();
+/* 개인용 기본 입력값: 이 PC의 로컬 설정 파일(저장소 밖)에서 서버가 돌려줄 때만 채운다. 공개 배포에는 없다(빈 값). 사용자가 이미 입력했으면 덮어쓰지 않는다. */
+(function(){if(typeof fetch!=='function'||STATIC)return;fetch('/api/v1/local-defaults',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(d=>{
+  if(!d||!d.birth_date||$('date').value)return;
+  $('date').value=d.birth_date;if(d.birth_time!==undefined&&!$('time').value)$('time').value=d.birth_time||'';
+  if(d.gender&&['male','female'].includes(d.gender))$('gender').value=d.gender;
+  if(d.calendar&&$('cal'))$('cal').value=d.calendar;
+  if(d.birth_place){const o=[...$('place').options].find(x=>x.value===d.birth_place||x.textContent.trim()===d.birth_place);if(o)$('place').value=o.value}
+  pdesc()}).catch(()=>{})})();
 function depthNote(){$('depthnote').textContent=DEPTH_NOTE[$('depth').value]}
 $('depth').addEventListener('input',depthNote);depthNote();
 
