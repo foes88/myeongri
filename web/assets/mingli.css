@@ -229,3 +229,15 @@ details.expert-raw>summary{color:var(--ink2);font-size:.92rem}
 .whybox h4{margin:.8rem 0 .2rem;font-size:.95rem;color:var(--ink)}
 
 .calc{margin:8px 0;padding:10px 12px;border:1px solid #cdd5e0;border-radius:8px;background:#f6f8fb;font-size:.92rem}.calc ul{margin:6px 0 0;padding-left:1.1em}.calc-check{border-color:#d9a400;background:#fff9e6}.calc-caution{border-color:#c0392b;background:#fdecea}
+
+
+/* 넓은 화면: 본문 폭을 넓히고 분야별 풀이를 2열로(좁은 화면은 기존 1열 유지) */
+@media (min-width:1000px){
+  body{background-image:none}   /* 옛 760px 폭 기준 세로 줄 제거 */
+  :root{--col:1120px}
+  #verdict{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;align-items:start}
+  #verdict>*{grid-column:1/-1}
+  #verdict>.vblock:not(.lead){grid-column:auto}
+  #verdict>.vblock.lead .verdict-a,#verdict>.vblock.lead .vstory{max-width:52em}
+}
+@media (min-width:1500px){:root{--col:1240px}}

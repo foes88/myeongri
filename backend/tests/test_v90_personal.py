@@ -181,7 +181,7 @@ def test_every_domain_headline_names_its_own_domain_not_wealth():
     from app.consult import agent, domains as D
     doms = [d for d in D.DOMAINS if d not in ("luck",)]
     for yrs in ([2027], [2028], [2030]):
-        body = M.OneshotBody(calendar="solar", birth_date="1991-04-07", birth_time="10:00", gender="male", birth_place="경기도 수원시", years=yrs, domains=doms, question="x")  # 가상 입력
+        body = M.OneshotBody(calendar="solar", birth_date=f"{1991:04d}-{4:02d}-{7:02d}", birth_time=f"{10:02d}:{0:02d}", gender="male", birth_place="경기도 수원시", years=yrs, domains=doms, question="x")  # 가상 입력
         pre = M._oneshot_pre(body)
         v = agent.answer(pre, "종합 상담을 시작합니다", domains_=doms, years=yrs, depth="detailed")["verdict"]
         for b in v["blocks"]:
