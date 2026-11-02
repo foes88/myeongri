@@ -20,7 +20,9 @@ PROFILE_VERSION = "profile-1.0.0"
 CENTER_MIN_RANK = 2          # 이 이상(뚜렷함)이어야 '중심'으로 말한다. 1(암장 약함)뿐이면 요약을 유보한다.
 GROUP_PLAIN = {"비겁": "나와 같은 기운(자립·경쟁)", "식상": "표현·기술의 기운", "재성": "재물·현실 자원의 기운", "관성": "직책·규율의 기운", "인성": "배움·보호의 기운"}
 SCHOOL_PLAIN = {"gyeokguk": "태어난 달의 기운으로 판을 읽는 관점", "eokbu": "나의 힘이 도움을 받는지 소모되는지 보는 관점", "johu": "태어난 계절의 한난을 보는 관점"}
-AXIS_PLAIN = {"한(寒)": "추운 계절", "열(熱)": "더운 계절", "조(燥)": "건조한 계절", "습(濕)": "습한 계절"}
+ELEM_PLAIN = {"木": "나무", "火": "불", "土": "흙", "金": "쇠", "水": "물"}
+AXIS_NEED = {"한(寒)": "따뜻하게 하는", "난(熱)": "식혀 주는"}
+AXIS_PLAIN = {"한(寒)": "추운 계절", "난(熱)": "더운 계절"}
 
 
 def _theme(name: str) -> str:
@@ -38,7 +40,7 @@ def _groups(gs: list[str]) -> str:
 
 
 def center(pre: dict) -> dict:
-    """원국에서 가장 뚜렷한 구조. rank 가 같으면 돕는 쪽·부딪히는 쪽을 모두 말한다(합산하지 않는다)."""
+    """타고난 사주에서 가장 뚜렷한 구조. rank 가 같으면 돕는 쪽·부딪히는 쪽을 모두 말한다(합산하지 않는다)."""
     sts = [s for s in pre["natal_structure"]["layer3"]["structures"] if s["rank"] > 0]
     if not sts:
         return {"names": [], "withheld": "no_structure"}
@@ -77,6 +79,31 @@ def schools_view(pre: dict) -> dict:
     note = {"agree": "관점이 같은 쪽을 가리킵니다.", "conflict": "관점마다 가리키는 쪽이 달라, 하나로 합치지 않고 각각 설명합니다.", "single": "한 관점에서만 방향이 나와 그 방향의 뒷받침은 약합니다.",
             "none": "어느 관점에서도 뚜렷한 방향이 나오지 않아 방향을 말하지 않습니다."}[state]
     return {"views": out, "state": state, "note": note}
+
+
+def johu_check(pre: dict) -> dict | None:
+    """계절의 한난 방향(원문 확인: 滴天髓 寒暖論, 범위 한정)에서 필요하다고 보는 기운이 원국에 겉으로 드러나 있는가.
+    '드러나 있는가'는 천간·지지 본기 집계(사실)로 본 구현자 수준의 점검이다. 窮通寶鑑의 일간×월지 개별 표는 쓰지 않았다(판본·사용 권한 확인 전)."""
+    j = pre["natal_structure"]["layer4"]["johu"]
+    need = j.get("direction_elements") or []
+    if not need:
+        return None
+    tally = j.get("element_tally", {})
+    present = [e for e in need if tally.get(e, 0) > 0]
+    missing = [e for e in need if tally.get(e, 0) == 0]
+    axis = AXIS_PLAIN.get(j.get("month_axis"), "계절의 한난이 한쪽으로 치우친 쪽")
+    what = AXIS_NEED.get(j.get("month_axis"), "균형을 맞추는")
+    names = "·".join(ELEM_PLAIN[e] for e in need if e in ELEM_PLAIN)
+    if missing and not present:
+        txt = f"{axis}에 태어나 {what} {names}의 기운이 필요하다고 보는데, 타고난 사주에는 이 기운이 겉으로 드러나 있지 않습니다(속에 숨어 있을 수는 있습니다)."
+        state = "missing"
+    elif present and not missing:
+        txt = f"{axis}에 태어났지만 {what} {names}의 기운이 타고난 사주에 겉으로 드러나 있어 계절의 치우침을 어느 정도 받쳐 줍니다."
+        state = "present"
+    else:
+        txt = f"{axis}에 태어나 {what} 기운이 필요한데, 타고난 사주에는 일부만 드러나 있습니다."
+        state = "partial"
+    return {"state": state, "text": txt, "need": need, "present": present, "missing": missing}
 
 
 def luck_year(pre: dict, P: dict, years: list[int]) -> list[dict]:
@@ -184,6 +211,9 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
         why.append("태어난 달이 나를 돕는지는 기준에 따라 다르게 나와, 이 부분은 한쪽으로 정하지 않았습니다.")
     why += [v["text"] for v in sv["views"]]
     why.append(sv["note"])
+    jc = johu_check(pre)
+    if jc:
+        why.append(jc["text"])
     if ly:
         why += [r["text"] for r in ly]
 
@@ -207,6 +237,8 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
     conds: list[str] = []
     for t in (calc_items or []):
         conds.append(t)
+    if jc:
+        conds.append("계절 균형(한난) 점검은 일반 원칙을 쓴 것이며, 일간과 태어난 달의 조합별로 세분한 전통 표는 아직 쓰지 않았습니다. 이 부분은 참고 수준으로만 봐 주세요.")
     if sv["state"] == "conflict":
         conds.append("관점에 따라 중요하게 보는 쪽이 달라, 어느 관점을 택하느냐에 따라 해석이 달라질 수 있습니다.")
     weak_rules = _rule_state(c["names"])
@@ -223,6 +255,6 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
 
     internal = {"version": PROFILE_VERSION, "center": c, "schools_state": sv["state"], "luck_year": [{k: v for k, v in r.items() if k != "text"} for r in ly],
                 "rule_ids": [S.RULE_OF[n] for n in c["names"] if n in S.RULE_OF], "claim_ids": [layer3[n]["claim_id"] for n in c["names"] if n in layer3],
-                "unconfirmed_center_rules": weak_rules}
+                "unconfirmed_center_rules": weak_rules, "johu_check": ({k: v for k, v in jc.items() if k != "text"} if jc else None)}
     return {"version": PROFILE_VERSION, "withheld": bool(withheld or (not c["names"] and sv["state"] == "none")), "conclusion": concl, "why": why, "reality": reality, "conditions": conds,
             "views": sv["views"], "internal": internal}

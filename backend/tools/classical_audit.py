@@ -45,7 +45,8 @@ def rows() -> list[dict]:
         e = C.entry(rid)
         b, extra = basis_of(rid)
         d = C.difference_for(rid) or {}
-        out.append({"rule_id": rid, "status": C.classical_status(rid), "basis": b, "extra": extra, "work": e.get("work"), "section": e.get("section"),
+        host = (e.get("url") or "").split("/")[2] if (e.get("url") or "").startswith("http") else None
+        out.append({"rule_id": rid, "status": C.classical_status(rid), "basis": b, "extra": extra, "work": e.get("work"), "section": e.get("section"), "cond": e.get("school_conditions"), "host": host,
                     "unconfirmed": e.get("unconfirmed_parts") or [], "gaps": d.get("known_gaps") or [], "diff": d.get("classification")})
     return out
 
@@ -69,19 +70,25 @@ def build_markdown() -> str:
          "## 구분 정의", "", "| 구분 | 뜻 |", "|---|---|",
          "| 원문 | 원전 구절(짧은 발췌)이 규칙 내용에 대응함을 사람이 확인 |", "| 후대 주석 | 원문이 아니라 주석자(예: 任鐵樵, 徐樂吾)의 해설이 근거 |",
          "| 현대적 해석 | 고전에 없는 현대 통용·확장(예: 반합·공합 범위) |", "| 구현자 규약 | 구현 편의·단순화. 고전의 결론이 아님 |", "| 미확인 | 위치만 확인했거나 확인 못함 |", "",
-         "## 우선 정리할 항목 (미확인·일부 확인·알려진 누락)", "", "| 규칙 | 구분 | 상태 | 확인 못한 부분 | 필요한 자료 |", "|---|---|---|---|---|"]
+         "## 우선 정리할 항목 (미확인·일부 확인·알려진 누락)", "", "| 규칙 | 구분 | 상태 | 확인 못한 부분 | 전제 조건(학파·적용) | 필요한 자료 |", "|---|---|---|---|---|---|"]
     for r in todo:
         need = f"{r['work'] or '출처 미지정'}" + (f" · {r['section']}" if r["section"] else "")
         parts = "; ".join(r["unconfirmed"] + r["gaps"] + r["extra"]) or "-"
-        L.append(f"| {r['rule_id']} | {r['basis']} | {r['status']} | {parts} | {need} — 판본 확인 필요 |")
+        L.append(f"| {r['rule_id']} | {r['basis']} | {r['status']} | {parts} | {(r['cond'] or '-').replace('|', '/')} | {need} — 판본 확인 필요 |")
     L += ["", "## 전체 규칙", "", "| 규칙 | 구분 | 상태 | 차이 분류 | 출처 |", "|---|---|---|---|---|"]
     for r in rs:
         L.append(f"| {r['rule_id']} | {r['basis']} | {r['status']} | {r['diff'] or '-'} | {r['work'] or '-'} |")
     L += ["", "## 출처 작품과 판본 확인이 필요한 항목", ""]
     for w, ids in sorted(works.items()):
         L.append(f"- **{w}**: {len(ids)}개 규칙 — 현재 근거는 외부 전사본(판본 교감 전). 어느 판본인지, 평주 부분(徐樂吾 평주, 任鐵樵 注)이 원문과 구분되어 인용되는지 확인해야 한다.")
-    L += ["", "- **궁통보감(窮通寶鑑/欄江網)**: 현재 규칙 레지스트리에 근거로 올라 있지 않다. 일간 10개 × 월 12개 조후 서술을 쓰려면 판본(清 余春台 편 등)과 사용 권한을 먼저 확인한 뒤 별도 규칙으로 등록해야 한다. 지금은 조후를 구현자 규약 수준으로만 쓴다고 보아야 한다." ,
-          "", "## 자료 접근 실패 기록", ""]
+    L += ["", "- **궁통보감(窮通寶鑑/欄江網)**: 현재 규칙 레지스트리에 근거로 올라 있지 않다. 조사 결과와 등록 조건은 `docs/28_V94_CLASSICAL_AND_JOHU.md` 참조. 일간×월지 개별 표는 판본·사용 권한 확인 전이라 쓰지 않으며, 조후는 한난 방향(滴天髓 寒暖論, 범위 한정) 수준으로만 쓴다.",
+          "", "## 전사본 호스트(판본 교감 전)", ""]
+    hosts = defaultdict(set)
+    for r in rs:
+        if r["host"]:
+            hosts[r["host"]].add(r["work"] or "-")
+    L += [f"- {h}: " + ", ".join(sorted(w)) for h, w in sorted(hosts.items())]
+    L += ["", "## 자료 접근 실패 기록", ""]
     fs = s["failed_sources"]
     L += [f"- {k}: 접속 실패(시간 초과)" for k in fs] or ["- 없음"]
     L += ["", "## 자료 사용 원칙", "", "- 사용 권한이 확인되지 않은 자료는 수집·재배포하지 않는다. 한글 번역본은 저작권을 확인하기 전에는 인용하지 않는다.",

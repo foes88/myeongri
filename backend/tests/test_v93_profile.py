@@ -142,3 +142,35 @@ def test_profile_blocks_use_the_first_selected_year():
     out = PF.build(pre, {}, [2027], blocks)
     rt = " ".join(out["reality"])
     assert "2027년에는 재물운에서 방향이 읽힙니다" in rt and "판단을 유보한 분야: 가족·인간관계운" in rt and "하나로 정하지 않은 분야: 직업·승진운" in rt
+
+
+# ---------------------------------------------------------------- v9.4 계절 균형(한난) 점검
+def pre_johu(axis, need, tally):
+    return {"natal_structure": {"layer4": {"johu": {"month_axis": axis, "direction_elements": need, "element_tally": tally}}}}
+
+
+def test_johu_check_states_and_plain_words():
+    miss = PF.johu_check(pre_johu("한(寒)", ["火"], {"水": 3, "土": 2}))
+    assert miss["state"] == "missing" and "추운 계절" in miss["text"] and "속에 숨어 있을 수는 있습니다" in miss["text"] and "불" in miss["text"]
+    ok = PF.johu_check(pre_johu("난(熱)", ["水"], {"火": 3, "水": 1}))
+    assert ok["state"] == "present" and "더운 계절" in ok["text"] and "식혀 주는" in ok["text"]
+    part = PF.johu_check(pre_johu("한(寒)", ["火", "木"], {"木": 1}))
+    assert part["state"] == "partial"
+    assert PF.johu_check(pre_johu("한난 중간(봄)", [], {"木": 2})) is None          # 치우치지 않은 계절은 점검하지 않는다
+    for r in (miss, ok, part):
+        assert not re.search(r"[一-鿿]", r["text"])
+
+
+def test_johu_check_never_changes_tones_and_always_carries_its_limit(answers):
+    for ci, pre, a in answers:
+        p = a["verdict"]["profile"]
+        jc = a["verdict"]["internal"]["profile"]["johu_check"]
+        if jc:
+            assert any("계절 균형" in c and "참고 수준" in c for c in p["conditions"])
+            assert any("계절" in w and "기운" in w for w in p["why"])
+        else:
+            assert not any("계절 균형" in c for c in p["conditions"])
+    # 판정(S/T)은 점검과 무관하다: judge 입력에 한난 점검이 없다
+    import inspect
+    from app.consult import judge
+    assert "johu" not in inspect.getsource(judge).lower().replace("johu_", "x")
