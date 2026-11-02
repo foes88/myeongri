@@ -166,7 +166,7 @@ def test_weak_and_thin_evidence_explain_why_instead_of_concluding():
                 assert not re.search(r"기회를 살리기|서두르기보다|커집니다", b["headline"])
             if b["tone"] == "thin":
                 thin += 1
-                assert "근거가 부족" in b["headline"] and any("말씀드릴 근거가 부족합니다" in s for s in b["story"])
+                assert "근거가 부족" in b["headline"] and any(("말씀드릴 근거가 부족합니다" in s or "결론을 내리지 않았습니다" in s) for s in b["story"])   # v9.2: 약한 근거(차이 작음)도 '근거 부족'으로 설명
                 assert not re.search(r"수입으로 이어지는 흐름이 보이는|평가와 자리로 이어지기 쉬운", b["headline"] + " ".join(b["story"]))
     assert weak >= 2 and thin >= 1
 

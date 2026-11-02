@@ -243,7 +243,7 @@ def _canon(obj) -> str:
 
 def generate_predictions(ci: CaseInput, today_year: int) -> dict:
     """명식과 분석 시기만으로 연도별·분야별 해석을 만든다. CaseInput 외의 사례 정보는 받지 않는다."""
-    from .consult import agent
+    from .consult import agent, judge
     ys = analysis_years(int(ci.birth_date[:4]), today_year)
     if not ys:
         raise CaseError("분석할 연도가 없습니다(너무 어리거나 범위 밖).")
@@ -256,7 +256,7 @@ def generate_predictions(ci: CaseInput, today_year: int) -> dict:
         rows.append({"year": y, "daeun_change": y in luck_years, "has_limits": bool(v.get("limits")),
                      "domains": {b["domain"]: {"tone": b["tone"], "S": b["scores"]["S"], "T": b["scores"]["T"], "headline": b["headline"], "has_counter": bool(b.get("counter")),
                                                "story": " ".join(b["story"])} for b in v["blocks"]}})
-    rec = {"case_id": ci.case_id, "ruleset_version": pre["ruleset_version"], "engine_version": pre["engine_version"], "today_year": today_year, "variant_ambiguous": ambiguous, "years": rows,
+    rec = {"case_id": ci.case_id, "ruleset_version": f"{pre['ruleset_version']}+{judge.JUDGE_VERSION}", "engine_version": pre["engine_version"], "today_year": today_year, "variant_ambiguous": ambiguous, "years": rows,
            "frozen_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")}
     rec["hash"] = hashlib.sha256(_canon({k: rec[k] for k in ("case_id", "ruleset_version", "years")}).encode()).hexdigest()
     return rec
@@ -267,8 +267,10 @@ def verify_frozen(rec: dict) -> bool:
 
 
 def current_ruleset() -> str:
+    """봉인·오염 판정에 쓰는 버전: 규칙 버전 + 판정 기준 버전(판정 기준이 바뀌면 예전 봉인은 현재 엔진의 예측이 아니다)."""
+    from .consult import judge
     from .mingli import rules
-    return rules.RULESET_VERSION
+    return f"{rules.RULESET_VERSION}+{judge.JUDGE_VERSION}"
 
 
 # ---- 지표 -------------------------------------------------------------------------------

@@ -14,6 +14,7 @@ from . import compose_domains as CD
 from . import explain as E
 from . import facts as FA
 from . import domains as D
+from . import judge as JD
 from . import readings as R
 from . import synthesis as S
 
@@ -279,7 +280,14 @@ def _rule_ids(names: list[str]) -> list[str]:
 def tone_for(pre: dict, dom: str, yr: dict | None, nm: dict, common_bad: list[str] | None = None) -> dict:
     """구조 분야: 돕는 흐름(S)과 부딪히거나 나누는 흐름(T)의 크기로 정한다. 그해 변화는 기간 가중(해의 절반 이상을 덮는 구간만 '그해의 변화', 짧은 구간은 절반 점수)."""
     if D.DOMAINS[dom].get("kind") == "palace":
-        return _tone_palace(pre, dom, yr)
+        return _tone_palace(pre, dom, yr, nm)
+    sc = _struct_scores(pre, dom, yr, nm)
+    cl = JD.classify(sc["S"], sc["T"], sc["has_basis"], bool(sc["sup_up"] or sc["ten_up"]))   # judge-2.0.0: 방향성(A)/충돌(B)/근거 부족(C)
+    return {**sc, "tone": cl["tone"], "cls": cl["cls"], "reason": cl["reason"]}
+
+
+def _struct_scores(pre: dict, dom: str, yr: dict | None, nm: dict) -> dict:
+    """구조(식상생재·재생관 등)의 돕는 흐름 S 와 부딪히는 흐름 T. 그해 변화는 기간 가중(절반 이상=2, 일부=1, 대운 지속=1), 원국 배경은 최대 1."""
     rel = D.DOMAINS[dom]["structures"] or list(S.STRUCT)
     present = {n: nm[n]["rank"] for n in rel if n in nm and nm[n]["rank"] > 0}
     sup_n = [n for n in present if S.STRUCT[n]["polarity"] == "support"]
@@ -296,46 +304,23 @@ def tone_for(pre: dict, dom: str, yr: dict | None, nm: dict, common_bad: list[st
     bad = (yr or {}).get("bad", [])  # 같은 해는 어느 범위로 보든 같은 결론이어야 하므로 선택 범위와 무관한 절대 기준만 쓴다
     s_score = 2 * len(sup_up) + len(sup_part) + len(sup_pers) + (1 if any(present[n] >= 3 for n in sup_n) or sum(present[n] for n in sup_n) >= 4 else 0)
     t_score = 2 * len(ten_up) + len(ten_part) + len(ten_pers) + (1 if any(present[n] >= 2 for n in ten_n) else 0) + (1 if len(bad) >= 3 else 0)
-    if not present and not ups and not part and not pers:
-        tone = "thin"
-    elif s_score == 0 and t_score == 0:
-        tone = "quiet"
-    elif s_score >= t_score + 2:
-        tone = "opportunity"
-    elif t_score >= s_score + 2:
-        tone = "cautious"
-    else:
-        tone = "mixed"
-    return {"tone": tone, "S": s_score, "T": t_score, "natal_support": sup_n, "natal_tension": ten_n, "sup_up": sup_up, "ten_up": ten_up, "sup_part": sup_part, "ten_part": ten_part, "sup_pers": sup_pers, "ten_pers": ten_pers,
-            "present": present, "bad": bad}
+    return {"S": s_score, "T": t_score, "natal_support": sup_n, "natal_tension": ten_n, "sup_up": sup_up, "ten_up": ten_up, "sup_part": sup_part, "ten_part": ten_part, "sup_pers": sup_pers, "ten_pers": ten_pers,
+            "present": present, "bad": bad, "has_basis": bool(present or ups or part or pers)}
 
 
-def _tone_palace(pre: dict, dom: str, yr: dict | None) -> dict:
+def _tone_palace(pre: dict, dom: str, yr: dict | None, nm: dict | None = None) -> dict:
+    """궁위 분야 톤. 근거 수집은 judge.palace_scores(원문 확인 규칙만 방향에 반영, 같은 관계 한 번만, 없음은 반대 근거 아님)."""
     if dom == "health_traditional":
-        return {"tone": "balance", "S": 0, "T": 0}
+        return {"tone": "balance", "S": 0, "T": 0, "cls": "none", "reason": "not_judged"}
     ex = CD.domain_extra(dom, pre) or {"evidence_for": [], "evidence_against": []}
-    pos = len([x for x in ex["evidence_for"] if "0개" not in x and "없음" not in x])
-    neg = len(ex["evidence_against"])
-    pals = PAL_DOM.get(dom, ())
-    bad_rel = good_rel = 0
-    for seg in (yr or {}).get("_segments", []):
-        for r in seg.get("relations", []):
-            if r["with"] in pals:
-                if r["type"] in S.REL_PLAIN:
-                    bad_rel += 1
-                elif r["type"] in ("육합", "천간합", "반합 형성 후보", "삼합 완성 후보"):
-                    good_rel += 1
-    if pos == 0 and neg == 0 and bad_rel == 0:
-        tone = "thin"
-    elif neg > pos + 1 or bad_rel >= 2:
-        tone = "cautious"
-    elif (neg >= 1 or bad_rel >= 1) and (pos >= 1 or good_rel >= 1):
-        tone = "mixed"
-    elif neg == 0 and bad_rel == 0 and (pos >= 1 or good_rel >= 1):
-        tone = "steady"
-    else:
-        tone = "quiet"
-    return {"tone": tone, "S": pos + good_rel, "T": neg + bad_rel, "palace_bad": bad_rel, "palace_good": good_rel, "pos": pos, "neg": neg}
+    base = _struct_scores(pre, dom, yr, nm or {}) if D.DOMAINS[dom]["structures"] else None   # 분야가 선언한 구조(이직: 재생관·관인상생·살인상생)를 함께 본다
+    sc = JD.palace_scores(pre, dom, (yr or {}).get("_segments", []), ex, PAL_DOM.get(dom, ()), CD._rels_at, FA.MAJOR_FRAC, FA.palace_relations, base)
+    cl = JD.classify(sc["S"], sc["T"], sc["has_basis"], sc["year_change"])
+    tone = cl["tone"]
+    if tone == "quiet" and (sc["pos"] >= 1 or sc["palace_good"] >= 1):
+        tone = "steady"   # 근거가 있고 이 해에 달라지는 것이 없으면(합은 방향이 아니라 '이어짐·묶임' 신호) '안정적으로 이어짐'
+    return {"tone": tone, "cls": cl["cls"], "reason": cl["reason"], "S": sc["S"], "T": sc["T"], "palace_bad": sc["palace_bad"], "palace_good": sc["palace_good"], "pos": sc["pos"], "neg": sc["neg"],
+            "reference": sc["reference"], "hour_excluded": sc["hour_excluded"], **({k: base[k] for k in ("natal_support", "natal_tension", "sup_up", "ten_up", "sup_part", "ten_part", "sup_pers", "ten_pers", "present", "bad")} if base else {})}
 
 
 # ------------------------------------------------------------------ 분야별 한 덩어리
@@ -471,6 +456,9 @@ def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm:
         slots["natal"] = _pick(NAT_NONE, key + "n")
     if weak:
         slots["natal"] = "이 분야와 이어지는 짜임은 있지만 겉으로 드러나지 않고 속에 숨어 있어 힘이 약합니다. 그래서 뚜렷한 결론은 내리지 않았습니다."
+    elif tone == "thin" and t.get("reason") == "weak_evidence":   # judge-2.0.0: 돕는 쪽과 부딪히는 쪽의 차이가 작거나 뒷받침이 약해 한쪽으로 정하지 않은 경우
+        slots["natal"] = (f"{name}과 이어지는 짜임과 이 시기의 변화가 있지만, 돕는 쪽과 부딪히는 쪽의 차이가 크지 않아 한쪽으로 결론을 내리지 않았습니다." if t["S"] and t["T"]
+                          else f"{name}과 이어지는 짜임과 이 시기의 변화가 있지만 뒷받침이 약해 말씀드릴 근거가 부족합니다. 그래서 한쪽으로 결론을 내리지 않았습니다.")
     for n in (nat_sup[:2] + nat_ten[:1]):
         r = E.natal_reason(layer3[n], _theme(dom, n))
         if r:
@@ -518,7 +506,7 @@ def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm:
     if "emphasis" not in skeleton:
         skeleton = skeleton[:2] + ["emphasis"] + skeleton[2:]
     skeleton += [k for k in ("where", "where2") if k not in skeleton]
-    explain_missing = weak or (t["present"] == {} and not changed)  # 근거가 약하거나 없으면 '왜 결론을 내리지 않는지'를 반드시 말한다
+    explain_missing = weak or tone == "thin" or (t["present"] == {} and not changed)  # 근거가 약하거나 없으면 '왜 결론을 내리지 않는지'를 반드시 말한다
     story = _compose(dom, slots, must=["period", "contrast", "timing"] + (["natal"] if explain_missing else []), skeleton=skeleton)
     headline = _headline(dom, tone, w, t, flat, head_tpl, weak)
     think = list(THINK.get(dom, {}).get(think_tone, THINK["overall"]["thin"]))[:2]
@@ -838,6 +826,7 @@ def build(pre: dict, ans: dict, question: str = "") -> dict:
             b.pop("_claims", None)
     result["internal"] = {"claim_ids": syn.get("claim_ids", []), "block_claim_ids": internal_claims, "ruleset_version": pre["ruleset_version"], "verification_status": pre["verification"]["status"],
                           "scores": {b["domain"]: b["scores"] for b in allb}, "tones": {b["domain"]: b["tone"] for b in allb},
+                          "judge": {"version": JD.JUDGE_VERSION, "consistent": all(JD.consistent(b["tone"], b["scores"]["S"], b["scores"]["T"]) for b in allb)},
                           "counter_evidence": {b["domain"]: b["counter"] for b in allb},
                           "trace": {str(y): E.trace_year(pre, ans, y, doms) for y in years}, "period_dev": ({str(k): v for k, v in period_dev.items()} if mode == "multi" else {}),
                           "conditions": ["어조는 구조 변화(돕는 흐름 S, 부딪히거나 나누는 흐름 T)의 크기로 정한 구현자 규약", "해의 절반 이상을 덮는 구간만 '그해의 변화'로 셈(구현자 규약)", "고전 원문 대조 전 규칙 포함"],

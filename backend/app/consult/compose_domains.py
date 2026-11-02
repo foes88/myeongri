@@ -85,6 +85,9 @@ def domain_extra(dom: str, pre: dict) -> dict | None:
             for r in _rels_at(pre, (pos,), BAD_REL):
                 against.append(f"{PALACE_KO[pos]}가 {r['relation_type']} 관계 후보에 있음(존재만 확인) [{r['claim_id']}]")
                 cids.append(r["claim_id"])
+            for r in _rels_at(pre, (pos,), ("육합", "천간합", "삼합(완전)", "반합")):   # v9.2: 연애·이직과 같이 유리한 관계도 근거로 모은다(수집 비대칭 해소)
+                for_.append(f"{PALACE_KO[pos]}가 {r['relation_type']} 관계 후보에 관여 [{r['claim_id']}] (합이 곧 좋다는 뜻은 아님)")
+                cids.append(r["claim_id"])
     elif dom == "health_traditional":
         tally = b["layer4"]["johu"]["element_tally"]
         miss = [e for e in "木火土金水" if e not in tally]
