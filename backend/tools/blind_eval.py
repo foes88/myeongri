@@ -41,6 +41,34 @@ def items(n, v81_json: str | None = None, v82_json: str | None = None):
     return out
 
 
+def items_v96(n: int, old_dir: Path | None = None, current_name: str = "v95"):
+    """v9.6 비교 항목: 같은 합성 명식·질문에 대해 v8.1, v8.2(저장된 v8.3 패킷에서 복원)와 현재 엔진(judge-2.0·종합 통변 이후) 문장을 출처 없이 비교한다.
+    저장된 패킷이 없으면 해당 변형은 빠지고 현재 엔진만 남아 비교가 되지 않으므로 오류로 알린다."""
+    from app.evaluation import dataset as DS
+    from tools.dump_verdict_text import verdict_text
+    old_dir = old_dir or OUT
+    try:
+        pk = json.loads((old_dir / "packet.json").read_text(encoding="utf-8"))
+        ky = json.loads((old_dir / "key.json").read_text(encoding="utf-8"))
+    except OSError:
+        raise SystemExit("이전 평가 패킷(data_private/blind)이 없어 v8.1·v8.2 문장을 복원할 수 없습니다. 먼저 `build` 로 v8.3 패킷을 만드세요.")
+    old = {}
+    for it in pk["items"]:
+        k = ky["items"][it["id"]]
+        old[k["item_id"]] = {k["slots"][sl]: t for sl, t in it["texts"].items() if k["slots"][sl] in ("v81", "v82")}
+    out = []
+    for name, p in charts(n):
+        doms, years, q = QUESTIONS[len(out) % len(QUESTIONS)]
+        if name not in old:
+            continue
+        pre = DS.pre_of(DS.Spec(p, domains=doms, years=years, cycles_first_year=2000))
+        a = agent.answer(pre, q, domains_=list(doms), years=list(years), depth="detailed")
+        variants = dict(old[name])
+        variants[current_name] = verdict_text(a["verdict"])
+        out.append({"item_id": name, "question": q, "years": list(years), "domains": list(doms), "variants": variants})
+    return out
+
+
 FORM = r"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>상담 문장 읽어 보고 평가하기</title>
 <style>:root{--paper:#F7F4EE;--doc:#FCFBF8;--ink:#1F1A17;--ink2:#5C5148;--rule:#D9D0C4;--seal:#A6462A}
 body{font:16.5px/1.8 "Noto Serif KR","Nanum Myeongjo",Batang,serif;max-width:960px;margin:0 auto;padding:18px;background:var(--paper);color:var(--ink)}
@@ -54,13 +82,13 @@ select,input,textarea,button{font:inherit;padding:4px 8px;max-width:100%}textare
 어느 방식이 어떤 문장인지는 알려 드리지 않습니다. 정답은 없고, <b>읽고 느낀 대로</b> 평가해 주세요.</div>
 <div class="box"><h2>이렇게 평가해 주세요</h2><ol>
 <li>질문을 읽고, 문장 X·Y·Z를 차례로 읽습니다.</li>
-<li>각 문장마다 5가지를 1점(전혀 아니다)~5점(매우 그렇다)으로 고릅니다: 이해도 · 구체성 · 유용성 · 자연스러움 · 신뢰도.</li>
+<li>각 문장마다 <span id="ncrit"></span>가지를 1점(전혀 아니다)~5점(매우 그렇다)으로 고릅니다: <span id="lcrit"></span>.</li>
 <li>가장 마음에 드는 문장을 고르고, <b>왜 그렇게 골랐는지 한두 문장</b>으로 적어 주세요(선택이지만 큰 도움이 됩니다).</li>
 <li>10개 이상 평가하면 충분합니다. 모두 못 해도 됩니다. 입력은 이 브라우저에 자동 저장되므로 중간에 닫아도 됩니다.</li>
 <li>마지막에 <b>‘평가 결과 내려받기(CSV)’</b>를 눌러 파일을 운영자에게 보내 주세요. 서버로 전송되는 것은 없습니다.</li></ol>
 <p class="small">개인정보: 실제 이름·생년월일·연락처는 적지 않습니다. 평가자 이름 칸에는 별명이나 번호(예: 평가자1)만 쓰세요. 이 평가는 문장 품질을 비교하는 것이며 점이나 예언의 정확도를 시험하는 것이 아닙니다.</p></div>
 <div class="bar box"><label>평가자 별명/번호 <input id="rid" placeholder="예: 평가자1" size="14"></label>
- <label>나는 <select id="role"><option value="general">일반(명리학 모름)</option><option value="expert">명리 전문가</option></select></label>
+ <label>나는 <select id="role"><option value="general">일반(명리학 모름)</option><option value="expert">명리 전문가</option><option value="user">내 사주로 직접 써 본 사용자</option></select></label>
  <span id="prog" class="small"></span> <button onclick="exportCsv()">평가 결과 내려받기(CSV)</button> <button onclick="exportJson()" class="small">백업(JSON)</button></div>
 <div id="app"></div>
 <script>
@@ -71,6 +99,7 @@ function get(id){return S[id]=S[id]||{sc:{},pref:'',reason:''}}
 function complete(it){const g=get(it.id);return Object.keys(it.texts).every(s=>C.every(c=>g.sc[s]&&g.sc[s][c.key]))&&g.pref}
 function prog(){const n=P.items.filter(complete).length;document.getElementById('prog').textContent=' 완료 '+n+' / '+P.items.length+' (10 이상이면 충분)';
  document.querySelectorAll('section.box').forEach((e,i)=>e.classList.toggle('done',complete(P.items[i])))}
+document.getElementById('ncrit').textContent=C.length;document.getElementById('lcrit').textContent=C.map(c=>c.label.split(':')[0]).join(' · ');
 const app=document.getElementById('app');
 P.items.forEach((it,ix)=>{const g=get(it.id);const sec=document.createElement('section');sec.className='box';
  const h=document.createElement('h2');h.textContent='항목 '+(ix+1)+' / '+P.items.length;sec.append(h);
@@ -86,9 +115,9 @@ P.items.forEach((it,ix)=>{const g=get(it.id);const sec=document.createElement('s
 const legend=document.createElement('p');legend.className='small';legend.textContent='점수 기준: 1=전혀 아니다, 2=아니다, 3=보통, 4=그렇다, 5=매우 그렇다. 항목 이름에 마우스를 올리면 설명이 보입니다.';app.append(legend);
 function q(v){v=String(v==null?'':v);return '"'+v.replace(/"/g,'""')+'"'}
 function exportCsv(){const rid=document.getElementById('rid').value.trim();if(!rid){alert('평가자 별명/번호를 먼저 적어 주세요.');return}
- const role=document.getElementById('role').value;const rows=[['rater_id','role','item_id','slot','understand','specific','useful','natural','trust','preferred','reason']];
+ const role=document.getElementById('role').value;const rows=[['rater_id','role','item_id','slot'].concat(C.map(c=>c.key),['preferred','reason'])];
  P.items.forEach(it=>{const g=get(it.id);Object.keys(it.texts).forEach(s=>{const sc=g.sc[s]||{};if(!C.some(c=>sc[c.key])&&g.pref!==s)return;
-  rows.push([rid,role,it.id,s,sc.understand||'',sc.specific||'',sc.useful||'',sc.natural||'',sc.trust||'',g.pref===s?1:'',g.pref===s?g.reason:''])})});
+  rows.push([rid,role,it.id,s].concat(C.map(c=>sc[c.key]||''),[g.pref===s?1:'',g.pref===s?g.reason:'']))})});
  const n=P.items.filter(complete).length;if(n<10&&!confirm('완료한 항목이 '+n+'개입니다(10개 이상 권장). 그래도 내려받을까요?'))return;
  const blob=new Blob(['﻿'+rows.map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='rating_'+rid+'.csv';a.click()}
 function exportJson(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({rater_id:document.getElementById('rid').value,role:document.getElementById('role').value,state:S},null,1)],{type:'application/json'}));a.download='backup.json';a.click()}
@@ -97,6 +126,15 @@ prog();
 
 
 def build(a):
+    if getattr(a, "set", "pilot") == "v96":
+        out = OUT.parent / "blind_v96"
+        out.mkdir(parents=True, exist_ok=True)
+        packet, key = BE.build_packet(items_v96(a.n), criteria=BE.CRITERIA_V96)
+        (out / "packet.json").write_text(json.dumps(packet, ensure_ascii=False, indent=1), encoding="utf-8")
+        (out / "key.json").write_text(json.dumps(key, ensure_ascii=False, indent=1), encoding="utf-8")
+        (out / "rater_form.html").write_text(FORM.replace("__PACKET__", json.dumps(packet, ensure_ascii=False)), encoding="utf-8")
+        print("wrote", out, f"(항목 {len(packet['items'])}개, 평가 기준 {len(BE.CRITERIA_V96)}개) — key.json 은 평가자에게 배포하지 마세요. 배포 파일: rater_form.html 하나")
+        return
     OUT.mkdir(parents=True, exist_ok=True)
     packet, key = BE.build_packet(items(a.n, a.v81_json, a.v82_json))
     (OUT / "packet.json").write_text(json.dumps(packet, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -118,9 +156,10 @@ def load_ratings(files):
     return out
 
 
-def report(files):
-    packet = json.loads((OUT / "packet.json").read_text(encoding="utf-8"))
-    key = json.loads((OUT / "key.json").read_text(encoding="utf-8"))
+def report(files, set_name: str = "pilot"):
+    base = OUT if set_name != "v96" else OUT.parent / "blind_v96"
+    packet = json.loads((base / "packet.json").read_text(encoding="utf-8"))
+    key = json.loads((base / "key.json").read_text(encoding="utf-8"))
     ratings = load_ratings(files)
     agg = BE.aggregate(packet, key, ratings)
     pg = BE.pilot_gate(agg)
@@ -131,18 +170,27 @@ def report(files):
     if pg.get("note"):
         lines.append(f"- 주의: {pg['note']}")
     if agg["overall"]:
-        lines += ["\n## 버전별 평균(1~5)\n", "| 버전 | 전체 | 이해도 | 구체성 | 유용성 | 자연스러움 | 신뢰도 | 선호 수 |", "|---|---|---|---|---|---|---|---|"]
+        ks = agg["criteria_keys"]
+        names = {c["key"]: c["label"].split(":")[0] for c in packet["criteria"]}
+        lines += ["\n## 버전별 평균(1~5)\n", "| 버전 | 전체 | " + " | ".join(names[k] for k in ks) + " | 선호 수 |", "|---|---|" + "---|" * len(ks) + "---|"]
         for r in BE.summary_rows(agg):
-            lines.append(f"| {r['variant']} | {r['overall_mean']} | " + " | ".join(str(r.get(k)) for k in BE.CRITERIA_KEYS) + f" | {r['preferred_count']} |")
+            lines.append(f"| {r['variant']} | {r['overall_mean']} | " + " | ".join(str(r.get(k)) for k in ks) + f" | {r['preferred_count']} |")
+        cf = BE.confounds(packet, key, ratings)
+        lines += ["\n## 길이·문체 편향 점검\n", "| 버전 | 평균 글자 수 | 평균 문장 수 | 문장당 글자 수 | 길이 보정 점수 |", "|---|---|---|---|---|"]
+        for v, d in cf["length_by_variant"].items():
+            lines.append(f"| {v} | {d['mean_chars']} | {d['mean_sentences']} | {d['chars_per_sentence']} | {cf['length_adjusted_mean'].get(v)} |")
+        lines.append(f"\n- 항목 안 길이-점수 상관 {cf['length_score_corr']} (|r|≥0.3 이고 점수 20건 이상이면 길이 편향 의심: **{cf['length_bias_suspected']}**)")
+        lines.append(f"- 선호한 문장이 가장 긴 문장이었던 비율 {cf['prefers_longest_share']} (우연 기대 {cf['chance_prefers_longest']})")
+        lines.append(f"- {cf['note']}")
         lines.append(f"\n- 선호 응답 {agg['n_preferences']}건, 평가자 간 선호 일치도 {agg['agreement']}")
         for v, rs in agg["reasons"].items():
             lines += [f"\n### {v}를 고른 이유({len(rs)}건)"] + [f"- {x}" for x in rs[:8]]
     else:
         lines.append("\n응답이 없어 집계할 점수가 없습니다. **미평가 상태입니다.**")
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    with open(OUT / "summary.csv", "w", encoding="utf-8-sig", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["variant", "overall_mean", *BE.CRITERIA_KEYS, "preferred_count"])
+    base.mkdir(parents=True, exist_ok=True)
+    (base / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    with open(base / "summary.csv", "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["variant", "overall_mean", *BE.criteria_keys(packet), "preferred_count"])
         w.writeheader()
         w.writerows(BE.summary_rows(agg))
     print("\n".join(lines))
@@ -156,16 +204,19 @@ def main():
     b.add_argument("--n", type=int, default=20)
     b.add_argument("--v81-json", default=None)
     b.add_argument("--v82-json", default=None)
+    b.add_argument("--set", choices=("pilot", "v96"), default="pilot", help="v96: 8개 평가 기준, v8.1·v8.2·현재 엔진 비교")
     s = sub.add_parser("score")
     s.add_argument("files", nargs="+")
-    sub.add_parser("status")
+    s.add_argument("--set", choices=("pilot", "v96"), default="pilot")
+    st = sub.add_parser("status")
+    st.add_argument("--set", choices=("pilot", "v96"), default="pilot")
     a = ap.parse_args()
     if a.cmd == "build":
         build(a)
     elif a.cmd == "score":
-        report(a.files)
+        report(a.files, a.set)
     else:
-        report([])
+        report([], a.set)
 
 
 if __name__ == "__main__":

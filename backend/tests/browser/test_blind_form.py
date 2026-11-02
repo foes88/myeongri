@@ -72,3 +72,34 @@ def test_export_requires_a_rater_id_and_warns_when_fewer_than_ten(browser, form)
     p.get_by_role("button", name=re.compile(r"내려받기\(CSV\)")).click()
     assert any("완료한 항목이 1개" in m for m in msgs)  # 10개 미만이면 확인을 묻고, 취소하면 내려받지 않는다
     ctx.close()
+
+
+def test_v96_form_shows_eight_criteria_and_exports_matching_columns(browser, tmp_path):
+    items = [{"item_id": f"d{i}", "question": f"질문 {i}", "years": [2030], "domains": ["overall"], "variants": {"v81": f"가 {i}", "v82": f"나 {i} 둘", "v95": f"다 {i} 셋 넷"}} for i in range(11)]
+    pk, key = BE.build_packet(items, criteria=BE.CRITERIA_V96)
+    f = tmp_path / "rater_form.html"
+    f.write_text(T.FORM.replace("__PACKET__", json.dumps(pk, ensure_ascii=False)), encoding="utf-8")
+    ctx = browser.new_context(viewport={"width": 360, "height": 800}, accept_downloads=True)
+    p = ctx.new_page()
+    p.on("dialog", lambda d: d.accept())
+    p.goto(f.as_uri())
+    body = p.inner_text("body")
+    assert "8가지" in body and "분야별 차이" in body and "신중함" in body and "직접 써 본 사용자" in body
+    assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+    p.fill("#rid", "사용자1")
+    p.select_option("#role", "user")
+    for i in range(10):
+        sec = p.locator("section.box").nth(i)
+        for sel in sec.locator("select").all():
+            sel.select_option("4")
+        sec.locator("input[type=radio]").first.check()
+    assert "완료 10 / 11" in p.inner_text("#prog")
+    with p.expect_download() as dl:
+        p.get_by_role("button", name=re.compile(r"내려받기\(CSV\)")).click()
+    text = open(dl.value.path(), encoding="utf-8-sig").read()
+    rows = list(csv.DictReader(io.StringIO(text)))
+    assert list(rows[0].keys()) == BE.csv_columns(BE.criteria_keys(pk)) and {r["role"] for r in rows} == {"user"} and len(rows) == 30
+    agg = BE.aggregate(pk, key, BE.ratings_from_csv(text))
+    assert not agg["rejected"] and agg["raters"] == {"user": 1} and agg["criteria_keys"] == BE.criteria_keys(pk)
+    assert BE.pilot_gate(agg)["status"] == "진행 중"
+    ctx.close()
