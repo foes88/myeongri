@@ -130,6 +130,9 @@ class PostgresRepo:
     def count_reports_since(self, user_id, since):
         return self._q("SELECT COUNT(*) FROM reports WHERE user_id=%s AND created_at>=%s", (user_id, since), one=True)[0]
 
+    def all_user_ids(self):
+        return [r[0] for r in self._q("SELECT id FROM users", many=True)]
+
     def delete_user(self, user_id):
         self._q("DELETE FROM users WHERE id=%s", (user_id,))  # sessions·reports·turns 는 CASCADE
 

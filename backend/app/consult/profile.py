@@ -219,6 +219,8 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
 
     # --- 현실에서 참고할 부분
     reality: list[str] = []
+    if ly:
+        reality.append("선택한 시기에 달라지는 조건 — " + ly[0]["text"])   # 접힌 상자 밖에서 바로 보이게
     links = domain_links(c["names"]) if c["names"] else []
     if links:
         reality.append("이 구조는 " + "·".join(x["name"] for x in links[:3]) + " 쪽에서 가장 직접적으로 드러납니다.")

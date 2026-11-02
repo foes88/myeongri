@@ -187,3 +187,16 @@ def test_every_domain_headline_names_its_own_domain_not_wealth():
         for b in v["blocks"]:
             if b["domain"] not in ("wealth", "overall", "business", "docs_realestate"):
                 assert "재물 흐름" not in b["headline"], (b["domain"], b["headline"])
+
+
+# ---- v10.0: 본인 평가 요약(점수·개수만)
+def test_feedback_summary_counts_without_reading_content(c):
+    from tools import feedback_summary as FS
+    assert FS.summarize()["status"].startswith("기록 없음")
+    h = reg(c)
+    rid = mk(c, h)
+    for r in (5, 4, 4):
+        assert c.post(f"/api/v1/reports/{rid}/feedback", json={"rating": r, "target": "reading", "note": "메모" if r == 5 else ""}, headers=h).status_code == 201
+    s = FS.summarize()
+    assert s["feedback_count"] == 3 and s["mean_rating"] == pytest.approx(4.33, abs=0.01) and s["distribution"][4] == 2 and s["with_note"] == 1
+    assert "검증이 아님" in s["status"] and "메모" not in str(s) and "1984" not in str(s)

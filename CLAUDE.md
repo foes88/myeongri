@@ -17,5 +17,6 @@
 - 실제 사용 평가 전에는 "사용성 검증 완료"로 표시하지 않는다. 자유 대화형 AI 상담은 모델이 연결되기 전까지 완성이라고 표시하지 않는다.
 
 ## 현재 상태
-- v9.0 Personal Alpha는 기능 동결 상태다. 실제 사용 평가 결과가 나온 뒤에만 개선(P1: "큰 변화 없음" 반복, 긴 문장 압축 등)을 결정한다.
-- 개인용 실행: `scripts\create-owner.bat`(최초 1회), `scripts\run-local.bat`. 자세한 내용은 `docs/23_PERSONAL_ALPHA.md`.
+- v10.0 개인용 통합까지 로컬 구현(판정 기준 judge-2.0.0, 종합 통변 profile-1.0.0, 사례 검증·사람 평가 도구). 실제 사례 0건·사람 평가 0건 → 해석 품질은 "미검증/미평가".
+- 개인용 실행: `scripts\create-owner.bat`(최초 1회), `scriptsun-local.bat`. 자세한 내용은 `docs/23_PERSONAL_ALPHA.md`, `docs/30_V10_PERSONAL.md`.
+- 검증용(validation) 사례를 본 뒤 규칙을 고치지 않는다(`docs/25_V91_CASE_VALIDATION.md`). 분포·점수를 맞추려고 임계값을 조정하지 않는다.

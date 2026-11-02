@@ -75,3 +75,34 @@ def test_personal_end_to_end(browser, one, size):
     assert p.is_hidden("#report") and p.inner_text("#out") == ""   # 열려 있던 리포트를 지우면 화면에서도 사라진다
     assert not [c for c in console if "PAGEERROR" in c or "Content Security" in c]
     ctx.close()
+
+
+@pytest.mark.parametrize("size", ["360", "1440"])
+def test_v10_screen_answers_the_six_questions_without_expanding_anything(browser, one, size):
+    """v10.0: 접힌 것을 펼치지 않아도 (1)중요하게 읽히는 것 (2)달라지는 조건 (3)직업·재물 의미 (4)주목할 해 (5)이유로 가는 길 (6)근거 부족한 부분이 화면에 있다."""
+    ctx, p, reqs, console = open_page(browser, one, size)
+    _login_ui(p, f"v10-{size}@example.com", register=True)
+    fill(p)
+    p.fill("#y1", "2027")
+    p.select_option("#pk", "r5")
+    for cb in p.query_selector_all("#doms input"):
+        want = cb.get_attribute("value") in ("overall", "wealth", "career", "job_change", "family")
+        if cb.is_checked() != want:
+            cb.set_checked(want)
+    p.click("#f button[type=submit]")
+    p.wait_for_selector("#verdict .vprofile", timeout=60000)
+    vis = p.inner_text("#verdict")
+    pf = p.locator("#verdict .vprofile")
+    assert "이 사주에서 중요하게 읽히는 것" in pf.inner_text()                                   # (1)
+    assert "선택한 시기에 달라지는 조건" in pf.inner_text()                                      # (2) 접힌 상자 밖에 있다
+    assert pf.locator("details[open]").count() == 0 and pf.locator("details summary", has_text="왜 그렇게 읽나요?").count() == 1   # (5)
+    assert pf.locator("details summary", has_text="판단이 달라질 수 있는 조건").count() == 1       # (6) 조건·유보 설명으로 가는 길
+    assert p.locator("#verdict .vperiod").count() == 1 and "2027" in p.locator("#verdict .vperiod").inner_text()     # (4) 시기별 요약·두드러지는 해
+    # (3) 분야별 풀이는 연도 상세 안에 있으므로 첫 해를 펼치면 직업·재물이 따로 보인다
+    p.get_by_role("button", name="2027년 자세히 보기").click()
+    names = p.eval_on_selector_all("#verdict .vblock h2", "els=>els.map(e=>e.textContent)")
+    assert "재물운" in names and "직업·승진운" in names
+    assert not any(w in vis for w in ("claim_id", "ruleset", "격국", "용신", "식상생재", "judge-"))
+    assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+    assert not [c for c in console if "PAGEERROR" in c or "Content Security" in c]
+    ctx.close()
