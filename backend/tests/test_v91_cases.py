@@ -244,3 +244,44 @@ def test_generated_text_has_no_definitive_phrases_and_birth_data_not_in_frozen_p
     raw = json.dumps(st.frozen()["SYN-007"], ensure_ascii=False)
     assert "경기도 수원시" not in raw and birth(2003, 8, 10) not in raw
     assert not C.DEFINITIVE.search(raw)
+
+
+# ---------------------------------------------------------------- CLI 종단(합성) · 고전 현황 문서
+def test_cli_end_to_end_with_synthetic_csv(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("APP_DATA_KEY", Fernet.generate_key().decode())
+    monkeypatch.setenv("CASES_DIR", str(tmp_path / "c"))
+    hdr = ",".join(CE.COLS)
+    rows = [f"SYN-201,solar,false,{birth(1997, 4, 12)},{9:02d}:{20:02d},서울특별시,male,A,true,dev,합성,2019,5,job_change,합성,합성 출처,high",
+            f"SYN-202,solar,false,{birth(1998, 9, 21)},{14:02d}:{40:02d},서울특별시,female,B,true,validation,합성,,,,,,",
+            f"SYN-203,solar,false,{birth(1999, 2, 17)},{3:02d}:{15:02d},서울특별시,female,A,false,both,,,,,,,,"]
+    f = tmp_path / "in.csv"
+    f.write_text("\n".join([hdr] + rows), encoding="utf-8")
+    assert CE.main(["import", str(f)]) == 0
+    out = capsys.readouterr().out
+    assert "추가: SYN-201 → dev" in out and "추가: SYN-202 → validation" in out and "거부: SYN-203" in out and "동의" in out
+    assert CE.main(["freeze", "--all"]) == 0 and capsys.readouterr().out.count("봉인:") == 2
+    rep = tmp_path / "rep.json"
+    assert CE.main(["report", "--out", str(rep)]) == 0
+    out = capsys.readouterr().out
+    assert "표본 부족" in out and "미검증" not in out
+    j = json.loads(rep.read_text(encoding="utf-8"))
+    assert j["split"]["dev"]["cases"] == 1 and j["split"]["validation"]["cases"] == 1
+    assert CE.main(["remove", "SYN-201"]) == 0 and "삭제됨" in capsys.readouterr().out
+    assert CE.main(["status"]) == 0
+    assert '"cases": 1' in capsys.readouterr().out
+
+
+def test_classical_audit_document_matches_registry():
+    from pathlib import Path
+    from tools import classical_audit as CA
+    from app.mingli import classical as CL
+    s = CL.summary()
+    rs = CA.rows()
+    assert len(rs) == s["total"] == 37
+    unconfirmed = [r for r in rs if r["basis"] == "미확인"]
+    assert len(unconfirmed) == s["classical_rules_pending"]                    # 위치만 확인 + pending
+    assert {r["rule_id"] for r in rs if r["basis"] == "구현자 규약"} == {r["rule_id"] for r in rs if r["status"] == "implementation_convention"}
+    md = CA.build_markdown()
+    assert "고전 검증 완료’라고 표시하지 않는다" in md and "새 원문을 내려받거나 재배포하지 않았다" in md
+    doc = Path(__file__).resolve().parents[2] / "docs" / "24_V91_CLASSICAL_AUDIT.md"
+    assert doc.exists() and doc.read_text(encoding="utf-8") == md              # 문서가 현재 레지스트리와 동기화되어 있다
