@@ -156,10 +156,10 @@ def test_reading_order_conclusion_first_then_period_then_nature_metaphor_collaps
         p.select_option("#pk", "r5")
     p.click("#f button[type=submit]")
     p.wait_for_selector("#verdict .vstorycard", timeout=60000)
-    kinds = p.eval_on_selector_all("#verdict > section", "els=>els.map(e=>e.classList.contains('vprofile')?'profile':e.classList.contains('vperiod')?'period':e.classList.contains('vstorycard')?'story':e.classList.contains('vblock')?'block':'other')")
+    kinds = p.eval_on_selector_all("#verdict > section", "els=>els.map(e=>e.classList.contains('vprofile')?'profile':e.classList.contains('vperiod')?'period':e.classList.contains('vstorycard')?'story':e.classList.contains('vsip')?'sip':e.classList.contains('vblock')?'block':'other')")
     assert kinds[0] == "profile" and kinds[-1] in ("story", "other")
     assert kinds.index("story") > max(i for i, k in enumerate(kinds) if k in ("period", "block"))          # 비유는 시기·분야 요약 다음
-    assert kinds[1] == ("period" if multi else "block")                                                    # 두 번째는 선택한 시기의 변화/분야 요약
+    assert kinds[1] == "sip" and kinds[2] == ("period" if multi else "block")                              # 이 사주의 모습 → 선택한 시기의 변화/분야 요약
     # ① 핵심 결론: 360px 첫 화면(800px) 안에 온전히 들어온다
     box = p.locator("#verdict .vprofile .verdict-a").bounding_box()
     sy = p.evaluate("window.scrollY")

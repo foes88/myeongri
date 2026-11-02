@@ -264,3 +264,45 @@ details.expert-raw>summary{color:var(--ink2);font-size:.92rem}
 .elwrap{margin:.6rem 0}.elrow{display:flex;align-items:center;gap:8px;margin:3px 0}.elname{width:2.4em;font:.88rem var(--sans)}.elbar{flex:1;height:14px;background:#efeae1;border-radius:7px;overflow:hidden}.elfill{display:block;height:100%;border-radius:7px}.elnum{width:2.6em;text-align:right;font:.85rem var(--sans)}
 .e-wood{background:#6a9a5b}.e-fire{background:#c4553b}.e-earth{background:#c9a24d}.e-metal{background:#8e969f}.e-water{background:#3f6fa0}
 @media (prefers-color-scheme:dark){.t-opp{background:#1f3a27;color:#bfe3c8}.t-cau{background:#4a2420;color:#f0c4bd}.t-mix{background:#4a3a14;color:#f0dca0}.t-quiet{background:#2a2824;color:#c9c2b6}.t-steady{background:#1d3048;color:#bcd2ec}.t-thin{background:repeating-linear-gradient(135deg,#2a2824,#2a2824 4px,#34312c 4px,#34312c 8px);color:#c9c2b6}.elbar{background:#34312c}}
+
+/* ====== v10.1 읽기 편한 결과 화면: 한 줄 단위로 이어 읽는 단일 열, 고딕 통일, 박스 최소화 ======
+   결과 영역(#verdict)만 바꾼다. 머리글·입력 폼·명리 서재 색은 그대로. */
+@media (min-width:1000px){:root{--col:860px}}
+#out,#verdict,#status{font-family:var(--sans)}
+#verdict{display:block !important}
+#verdict>*{grid-column:auto !important}
+#verdict h1,#verdict h2,#verdict h3,.storytitle,.verdict-a,#out .cover h1{font-family:var(--sans) !important}
+#verdict section{background:transparent !important;border:0 !important;border-radius:0 !important;border-top:1px solid var(--rule) !important;padding:30px 0 26px !important;margin:0 !important}
+#verdict>section:first-child{border-top:0 !important;padding-top:10px !important}
+#verdict h2{font-size:1.55rem;font-weight:800;letter-spacing:-.01em;margin:0 0 .5rem}
+#verdict h3{font-size:1.05rem;font-weight:700;margin:1.3rem 0 .25rem;color:var(--seal)}
+#verdict p{font-size:1.06rem;line-height:1.9;margin:.55rem 0}
+#verdict .small{font-size:.9rem;line-height:1.7}
+#verdict .verdict-a{font-size:1.28rem;font-weight:650;line-height:1.7;color:var(--ink);margin:.4rem 0 .9rem}
+/* 핵심 결론만 은은하게 강조해 한눈에 들어오게 한다 */
+#verdict .vprofile{background:var(--seal-soft) !important;border-radius:6px !important;border:0 !important;padding:24px 22px !important;margin:6px 0 4px !important}
+#verdict .vprofile h2{color:var(--ink)}
+#verdict .vprofile ul{padding-left:1.15rem}#verdict .vprofile li{margin:.4rem 0;line-height:1.8}
+/* 이 사주의 모습 */
+.vsip .sipsummary{font-size:1.15rem !important;font-weight:600}
+.vsip .sipitem{margin:.2rem 0 .9rem}.vsip .sipitem h3{margin-top:.9rem}.vsip .sipyear{background:#f3efe6;border-radius:6px;padding:.4rem 1rem .6rem}
+.yprep{color:var(--ink2);font-size:.98rem !important}
+/* 연도별 줄: 타임라인처럼 */
+#verdict .yearlines{list-style:none;margin:.6rem 0;padding:0}
+#verdict .yearlines>li{padding:14px 0 14px 16px;border-left:3px solid var(--rule);margin:0 0 6px}
+#verdict .yearlines>li.standout{border-left-color:var(--seal)}
+#verdict .ytheme{margin-top:.2rem;padding:.3rem .8rem;background:rgba(0,0,0,.025);border-radius:4px}
+#verdict .yhead{display:flex;align-items:center;gap:10px}
+/* 분야 블록: 박스 대신 구분선과 제목 */
+#verdict .vblock{border-top:1px dashed var(--rule) !important;padding:22px 0 16px !important}
+#verdict .vblock .vhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#verdict .whybox{border-top:1px dashed var(--rule);margin-top:.8rem}
+#verdict summary{font-size:1rem;padding:.5rem 0;cursor:pointer}
+/* 자연물 비유 카드 */
+#verdict .vstorycard .storytitle{font-size:1.6rem;font-weight:800;margin:.1rem 0 .4rem}
+@media (max-width:560px){
+  #verdict section{padding:24px 0 20px !important}
+  #verdict p{font-size:1.04rem}#verdict h2{font-size:1.35rem}
+  #verdict .vprofile{padding:20px 16px !important}
+  #verdict .yearlines>li{padding-left:12px}
+}

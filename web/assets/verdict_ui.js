@@ -25,6 +25,15 @@ function reasonsBox(v,b){const w=b.why;const box=el('div',null,'whybox');box.hid
   if(w.nature)box.append(el('p',w.nature,'small muted'));return box}
 
 /* 명식 전체 종합: 핵심 결론 → 왜 → 현실 참고 → 판단이 달라질 수 있는 조건 */
+/* 이 사주의 모습: 성향·일하는 방식·돈·관계를 이어 읽는 글. 근거(어느 자리에 어떤 기운)는 접어 둔다. 한 해만 볼 때는 그 해의 주제를 덧붙인다. */
+function sipEl(ss,single){const s=el('section',null,'vsip');s.dataset.sip='1';
+  s.append(el('h2','이 사주의 모습'));s.append(el('p',ss.summary,'sipsummary'));
+  ss.sections.forEach(x=>{const d=el('div',null,'sipitem');d.append(el('h3',x.title));d.append(el('p',x.text));s.append(d)});
+  if(single&&ss.years&&ss.years.length){const y=ss.years[0];const d=el('div',null,'sipitem sipyear');d.append(el('h3',y.year+'년의 주제'));d.append(el('p',y.theme+' '+y.link));d.append(el('p','준비해 볼 일: '+y.prep,'yprep'));s.append(d)}
+  const w=el('details',null,'whybox');w.append(el('summary','어느 자리의 어떤 기운에서 그렇게 읽었나요?'));
+  const ul=el('ul');ss.palaces.forEach(p=>ul.append(el('li',p.text)));w.append(ul);
+  const ev=[].concat(...ss.sections.map(x=>x.evidence||[]));if(ev.length){const u2=el('ul');ev.forEach(t=>u2.append(el('li',t)));w.append(u2)}
+  s.append(w);s.append(el('p',ss.label,'small muted'));return s}
 /* 첫 장면: 자연물 비유 + 타고난 기운 막대 + 필요한 기운이 들어오는 때(시간 순) */
 function storyEl(st){const s=el('section',null,'vstorycard');s.dataset.story='1';
   /* 읽는 순서: 핵심 결론 → 시기·분야 요약 → (이 카드) 자연물 비유. 비유는 설명용이며 판정에 쓰이지 않는다. 막대·계절 균형·큰 흐름 표는 기본 접힘. */
@@ -97,6 +106,8 @@ function periodEl(v){const p=v.period;const s=el('section',null,'vperiod');
     const head=el('div',null,'yhead');head.append(el('b',r.year+'년'+(r.standout?' ★':'')),chip(r.tone));li.append(head);
     li.append(el('p',r.change,'ychange'));if(r.caution)li.append(el('p','주의: '+r.caution,'ycaution'));
     if(r.why)li.append(el('p','왜 두드러지나요? '+r.why,'ywhy'));
+    const th=((v.profile&&v.profile.sipsung&&v.profile.sipsung.years)||[]).find(z=>z.year===r.year);
+    if(th){const t=el('div',null,'ytheme');t.append(el('p',th.theme+' '+th.link));t.append(el('p','준비해 볼 일: '+th.prep,'yprep'));li.append(t)}
     const det=el('div',null,'ydetail');det.hidden=true;
     const btn=el('button',r.year+'년 자세히 보기','sec');btn.type='button';btn.setAttribute('aria-expanded','false');
     btn.onclick=()=>{if(!det.childElementCount){((v.detail[String(r.year)]||{}).blocks||[]).forEach((b,i)=>det.append(blockEl(v,b,false)))}
@@ -126,6 +137,7 @@ renderReport=function(a,pre,reopened){
   const out=$('out');out.textContent='';const v=a.verdict;const root=el('div');root.id='verdict';
   /* 읽는 순서: 1 핵심 결론 → 2 선택한 시기의 변화·분야별 요약 → 3 자연물 비유 → 한계 */
   if(v.profile){root.append(profileEl(v.profile))}
+  if(v.profile&&v.profile.sipsung){root.append(sipEl(v.profile.sipsung,v.mode!=='multi'))}
   if(v.mode==='multi'){root.append(periodEl(v))}
   else{v.blocks.forEach((b,i)=>root.append(blockEl(v,b,i===0)))}
   if(v.profile&&v.profile.story){root.append(storyEl(v.profile.story))}

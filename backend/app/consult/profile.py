@@ -14,6 +14,7 @@ from . import domains as D
 from . import explain as E
 from .readings import GOD_PLAIN
 from . import facts as FA
+from . import sipsung as SS
 from . import synthesis as S
 
 PROFILE_VERSION = "profile-1.0.0"
@@ -271,6 +272,7 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
     deuk = pre["natal_structure"]["layer1"]["deukryeong"]
     withheld = c["withheld"] is not None and sv["state"] in ("none",)
 
+    ss = SS.build(pre, P, years)                       # v10.1 십성·궁위 풀이(설명 문장; 판정에는 쓰이지 않는다)
     # --- 핵심 결론
     if c["names"]:
         parts = [f"‘{_theme(n)}’" for n in c["names"][:2]]
@@ -279,6 +281,8 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
             concl += " 돕는 흐름과 부딪히는 흐름이 함께 뚜렷해 한쪽으로 정하지 않습니다."
         elif c["tension"]:
             concl += " 이 흐름은 점검과 조율이 필요한 쪽으로 읽힙니다."
+    elif ss and ss["dominant"]:
+        concl = "이 사주는 " + ss["summary"].replace("한 줄로 말하면, ", "").replace("사주로 읽힙니다.", "모습으로 읽힙니다.")
     elif sv["state"] in ("agree", "single", "conflict") and any(v["text"].endswith("중요하게 봅니다.") for v in sv["views"]):
         concl = "한 가지 구조가 뚜렷하게 앞서 읽히지는 않습니다. 대신 관점별로 중요하게 보는 쪽이 있어, 아래에서 관점마다 따로 설명합니다."
     else:
@@ -344,8 +348,9 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
         conds.append("출생 시각이나 날짜가 달라지면 결과가 달라집니다. 입력한 정보가 정확한지 확인해 주세요.")
 
     st = story(pre, P, years)
-    internal = {"story_used": bool(st), "version": PROFILE_VERSION, "center": c, "schools_state": sv["state"], "luck_year": [{k: v for k, v in r.items() if k != "text"} for r in ly],
+    ss_internal = ss.pop("internal") if ss else None
+    internal = {"sipsung": ss_internal, "story_used": bool(st), "version": PROFILE_VERSION, "center": c, "schools_state": sv["state"], "luck_year": [{k: v for k, v in r.items() if k != "text"} for r in ly],
                 "rule_ids": [S.RULE_OF[n] for n in c["names"] if n in S.RULE_OF], "claim_ids": [layer3[n]["claim_id"] for n in c["names"] if n in layer3],
                 "unconfirmed_center_rules": weak_rules, "johu_check": ({k: v for k, v in jc.items() if k != "text"} if jc else None)}
-    return {"story": st, "version": PROFILE_VERSION, "withheld": bool(withheld or (not c["names"] and sv["state"] == "none")), "conclusion": concl, "why": why, "reality": reality, "conditions": conds,
+    return {"sipsung": ss, "story": st, "version": PROFILE_VERSION, "withheld": bool(withheld or (not c["names"] and sv["state"] == "none")), "conclusion": concl, "why": why, "reality": reality, "conditions": conds,
             "views": sv["views"], "internal": internal}
