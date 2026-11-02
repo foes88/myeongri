@@ -30,6 +30,11 @@ def test_personal_end_to_end(browser, one, size):
     assert calc.count() == 1 and "계산 상태" in calc.inner_text()
     assert not any(w in body for w in ("PILLARS_VERIFIED", "ASTRO_VERIFIED", "lunar-python", "golden"))
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+    # v9.3: 명식 전체 종합(핵심 결론 → 현실 참고, 근거·조건은 접힘)
+    pf = p.locator("#verdict .vprofile")
+    assert pf.count() == 1 and "이 사주에서 중요하게 읽히는 것" in pf.inner_text()
+    assert pf.locator("details[open]").count() == 0 and pf.locator("details").count() == 2
+    assert not any(w in pf.inner_text() for w in ("격국", "용신", "식상생재", "claim", "대운", "세운"))
     # STEP3 연도 이동: 폼을 건드리지 않고 저장된 명식으로 다시 풀이
     posts_before = len([1 for m, u, pd in reqs if m == "POST" and u.endswith("/api/v1/reports")])
     p.click("#ynext")

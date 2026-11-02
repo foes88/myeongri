@@ -24,6 +24,14 @@ function reasonsBox(v,b){const w=b.why;const box=el('div',null,'whybox');box.hid
   sec('타고난 사주에서 이렇게 봅니다',w.natal);sec('이 시기에 이렇게 봅니다',w.period);sec('반대로 보는 이유',w.against);
   if(w.nature)box.append(el('p',w.nature,'small muted'));return box}
 
+/* 명식 전체 종합: 핵심 결론 → 왜 → 현실 참고 → 판단이 달라질 수 있는 조건 */
+function profileEl(p){const s=el('section',null,'vprofile');s.dataset.profile=p.withheld?'withheld':'ok';
+  const hd=el('div',null,'vhead');hd.append(el('h2','이 사주에서 중요하게 읽히는 것'));s.append(hd);
+  s.append(el('p',p.conclusion,'verdict-a'));
+  if(p.reality&&p.reality.length){const h=el('h3','현실에서 참고할 부분');s.append(h);const ul=el('ul');p.reality.forEach(t=>ul.append(el('li',t)));s.append(ul)}
+  const d=el('details',null,'whybox');d.append(el('summary','왜 그렇게 읽나요?'));const u1=el('ul');p.why.forEach(t=>u1.append(el('li',t)));d.append(u1);s.append(d);
+  if(p.conditions&&p.conditions.length){const c=el('details',null,'whybox');c.append(el('summary','판단이 달라질 수 있는 조건'));const u2=el('ul');p.conditions.forEach(t=>u2.append(el('li',t)));c.append(u2);s.append(c)}
+  return s}
 function blockEl(v,b,lead){const s=el('section',null,'vblock'+(lead?' lead':''));s.dataset.domain=b.domain;s.dataset.tone=b.tone;
   const h=el('h2',b.name);const hd=el('div',null,'vhead');hd.append(h,chip(b.tone));s.append(hd);
   s.append(el('p',b.headline,'verdict-a'));
@@ -71,6 +79,7 @@ renderReport=function(a,pre,reopened){
   add('분석 시기',(a.years&&a.years.length)?(a.years.length>1?a.years[0]+'~'+a.years[a.years.length-1]+'년':a.years[0]+'년'):'타고난 사주');
   add('살펴본 분야',(a.domains||[]).map(d=>DOM_KO[d]||d).join(', '));c.append(m);
   const out=$('out');out.textContent='';const v=a.verdict;const root=el('div');root.id='verdict';
+  if(v.profile){root.append(profileEl(v.profile))}
   if(v.mode==='multi'){root.append(periodEl(v))}
   else{v.blocks.forEach((b,i)=>root.append(blockEl(v,b,i===0)))}
   root.append(limitsEl(v));out.append(root);

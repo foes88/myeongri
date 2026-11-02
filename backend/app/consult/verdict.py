@@ -15,6 +15,7 @@ from . import explain as E
 from . import facts as FA
 from . import domains as D
 from . import judge as JD
+from . import profile as PF
 from . import readings as R
 from . import synthesis as S
 
@@ -816,6 +817,10 @@ def build(pre: dict, ans: dict, question: str = "") -> dict:
         flat_blocks = [b for y in years for b in detail[str(y)]["blocks"]]
         result["limits"] = limits_for(pre, years, flat_blocks, multi_flat=period["flat"])
     allb = result["blocks"] or [b for d in result["detail"].values() for b in d["blocks"]]
+    focus_blocks = result["blocks"] if mode != "multi" else result["detail"][str(years[0])]["blocks"]
+    cn = calc_notice({"verification": pre["verification"], "variants_count": pre.get("variants_count")}) or {}
+    result["profile"] = PF.build(pre, P, years, focus_blocks, cn.get("alerts", []))   # v9.3: 명식 전체 종합 통변(사용자용). 내부 근거는 internal.profile 로
+    profile_internal = result["profile"].pop("internal")
     syn = ans.get("synthesis") or {}
     internal_claims = {}
     for b in allb:
@@ -826,7 +831,7 @@ def build(pre: dict, ans: dict, question: str = "") -> dict:
             b.pop("_claims", None)
     result["internal"] = {"claim_ids": syn.get("claim_ids", []), "block_claim_ids": internal_claims, "ruleset_version": pre["ruleset_version"], "verification_status": pre["verification"]["status"],
                           "scores": {b["domain"]: b["scores"] for b in allb}, "tones": {b["domain"]: b["tone"] for b in allb},
-                          "judge": {"version": JD.JUDGE_VERSION, "consistent": all(JD.consistent(b["tone"], b["scores"]["S"], b["scores"]["T"]) for b in allb)},
+                          "profile": profile_internal, "judge": {"version": JD.JUDGE_VERSION, "consistent": all(JD.consistent(b["tone"], b["scores"]["S"], b["scores"]["T"]) for b in allb)},
                           "counter_evidence": {b["domain"]: b["counter"] for b in allb},
                           "trace": {str(y): E.trace_year(pre, ans, y, doms) for y in years}, "period_dev": ({str(k): v for k, v in period_dev.items()} if mode == "multi" else {}),
                           "conditions": ["어조는 구조 변화(돕는 흐름 S, 부딪히거나 나누는 흐름 T)의 크기로 정한 구현자 규약", "해의 절반 이상을 덮는 구간만 '그해의 변화'로 셈(구현자 규약)", "고전 원문 대조 전 규칙 포함"],
@@ -859,11 +864,12 @@ def calc_notice(summary: dict) -> dict | None:
     ver = summary.get("verification")
     if not ver:
         return None
-    items, level = [], "ok"
+    items, level, alerts = [], "ok", []
     cross = ver.get("independent_crosscheck") or {}
     if cross and cross.get("agree") is False:
         level = "caution"
         items.append("다른 계산 방식과 비교했을 때 네 기둥 중 일부가 다르게 나왔습니다. 출생 정보를 다시 확인하고, 이 결과는 참고로만 봐 주세요.")
+        alerts.append(items[-1])
     elif cross:
         items.append("다른 계산 방식으로 다시 계산해 보아도 네 기둥이 같게 나왔습니다.")
     near = ver.get("nearest_jie_minutes")
@@ -872,16 +878,18 @@ def calc_notice(summary: dict) -> dict | None:
         if level == "ok":
             level = "check"
         items.append("태어난 시각이 달이 바뀌는 날(절기) 경계" + (f"에서 {_span(near)} 이내" if near is not None else "에 가깝") + "라서, 시각이 조금만 달라도 월 기둥이 바뀔 수 있습니다. 출생 시각을 다시 확인해 보세요.")
+        alerts.append(items[-1])
     elif near is not None:
         items.append("달이 바뀌는 날(절기)과 충분히 떨어져 있어 날짜·시각이 조금 달라도 월 기둥은 바뀌지 않습니다.")
     if (summary.get("variants_count") or 1) > 1:
         if level == "ok":
             level = "check"
         items.append("입력 조건(출생 시각 처리 방식 등)에 따라 달라질 수 있는 명식이 있습니다. 결과 화면의 다른 명식도 함께 확인해 보세요.")
+        alerts.append(items[-1])
     if not ver.get("may_claim_verified"):
         items.append("공식 자료와의 대조가 모두 끝난 계산은 아니어서 ‘검증 완료’라고 표시하지 않습니다. 계산 결과는 참고용입니다.")
     title = {"ok": "계산 상태: 참고할 수 있습니다", "check": "계산 상태: 입력을 한 번 더 확인해 주세요", "caution": "계산 상태: 다른 계산과 달라 주의가 필요합니다"}[level]
-    return {"level": level, "title": title, "items": items}
+    return {"level": level, "title": title, "items": items, "alerts": alerts}
 
 
 def public_precommit(summary: dict) -> dict:

@@ -241,3 +241,8 @@ details.expert-raw>summary{color:var(--ink2);font-size:.92rem}
   #verdict>.vblock.lead .verdict-a,#verdict>.vblock.lead .vstory{max-width:52em}
 }
 @media (min-width:1500px){:root{--col:1240px}}
+
+/* 명식 전체 종합 */
+.vprofile{background:var(--doc);border:1px solid var(--rule);border-top:3px solid var(--ink);border-radius:2px;padding:22px 24px;margin:16px 0}
+.vprofile h3{margin:1rem 0 .3rem;font-size:1rem}.vprofile ul{margin:.3rem 0;padding-left:1.2rem}
+@media (max-width:560px){.vprofile{padding:14px 14px;margin:8px 0}.vprofile .vhead{margin-bottom:.2rem}.vprofile h2{margin:.1rem 0;font-size:1.2rem}}

@@ -390,7 +390,7 @@ def test_user_screen_and_api_expose_no_internal_information(browser, one):
     for i in range(3):
         p.locator("#verdict .why").nth(i).click()
     assert_verdict_layout(p)
-    assert p.locator("#verdict .whybox:visible").count() == 3
+    assert p.locator("#verdict .vblock .whybox:visible").count() == 3   # 분야 블록의 근거 상자(종합 통변 상자는 따로 검증)
     # 모바일 가독성: 가로 넘침 없고 첫 결론이 첫 두 화면 안에 있다
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     assert p.evaluate("document.querySelector('#verdict .verdict-a').getBoundingClientRect().top + window.scrollY") < 800  # 모바일 첫 화면(800px) 안에 첫 결론
