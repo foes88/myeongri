@@ -27,15 +27,18 @@ function reasonsBox(v,b){const w=b.why;const box=el('div',null,'whybox');box.hid
 /* 명식 전체 종합: 핵심 결론 → 왜 → 현실 참고 → 판단이 달라질 수 있는 조건 */
 /* 첫 장면: 자연물 비유 + 타고난 기운 막대 + 필요한 기운이 들어오는 때(시간 순) */
 function storyEl(st){const s=el('section',null,'vstorycard');s.dataset.story='1';
+  /* 읽는 순서: 핵심 결론 → 시기·분야 요약 → (이 카드) 자연물 비유. 비유는 설명용이며 판정에 쓰이지 않는다. 막대·계절 균형·큰 흐름 표는 기본 접힘. */
   s.append(el('p','이 사주를 자연에 빗대면','kicker'));s.append(el('h2',st.image,'storytitle'));
+  s.append(el('p','전통 명리는 태어난 날의 글자를 자연물에 빗대어 읽습니다. 구조를 쉽게 떠올리기 위한 비유일 뿐, 결론이나 운의 좋고 나쁨을 정하는 근거가 아닙니다.','small muted'));
+  const d=el('details',null,'whybox storydetails');d.append(el('summary','기운 분포·계절 균형·큰 흐름 표 보기'));
   const ol=el('ol',null,'beats');st.beats.slice(1).forEach(t=>ol.append(el('li',t)));
   const shape=el('div',null,'storyshape');shape.append(shapeEl(st.shape));
-  const body=el('div',null,'storybody');body.append(ol);body.append(shape);s.append(body);
-  if(st.timeline&&st.timeline.length){const w=el('div',null,'needline');w.append(el('p','필요한 ‘'+st.need.join('·')+'’의 기운이 들어오는 때','small b'));
+  const body=el('div',null,'storybody');body.append(ol);body.append(shape);d.append(body);
+  if(st.timeline&&st.timeline.length){const w=el('div',null,'needline');w.append(el('p','필요한 ‘'+st.need.join('·')+'’의 기운이 들어오는 때(좋은 운이라는 뜻이 아니라 계절 균형의 참고 표시)','small b'));
     const row=el('div',null,'needrow');st.timeline.forEach(r=>{const c=el('div',null,'needcell'+((r.luck_hit||r.year_hit)?' on':''));
       c.append(el('b',String(r.year)));c.append(el('span',(r.luck_hit?'●':'○')+' 큰 흐름','nl'));c.append(el('span',(r.year_hit?'●':'○')+' 그해','nl'));
-      c.setAttribute('aria-label',r.year+'년: 10년 큰 흐름 '+(r.luck_hit?'들어옴':'없음')+', 그해의 기운 '+(r.year_hit?'들어옴':'없음'));row.append(c)});w.append(row);s.append(w)}
-  s.append(el('p',st.note,'small muted'));return s}
+      c.setAttribute('aria-label',r.year+'년: 10년 큰 흐름 '+(r.luck_hit?'들어옴':'없음')+', 그해의 기운 '+(r.year_hit?'들어옴':'없음'));row.append(c)});w.append(row);d.append(w)}
+  d.append(el('p',st.note,'small muted'));s.append(d);return s}
 function shapeEl(shape){const w=el('div',null,'elwrap');w.append(el('h3','타고난 기운의 분포'));const cl={나무:'e-wood',불:'e-fire',흙:'e-earth',쇠:'e-metal',물:'e-water'};
   const mx=Math.max(...Object.values(shape),1);let n=0;
   Object.entries(shape).forEach(([nm,c])=>{n+=c;const row=el('div',null,'elrow');row.append(el('span',nm,'elname'));const bar=el('span',null,'elbar');const f=el('span',null,'elfill '+cl[nm]);f.style.width=(c/mx*100)+'%';bar.append(f);row.append(bar);row.append(el('span',c+'개','elnum'));row.setAttribute('role','img');row.setAttribute('aria-label',nm+' 기운 '+c+'개');w.append(row)});
@@ -121,10 +124,11 @@ renderReport=function(a,pre,reopened){
   add('분석 시기',(a.years&&a.years.length)?(a.years.length>1?a.years[0]+'~'+a.years[a.years.length-1]+'년':a.years[0]+'년'):'타고난 사주');
   add('살펴본 분야',(a.domains||[]).map(d=>DOM_KO[d]||d).join(', '));c.append(m);
   const out=$('out');out.textContent='';const v=a.verdict;const root=el('div');root.id='verdict';
-  if(v.profile&&v.profile.story){root.append(storyEl(v.profile.story))}
+  /* 읽는 순서: 1 핵심 결론 → 2 선택한 시기의 변화·분야별 요약 → 3 자연물 비유 → 한계 */
   if(v.profile){root.append(profileEl(v.profile))}
   if(v.mode==='multi'){root.append(periodEl(v))}
   else{v.blocks.forEach((b,i)=>root.append(blockEl(v,b,i===0)))}
+  if(v.profile&&v.profile.story){root.append(storyEl(v.profile.story))}
   root.append(limitsEl(v));out.append(root);
   /* 내 사주(네 기둥): 결론 아래에 접어 둔다 */
   const st=$('status');st.textContent='';st.hidden=false;st.className='chapter pillars-card';

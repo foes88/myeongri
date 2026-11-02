@@ -132,6 +132,7 @@ def test_v10_visuals_heatmap_and_element_bars(browser, one, size):
         c = cells.nth(i)
         assert c.locator(".sym").inner_text().strip() and c.locator(".lab").inner_text().strip() and c.get_attribute("aria-label")      # 색 이외의 기호·글자
     assert "확률도 아닙니다" in p.inner_text("#verdict .heatwrap") and p.locator("#verdict .heatlegend span").count() == 6
+    p.locator("#verdict .vstorycard summary").click()                      # 기본은 접혀 있다
     bars = p.locator("#verdict .vstorycard .elrow")
     assert bars.count() == 5 and "개를 다섯 가지 기운으로 센 것" in p.inner_text("#verdict .vstorycard .elwrap")
     total = sum(int(bars.nth(i).locator(".elnum").inner_text().replace("개", "")) for i in range(5))
@@ -142,28 +143,41 @@ def test_v10_visuals_heatmap_and_element_bars(browser, one, size):
     ctx.close()
 
 
+@pytest.mark.parametrize("multi", [False, True])
 @pytest.mark.parametrize("size", ["360", "1440"])
-def test_first_screen_is_a_story_not_a_structure_label(browser, one, size):
-    """첫 장면: 자연물 비유 제목 + 흐름순 문장 + 필요한 기운이 들어오는 때. 비유임을 밝히고, 성격·사건을 단정하지 않는다."""
+def test_reading_order_conclusion_first_then_period_then_nature_metaphor_collapsed_details(browser, one, size, multi):
+    """읽는 순서: ① 핵심 결론 ② 선택한 시기의 변화·분야별 요약 ③ 자연물 비유. 막대·계절 균형·큰 흐름 표는 기본 접힘.
+    360px 첫 화면(800px)에 핵심 결론이 온전히 보인다."""
     ctx, p, reqs, console = open_page(browser, one, size)
-    _login_ui(p, f"story-{size}@example.com", register=True)
+    _login_ui(p, f"order-{size}-{int(multi)}@example.com", register=True)
     fill(p)
     p.fill("#y1", "2027")
-    p.select_option("#pk", "r5")
+    if multi:
+        p.select_option("#pk", "r5")
     p.click("#f button[type=submit]")
     p.wait_for_selector("#verdict .vstorycard", timeout=60000)
+    kinds = p.eval_on_selector_all("#verdict > section", "els=>els.map(e=>e.classList.contains('vprofile')?'profile':e.classList.contains('vperiod')?'period':e.classList.contains('vstorycard')?'story':e.classList.contains('vblock')?'block':'other')")
+    assert kinds[0] == "profile" and kinds[-1] in ("story", "other")
+    assert kinds.index("story") > max(i for i, k in enumerate(kinds) if k in ("period", "block"))          # 비유는 시기·분야 요약 다음
+    assert kinds[1] == ("period" if multi else "block")                                                    # 두 번째는 선택한 시기의 변화/분야 요약
+    # ① 핵심 결론: 360px 첫 화면(800px) 안에 온전히 들어온다
+    box = p.locator("#verdict .vprofile .verdict-a").bounding_box()
+    sy = p.evaluate("window.scrollY")
+    assert box["y"] + sy >= 0 and box["y"] + box["height"] <= 800, box
+    assert "이 사주에서 중요하게 읽히는 것" in p.locator("#verdict .vprofile h2").inner_text()
+    # ④ 기본 접힘: 막대·계절 균형·큰 흐름 표는 열기 전에는 보이지 않는다
     card = p.locator("#verdict .vstorycard")
-    assert p.locator("#verdict > section").first.get_attribute("data-story") == "1"            # 가장 먼저 보이는 것이 이야기 카드
-    title = card.locator(".storytitle").inner_text()
-    assert re.search(r"(봄|여름|가을|겨울)에 선 ", title) and "이 사주를 자연에 빗대면" in card.inner_text()
-    assert card.locator("ol.beats li").count() >= 2 and card.locator(".elrow").count() == 5
-    assert "비유" in card.inner_text() or "빗대" in card.inner_text()
-    assert "성격이나 일어날 일을 말하는 것이 아니며" in card.inner_text()
-    txt = card.inner_text()
-    assert not re.search(r"[一-鿿]|격국|용신|claim|반드시|틀림없|운명", txt)
+    assert card.locator("details[open]").count() == 0
+    assert not card.locator(".elrow").first.is_visible() and not card.locator("ol.beats").is_visible()
     if card.locator(".needcell").count():
-        assert card.locator(".needcell").count() == 5 and all(card.locator(".needcell").nth(i).get_attribute("aria-label") for i in range(5))
-    box = card.bounding_box()
-    assert box["y"] < 700 and p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
-    p.screenshot(path=f"data_private/browser/story_{size}.png")
+        assert not card.locator(".needcell").first.is_visible()
+    assert re.search(r"(봄|여름|가을|겨울)에 선 ", card.locator(".storytitle").inner_text())               # ③ 비유 제목은 보인다
+    assert "근거가 아닙니다" in card.inner_text() and "빗대" in card.inner_text()
+    card.locator("summary").click()
+    assert card.locator(".elrow").count() == 5 and card.locator(".elrow").first.is_visible()
+    txt = card.inner_text()
+    assert "좋은 운이라는 뜻도 아닙니다" in txt and not re.search(r"[一-鿿]|격국|용신|claim|반드시|틀림없|운명", txt)
+    assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
+    p.screenshot(path=f"data_private/browser/order_{size}_{'multi' if multi else 'single'}.png")
+    assert not [c for c in console if "PAGEERROR" in c or "Content Security" in c]
     ctx.close()

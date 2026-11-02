@@ -250,7 +250,7 @@ details.expert-raw>summary{color:var(--ink2);font-size:.92rem}
 /* 첫 장면 */
 .vstorycard{background:var(--doc);border:1px solid var(--rule);border-top:3px solid var(--seal);border-radius:2px;padding:22px 24px;margin:16px 0}
 .vstorycard .kicker{margin:0;color:var(--seal);font-weight:700;font-size:.9rem}.storytitle{font-size:2rem;line-height:1.3;margin:.1rem 0 .6rem}
-.storybody{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start}.beats{margin:0;padding-left:1.2rem}.beats li{margin:.35rem 0}
+.storydetails{margin-top:.6rem}.storybody{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start;margin-top:.5rem}.beats{margin:0;padding-left:1.2rem}.beats li{margin:.35rem 0}
 .needline{margin-top:.8rem}.needrow{display:flex;gap:6px;flex-wrap:wrap}.needcell{min-width:84px;border:1px solid var(--rule);border-radius:4px;padding:6px 8px;text-align:center;background:#f6f4ef;color:var(--ink2)}
 .needcell.on{background:#fbefd9;border-color:#d9a400;color:#5a3f00}.needcell b{display:block}.needcell .nl{display:block;font:.78rem/1.4 var(--sans)}
 @media (max-width:760px){.storybody{grid-template-columns:1fr}.storytitle{font-size:1.5rem}.vstorycard{padding:16px 14px}.needcell{min-width:72px}}

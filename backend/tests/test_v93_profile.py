@@ -228,3 +228,78 @@ def test_topic_particle_follows_final_consonant():
     assert "나무·흙·쇠·물은 겉으로 드러나지 않습니다" in " ".join(st["beats"])      # 마지막 낱말(물)에 받침이 있어 '은'
     st2 = PF.story(story_pre({"year": "甲子", "month": "乙丑", "day": "甲寅", "hour": "乙卯"}, "한난 중간(봄)", []), {}, [])
     assert "불·쇠는 겉으로 드러나지 않습니다" in " ".join(st2["beats"])      # 마지막 낱말(쇠)은 받침이 없어 '는' 
+
+
+# ---------------------------------------------------------------- 자연물 비유는 설명용: 판정 로직과 독립, '필요한 기운 = 좋은 운'으로 판정하지 않는다
+def _public_core(a):
+    v = a["verdict"]
+    prof = {k: x for k, x in v["profile"].items() if k != "story"}
+    return {"blocks": v.get("blocks"), "detail": v.get("detail"), "period": v.get("period"), "profile": prof, "judge": v["internal"]["judge"], "scores": v["internal"]["scores"], "tones": v["internal"]["tones"]}
+
+
+def test_story_has_no_influence_on_any_judgement_or_text(monkeypatch):
+    ci = next(iter(charts(1, seed=11)))
+    pre, _ = C.pre_for(ci, [2027])
+    ys = [2027, 2028, 2029, 2030, 2031]
+    run = lambda: agent.answer(pre, "종합 상담을 시작합니다", domains_=DOMS, years=ys, depth="detailed")
+    base = _public_core(run())
+    monkeypatch.setattr(PF, "story", lambda *a, **k: None)
+    assert _public_core(run()) == base                                           # 비유·필요한 기운 표를 없애도 판정과 문장이 같다
+
+    def always(hit):
+        def f(pre_, P, years):
+            return {"image": "x", "stem_image": "x", "season": "겨울", "beats": ["a", "b"], "shape": {}, "need": ["불"], "timeline": [{"year": y, "luck_hit": hit, "year_hit": hit} for y in years], "note": "n"}
+        return f
+    for hit in (True, False):
+        monkeypatch.setattr(PF, "story", always(hit))
+        assert _public_core(run()) == base                                       # 필요한 기운이 모두 들어오든 하나도 안 들어오든 판정은 같다
+
+
+def test_story_does_not_use_judge_inputs_or_write_to_blocks():
+    import inspect
+    src = inspect.getsource(PF.story) + inspect.getsource(PF.shape_of)
+    for forbidden in ("tone", "opportunity", "cautious", "scores", "classify", "JD.", "judge"):
+        assert forbidden not in src, forbidden
+    from app.consult import judge, verdict
+    assert "story" not in inspect.getsource(judge).lower()
+    assert "PF.story" not in inspect.getsource(verdict) and "profile.story" not in inspect.getsource(verdict)       # verdict 는 build() 로만 부른다
+
+
+GOOD_LUCK = re.compile(r"좋은 운|길한|길운|행운|대길|운이 트|유리한 해|좋아집니다|잘 풀|복이|행복해")
+
+
+def test_arrival_of_the_needed_element_is_never_described_as_good_luck(answers):
+    seen = 0
+    for ci, pre, a in answers:
+        st = a["verdict"]["profile"]["story"]
+        if not st:
+            continue
+        seen += 1
+        text = " ".join(st["beats"]) + " " + st["image"]
+        assert not GOOD_LUCK.search(text), text
+        note = st["note"].replace("좋은 운이라는 뜻도 아닙니다", "")
+        assert not GOOD_LUCK.search(note) and "좋은 운이라는 뜻도 아닙니다" in st["note"]            # 부정 문장으로만 등장
+    assert seen == len(answers)
+
+
+def test_years_with_the_needed_element_still_get_cautious_thin_or_quiet_conclusions_sometimes():
+    """필요한 기운이 들어오는 해라고 모든 분야가 '기회'로 나오지 않는다(두 판단이 독립)."""
+    non_opportunity_in_hit_years = hit_blocks = 0
+    for ci in list(charts(6, seed=3)):
+        pre, _ = C.pre_for(ci, [2020])
+        ys = list(range(2019, 2029))
+        a = agent.answer(pre, "종합 상담을 시작합니다", domains_=DOMS, years=ys, depth="detailed")
+        tl = {r["year"]: r for r in a["verdict"]["profile"]["story"]["timeline"]} if a["verdict"]["profile"]["story"] else {}
+        for y, r in tl.items():
+            if r["luck_hit"] or r["year_hit"]:
+                for b in a["verdict"]["detail"][str(y)]["blocks"]:
+                    hit_blocks += 1
+                    non_opportunity_in_hit_years += b["tone"] != "opportunity"
+    assert hit_blocks >= 20 and non_opportunity_in_hit_years / hit_blocks >= 0.2
+
+
+def test_story_note_says_it_is_not_good_luck_and_not_a_prediction(monkeypatch):
+    import app.consult.facts as FA
+    monkeypatch.setattr(FA, "_days", lambda s: 365)
+    st = PF.story(story_pre({"year": "壬申", "month": "辛亥", "day": "甲子", "hour": "乙亥"}, "한(寒)", ["火"]), {2030: seg("丁卯", "庚午")}, [2030])
+    assert "곧 좋은 운이라는 뜻도 아닙니다" in st["note"] and "성격이나 일어날 일을 말하는 것이 아니며" in st["note"]

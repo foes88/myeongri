@@ -191,7 +191,7 @@ def story(pre: dict, P: dict, years: list[int]) -> dict | None:
             luck_now = timeline[0]["luck_hit"]
     return {"image": image, "stem_image": STEM_IMAGE[day[0]], "season": season, "beats": beats, "shape": {ELEM_PLAIN[e]: shape[e] for e in ELEM_KO_ORDER},
             "need": [ELEM_PLAIN[e] for e in need], "timeline": timeline,
-            "note": "자연물 비유와 ‘필요한 기운’ 점검은 전통에서 쓰는 설명 방식을 쉽게 풀어 쓴 것입니다. 성격이나 일어날 일을 말하는 것이 아니며, 일간별 계절 표(궁통보감)는 쓰지 않은 일반 원칙 수준의 참고입니다."}
+            "note": "자연물 비유와 ‘필요한 기운’ 점검은 전통에서 쓰는 설명 방식을 쉽게 풀어 쓴 것입니다. 성격이나 일어날 일을 말하는 것이 아니며, 필요한 기운이 들어온다는 것이 곧 좋은 운이라는 뜻도 아닙니다. 일간별 계절 표(궁통보감)는 쓰지 않은 일반 원칙 수준의 참고입니다."}
 
 
 def luck_year(pre: dict, P: dict, years: list[int]) -> list[dict]:
