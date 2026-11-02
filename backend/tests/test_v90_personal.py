@@ -173,3 +173,17 @@ def test_feedback_and_public_turns_keep_view_flag(c):
     assert md.status_code == 200 and "다시 풀이" in md.text
     h2 = reg(c, "b@example.com")
     assert c.post(f"/api/v1/reports/{rid}/feedback", json={"rating": 3}, headers=h2).status_code == 404
+
+
+def test_every_domain_headline_names_its_own_domain_not_wealth():
+    """분야별 헤드라인 문구가 없는 톤(steady/balance)에서 재물 문장을 빌려 쓰던 오류 회귀 방지."""
+    from app import main as M
+    from app.consult import agent, domains as D
+    doms = [d for d in D.DOMAINS if d not in ("luck",)]
+    for yrs in ([2027], [2028], [2030]):
+        body = M.OneshotBody(calendar="solar", birth_date="1991-04-07", birth_time="10:00", gender="male", birth_place="경기도 수원시", years=yrs, domains=doms, question="x")  # 가상 입력
+        pre = M._oneshot_pre(body)
+        v = agent.answer(pre, "종합 상담을 시작합니다", domains_=doms, years=yrs, depth="detailed")["verdict"]
+        for b in v["blocks"]:
+            if b["domain"] not in ("wealth", "overall", "business", "docs_realestate"):
+                assert "재물 흐름" not in b["headline"], (b["domain"], b["headline"])

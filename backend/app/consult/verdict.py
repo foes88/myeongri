@@ -580,7 +580,14 @@ def _palace_block(pre, dom, w, name, period, yr, t, tone, head_tpl, luck_date) -
     for c in counter[:1]:
         story.append(c)
     story = story[:4]
-    headline = (head_tpl or HEAD["wealth"]["thin"]).format(w=w)
+    if head_tpl:
+        headline = head_tpl.format(w=w)
+    elif tone == "steady":   # 분야별 문구가 없는 톤은 다른 분야(재물) 문장을 빌리지 않고 이 분야 이름으로 쓴다
+        headline = f"{w}은 {name}이 큰 기복 없이 안정적으로 이어지는 흐름으로 읽힙니다. 다만 사주만으로 단정하지는 않습니다."
+    elif tone == "balance":
+        headline = f"{w}은 {name}에서 생활의 균형을 돌아보기 좋은 흐름으로 읽힙니다. 결과를 보장하는 해석은 아닙니다."
+    else:
+        headline = f"이 사주에서는 {w} {name}에 대해 뚜렷하게 말할 수 있는 근거가 부족합니다."
     think = list(THINK.get(dom, {}).get(tone, THINK["overall"]["thin"]))[:2]
     return {"domain": dom, "name": name, "tone": tone, "tone_label": TONE_SHORT[tone], "headline": headline, "story": story, "think": think, "counter": counter, "why": why,
             "scores": {"S": t["S"], "T": t["T"]}, "_claims": []}
