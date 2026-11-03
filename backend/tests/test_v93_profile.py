@@ -191,7 +191,7 @@ def seg(luck, sewun, days=365):
 
 def test_shape_counts_all_eight_letters_including_the_day_master():
     sh = PF.shape_of({"year": "壬申", "month": "辛亥", "day": "甲子", "hour": "乙亥"})
-    assert sh == {"木": 2, "火": 0, "土": 4, "金": 0, "水": 2} and sum(sh.values()) == 8
+    assert sh == {"木": 2, "火": 0, "土": 0, "金": 2, "水": 4} and sum(sh.values()) == 8
     assert sum(PF.shape_of({"year": "壬申", "month": "辛亥", "day": "甲子", "hour": None}).values()) == 6        # 시주를 모르면 여섯 글자
 
 

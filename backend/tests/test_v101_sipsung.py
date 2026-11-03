@@ -120,7 +120,7 @@ def test_conclusion_uses_dominant_group_when_no_single_structure_leads():
            "layer1": {"deukryeong": {}}}}
     out = PF.build(pre, {}, [], [])
     assert out["internal"]["center"]["withheld"] == "all_hidden"
-    assert out["conclusion"] == "이 사주는 ‘기회를 넓게 잡는’ 쪽으로 힘이 모이는 모습으로 읽힙니다."
+    assert out["conclusion"] == "이 사주는 ‘남과 다른 관심을 파고드는’ 쪽으로 힘이 모이는 모습으로 읽힙니다."
     assert out["sipsung"]["sections"][0]["key"] == "tendency" and out["sipsung"]["years"] == []
 
 

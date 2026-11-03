@@ -59,4 +59,5 @@ def test_personal_defaults_are_not_in_the_repository():
     root = Path(__file__).resolve().parents[2]
     text = (root / "web" / "consult.html").read_text(encoding="utf-8") + (root / "scripts" / "_personal_env.bat").read_text(encoding="utf-8")
     assert "defaults.json" in text and "local-defaults" in text
-    assert "안양" not in text and "1988" not in text                         # 개인 기본값 자체는 저장소 밖(.myeongri)에만 있다
+    import re
+    assert not re.search(r"\d{4}-\d{2}-\d{2}", text)                          # 개인 기본값(날짜 등)은 저장소 밖(.myeongri)에만 있다

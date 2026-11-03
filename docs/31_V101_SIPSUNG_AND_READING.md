@@ -32,4 +32,4 @@
 - **개인용 기본 입력값**(생년월일·시각·성별·출생지·양/음력): 저장소에 넣지 않는다. 이 PC의 `%USERPROFILE%\.myeongri\defaults.json` 파일을 로컬 서버가 `/api/v1/local-defaults` 로 돌려줄 때만 폼을 채운다.
   - `scripts\_personal_env.bat` 가 `MYEONGRI_DEFAULTS` 를 이 파일로 지정한다. 환경변수가 없거나 파일이 없거나 **요청이 이 PC(루프백)에서 오지 않으면 항상 빈 값**이라 공개 배포(Vercel)·원격 접속에서는 어떤 개인 정보도 나가지 않는다.
   - 허용 키·형식(생년월일·HH:MM·성별·달력·출생지 40자 이하)만 통과시키고 날짜가 없으면 아무것도 채우지 않는다. 사용자가 이미 입력한 값은 덮어쓰지 않는다. 정적 미리보기 모드에서는 요청 자체를 보내지 않는다.
-  - 파일 예: `{"calendar":"solar","birth_date":"YYYY-MM-DD","birth_time":"HH:MM","gender":"male","birth_place":"경기도 수원시"}`
+  - 파일 예: `{"calendar":"solar","birth_date":"YYYY-MM-DD","birth_time":"HH:MM","gender":"male","birth_place":"서울특별시"}`

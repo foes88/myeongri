@@ -186,7 +186,7 @@ def test_error_kind_separation(report):
 
 # ---------- 개인정보·비밀정보 ----------
 def test_privacy_scan_flags_leaks():
-    leaked = "생일 " + "1975" + "-03-09 07:41 출생"
+    leaked = "생일 " + "1975" + "-03-09 07:41 출생"      # 가상 값
     assert privacy_scan.scan_text(leaked)
     assert privacy_scan.scan_text("key = 'sk-" + "a" * 30 + "'")
     assert privacy_scan.scan_text("contact: someone@" + "gmail.com")
