@@ -171,6 +171,7 @@ function fillDomain(vm,S,root){
 /* ---------- 조립 ---------- */
 function build(a){
   const vm=buildVM(a),S=makeState(vm),root=E('div',null,'dash');root.id='dash';
+  let started=false,prevYear=null,prevDomain=null;
   function sel(p){
     if(p.year!==undefined&&p.year!==null)S.year=p.year;if(p.domain)S.domain=p.domain;
     root.querySelectorAll('.tl-node').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.year)===S.year)));
@@ -178,6 +179,8 @@ function build(a){
     root.querySelectorAll('.dgrid td').forEach(td=>{const on=Number(td.dataset.year)===S.year;td.classList.toggle('selcol',on);td.classList.toggle('selcell',on&&td.dataset.domain===S.domain)});
     root.querySelectorAll('.dgrid .cell').forEach(c=>c.setAttribute('aria-pressed',String(Number(c.dataset.year)===S.year&&c.dataset.domain===S.domain)));
     fillYearPanel(vm,S,root);fillDomain(vm,S,root);
+    if(started&&window.MingliMotion){if(S.year!==prevYear)window.MingliMotion.panel(root.querySelector('#dash-year-panel'));if(S.year!==prevYear||S.domain!==prevDomain)window.MingliMotion.panel(root.querySelector('#dash-dom-panel'))}
+    prevYear=S.year;prevDomain=S.domain;started=true;
     const nm=(vm.domains.find(d=>d.domain===S.domain)||{}).name||'';
     window.MingliSel={year:S.year,domain:S.domain,domainName:nm};
     const cx=document.getElementById('ctxline');if(cx)cx.textContent='지금 보고 있는 것: '+(S.year?S.year+'년 · ':'')+nm;

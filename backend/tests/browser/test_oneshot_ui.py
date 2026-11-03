@@ -42,9 +42,12 @@ def one(tmp_path_factory):
             PostgresRepo(os.environ["PG_TEST_URL"], schema=pg_schema).drop_schema()
 
 
-def open_page(browser, one, size="1440"):
+def open_page(browser, one, size="1440", reduced=None, block=None):
+    """reduced='reduce' 로 '움직임 줄이기' 설정을 켠다. block=URL 패턴이면 그 요청을 막는다(예: 움직임 라이브러리 로드 실패 시험)."""
     w, h = SIZES[size]
-    ctx = browser.new_context(viewport={"width": w, "height": h})
+    ctx = browser.new_context(viewport={"width": w, "height": h}, **({"reduced_motion": reduced} if reduced else {}))
+    if block:
+        ctx.route(block, lambda r: r.abort())
     pg = ctx.new_page()
     reqs, console = [], []
     pg.on("request", lambda r: reqs.append((r.method, r.url, r.post_data)))

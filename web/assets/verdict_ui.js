@@ -145,6 +145,7 @@ renderReport=function(a,pre,reopened){
     if(v.mode==='multi'){root.append(periodEl(v))}else{v.blocks.forEach((b,i)=>root.append(blockEl(v,b,i===0)))}
   }
   root.append(limitsEl(v));out.append(root);
+  if(window.MingliMotion&&document.getElementById('dash')){window.MingliMotion.results(document.getElementById('dash'));window.MingliMotion.sticky(document.querySelector('#dash .dash-bar'))}
   /* 내 사주(네 기둥): 결론 아래에 접어 둔다 */
   const st=$('status');st.textContent='';st.hidden=false;st.className='chapter pillars-card';
   if(pre.calc){const cn=el('div',null,'calc calc-'+pre.calc.level);cn.append(el('b',pre.calc.title));const ul=el('ul');pre.calc.items.forEach(t=>ul.append(el('li',t)));cn.append(ul);cn.setAttribute('data-calc',pre.calc.level);st.append(cn)}
@@ -161,7 +162,7 @@ renderRecord=function(a,question){
   s.append(el('p',question||'(질문 없음)','q'));
   const qa=a.qa;s.append(el('p',qa.text||'','verdict-a small'));
   if(qa.points&&qa.points.length){const u=el('ul',null,'qpoints');qa.points.forEach(t=>u.append(el('li',t)));s.append(u)}
-  $('out').append(s);s.scrollIntoView({block:'nearest'})};
+  $('out').append(s);if(window.MingliMotion)window.MingliMotion.appear(s,{y:8,duration:0.35});s.scrollIntoView({block:'nearest'})};
 /* 결과가 나오면 머리글(배너·제목·단계 표시)을 접어 첫 결론이 첫 화면에 보이게 하고, '입력 수정'을 누르면 되돌린다 */
 const HEAD_SEL=['#staticbanner','main > p.kicker','main > h1','main > p.lead','main > ol.steps'];
 const setHead=h=>HEAD_SEL.forEach(q=>{const e=document.querySelector(q);if(e)e.hidden=h});

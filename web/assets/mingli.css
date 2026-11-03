@@ -442,3 +442,14 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 .timeline.compact .tl-sym{justify-content:flex-start}.timeline.compact .tl-sym .lab{display:none}
 .timeline.compact .tl-segn{display:none}
 @media (max-width:899px){.timeline.compact{grid-template-columns:none;grid-auto-columns:minmax(74px,1fr)}}
+
+/* ===== v10.2 움직임 보조 스타일: 상태 전환은 짧게, 누름 피드백, 고정 바 그림자. 움직임 줄이기 설정이면 모두 끈다 ===== */
+.dash-bar{transition:box-shadow .2s ease}
+.dash-bar.stuck{box-shadow:0 8px 14px -12px rgba(31,26,23,.45);border-bottom-color:transparent}
+.tl-node,.cell,.dtab,.segbtn,.navbtn{transition:border-color .16s ease,background-color .16s ease,color .16s ease,transform .12s ease}
+.tl-node:active,.segbtn:active,.navbtn:active,.dtab:active{transform:scale(.97)}
+.cell:active{transform:scale(.94)}
+@media (prefers-reduced-motion:reduce){
+  .dash-bar,.tl-node,.cell,.dtab,.segbtn,.navbtn{transition:none}
+  .tl-node:active,.segbtn:active,.navbtn:active,.dtab:active,.cell:active{transform:none}
+}
