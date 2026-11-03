@@ -39,7 +39,7 @@ def test_layout_at_five_widths(browser, one, size):
     c = box(p, "#verdict .concl-text")                                                                              # 핵심 결론이 첫 화면 안에 온전히 보인다
     assert c["y"] >= 0 and c["b"] <= vh, (c, vh)
     me, fl = box(p, ".dash-me"), box(p, ".dash-flow")
-    if vw >= 1100:
+    if vw >= 960:
         assert me["x"] < fl["x"] and abs(me["y"] - fl["y"]) < 80 and me["w"] / (me["w"] + fl["w"]) < 0.45             # 2열: 왼쪽이 더 좁다
     else:
         assert fl["y"] >= me["b"] - 5                                                                               # 1열로 쌓인다
@@ -92,6 +92,17 @@ def test_domain_tabs_follow_arrow_keys_and_roles(browser, one):
     assert p.locator("#verdict .dtab[aria-selected=true]").get_attribute("data-domain") == "family"
     p.keyboard.press("Home")
     assert p.locator("#verdict .dtab[aria-selected=true]").get_attribute("data-domain") == "overall"
+    ctx.close()
+
+
+def test_ten_year_timeline_fits_one_row_on_desktop_and_numbers_never_break(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "1440")
+    analyze(p, kind="r10")
+    tops = p.evaluate("[...document.querySelectorAll('#verdict .tl-node')].map(e=>Math.round(e.getBoundingClientRect().top))")
+    assert len(tops) == 10 and len(set(tops)) == 1                                                                   # 한 줄
+    heights = p.evaluate("[...document.querySelectorAll('#verdict .tl-year')].map(e=>e.getBoundingClientRect().height)")
+    assert max(heights) < 30                                                                                         # 연도 숫자가 두 줄로 깨지지 않는다
+    assert all(p.locator("#verdict .tl-node").nth(i).get_attribute("aria-label") for i in range(10))                  # 접근성 이름에는 상태 글자가 있다
     ctx.close()
 
 

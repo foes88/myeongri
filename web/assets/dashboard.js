@@ -97,10 +97,11 @@ function flow(vm,S,sel){
   if(vm.multi&&vm.v.period&&vm.v.period.summary&&vm.v.period.summary[0])sec.append(E('p',vm.v.period.summary[0],'flow-lead'));
   // 타임라인
   const tl=E('div',null,'timeline'+(n>6?' compact':''));A(tl,{role:'group','aria-label':'연도별 흐름(연도를 눌러 선택)'});
+  let lastLine=null;
   vm.years.forEach(y=>{const r=vm.row(y),m=tv(r.tone);const b=E('button',null,'tl-node '+m[2]);b.type='button';b.dataset.year=y;A(b,{'aria-pressed':String(y===S.year),'aria-label':y+'년 '+m[1]+(r.standout?', 가장 달라지는 해':'')});
     const hd=E('span',null,'tl-head');hd.append(E('b',String(y),'tl-year'),E('span',r.standout?'★':'','tl-star'));b.append(hd);
     const sy=E('span',null,'tl-sym');sy.append(E('span',m[0],'sym'),E('span',m[1],'lab'));b.append(sy);
-    const ln=r.change||r.line;if(ln&&first(ln)!==(m[1]||''))b.append(E('span',first(ln),'tl-line'));
+    const ln=r.change||r.line,cur=ln?first(ln):'';if(cur&&cur!==(m[1]||'')){if(cur===lastLine)b.append(E('span','앞 해와 같은 흐름','tl-line same'));else{const sp=E('span',cur,'tl-line');sp.title=ln;b.append(sp)}lastLine=cur}
     const sg=vm.seg(y);if(sg.length){const bar=E('span',null,'tl-seg');A(bar,{'aria-hidden':'true'});sg.forEach((s,i)=>{const p=E('span',null,'segpart '+(i%2?'sb':'sa'));p.style.flexGrow=String(Math.max(s.share,0.04));p.title=s.label+(s.note?' · '+s.note:'');bar.append(p)});b.append(bar);
       if(sg.length>1)b.append(E('span',sg.length+'개 구간','tl-segn'))}
     b.onclick=()=>sel({year:y});tl.append(b)});

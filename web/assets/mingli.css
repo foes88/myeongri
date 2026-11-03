@@ -420,3 +420,25 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 .dash .fold>summary::before{content:'▸';display:inline-block;width:1.1em;color:var(--seal)}.dash .fold[open]>summary::before{content:'▾'}
 .dash .folds .fold>summary{border:0;background:transparent}
 .dash .fold>*:not(summary){margin-left:1.1em}
+
+/* v10.1 QA 보정 */
+@media (min-width:1600px){:root{--col:1520px}}
+.ebars{max-width:440px}
+.tl-line.same{color:var(--ink2);font-style:normal;opacity:.85}
+@media (min-width:960px){
+  .dash-grid{grid-template-columns:minmax(0,38fr) minmax(0,62fr)}
+  .dash-me{border-right:1px solid var(--rule);padding-right:clamp(20px,3vw,48px);border-bottom:0;padding-bottom:0;margin-bottom:0}
+}
+@media (min-width:760px) and (max-width:899px){.concl-trio{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 22px}}
+@media (min-width:900px) and (max-width:1099px){.timeline{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}}
+.tl-line{-webkit-line-clamp:2}
+
+/* 10년(촘촘한 타임라인): 한 줄에 들어오도록 노드를 줄이고 연도 숫자가 깨지지 않게 */
+.tl-year{white-space:nowrap}
+.tl-head{flex-wrap:nowrap;gap:2px}
+.timeline.compact{grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px}
+.timeline.compact .tl-node{padding:9px 6px 8px;gap:4px;min-width:0}.timeline.compact .tl-node[aria-pressed="true"]{padding:8px 5px 7px}
+.timeline.compact .tl-year{font-size:.98rem}.timeline.compact .tl-star{font-size:.8rem}
+.timeline.compact .tl-sym{justify-content:flex-start}.timeline.compact .tl-sym .lab{display:none}
+.timeline.compact .tl-segn{display:none}
+@media (max-width:899px){.timeline.compact{grid-template-columns:none;grid-auto-columns:minmax(74px,1fr)}}
