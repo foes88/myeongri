@@ -62,6 +62,16 @@ def _best_domain(v: dict, question: str, doms: list[str]) -> str | None:
     return sel[0] if sel else None
 
 
+def focus_context(years: list[int], focus_year: int | None, focus_domain: str | None) -> dict:
+    """화면에서 사용자가 지금 보고 있는 연도·분야(선택). 분석 범위 밖이거나 알 수 없는 값은 버린다. 질문에 연도·분야가 없을 때만 쓰이며 판정에는 영향이 없다."""
+    out: dict = {}
+    if focus_year is not None and focus_year in (years or []):
+        out["year"] = focus_year
+    if focus_domain and focus_domain in D.DOMAINS and focus_domain not in ("luck",):
+        out["domain"] = focus_domain
+    return out
+
+
 def _rel_years(q: str, years: list[int]) -> list[int]:
     """‘올해·내년’ 같은 말을 분석 범위 안의 연도로 바꾼다(범위 밖이면 무시)."""
     import datetime

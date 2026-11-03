@@ -164,7 +164,9 @@ def expanded_text(page, sel):
 
 def show_form(page):
     """분석 후 접힌 입력란을 다시 연다(이미 열려 있으면 아무 것도 하지 않음)."""
-    if page.locator("#formbar").is_visible():
+    if page.locator("#dash-edit").count() and page.locator("#dash-edit").is_visible():   # v10.1: 대시보드 컨트롤 바의 '입력 수정'
+        page.click("#dash-edit")
+    elif page.locator("#formbar").is_visible():
         page.click("#formedit")
 
 
@@ -195,10 +197,11 @@ JARGON_RE = _re.compile(r"\[?[A-Z]\d?-[A-Z0-9-]*\d{3}\]?|claim|지장간|십성|
 
 
 def assert_verdict_layout(page):
-    """v8.1 결과 화면: 첫 결론이 먼저 보이고, 아코디언·기술 요소가 없으며, 사용자 문장에 전문 용어·규칙 번호·한자가 없다(내 사주 표는 접힌 영역으로 제외)."""
-    page.wait_for_selector("#verdict .verdict-a, #verdict .vperiod")
-    assert page.locator("#more").count() == 0 and page.locator("#keypoints").count() == 0 and page.locator("details.fold").count() == 0
+    """v10.1 결과 화면: 컨트롤 바 → 핵심 결론이 먼저 보이고, 근거·조건은 접혀 있으며, 사용자 문장에 전문 용어·규칙 번호·한자가 없다(내 사주 표는 접힌 영역)."""
+    page.wait_for_selector("#verdict .dash-conclusion .concl-text, #verdict .verdict-a, #verdict .vperiod")
+    assert page.locator("#more").count() == 0 and page.locator("#keypoints").count() == 0
     assert page.locator("#status details").count() == 1 and page.evaluate("document.querySelector('#status details').open") is False
+    assert page.locator("#verdict .dash-conclusion details[open]").count() == 0
     txt = page.evaluate("document.getElementById('verdict').textContent + document.getElementById('cover').textContent")
     bad = JARGON_RE.findall(txt)
     assert not bad, bad[:5]

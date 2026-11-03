@@ -17,7 +17,7 @@ call=async function(path,opt){
   if(!AUTH)return origCall(path,opt);
   const body=opt&&opt.body?JSON.parse(opt.body):null;
   if(path==='/api/v1/oneshot/analyze'){return origCall('/api/v1/reports',{method:'POST',headers:H(),body:JSON.stringify({title:'',request:body})})}
-  if(path==='/api/v1/oneshot/ask'&&reportId){return origCall('/api/v1/reports/'+reportId+'/ask',{method:'POST',headers:H(),body:JSON.stringify({question:body.question,years:body.years&&body.years.length?body.years:null,domains:null})}).then(r=>{if(r.ok)r.j=r.j.answer;return r})}
+  if(path==='/api/v1/oneshot/ask'&&reportId){return origCall('/api/v1/reports/'+reportId+'/ask',{method:'POST',headers:H(),body:JSON.stringify({question:body.question,years:body.years&&body.years.length?body.years:null,domains:null,focus_year:body.focus_year||null,focus_domain:body.focus_domain||null})}).then(r=>{if(r.ok)r.j=r.j.answer;return r})}
   if(path==='/api/v1/oneshot/reality'&&reportId){return origCall('/api/v1/reports/'+reportId+'/reality',{method:'POST',headers:H(),body:JSON.stringify(body.event)})}
   return origCall(path,opt)};
 const origBegin=begin;
@@ -41,7 +41,7 @@ async function openReport(id){const r=await origCall('/api/v1/reports/'+id,{head
 async function exportReport(id){const r=await fetch('/api/v1/reports/'+id+'/export',{headers:{'Authorization':'Bearer '+AUTH.token}});if(!r.ok){msg('내보내기에 실패했습니다.',true);return}
   const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='명리_리포트_'+id.slice(0,8)+'.md';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 async function delReport(id){const r=await origCall('/api/v1/reports/'+id,{method:'DELETE',headers:H()});if(r.ok||r.status===204){if(reportId===id){reportId=null;curPre=null;curYears=[];clearScreen()}msg('리포트를 삭제했습니다.');refresh()}else msg(kor(r),true)}
-function clearScreen(){/* 이전 사용자의 목록·리포트·기록이 화면에 남지 않게 한다(공용 기기 보호) */
+function clearScreen(){window.MingliSel=null;document.body.classList.remove('has-dash');const cx=$('ctxline');if(cx)cx.textContent='';/* 이전 사용자의 목록·리포트·기록이 화면에 남지 않게 한다(공용 기기 보호) */
   $('mylist').textContent='';$('acct-n').textContent='0';
   ['out','cover','status','histout','evr'].forEach(i=>{const e=$(i);if(e)e.textContent=''});
   const k=$('keypoints');if(k)k.remove();$('report').hidden=true;$('session').hidden=true;$('status').hidden=true;
@@ -81,6 +81,6 @@ async function reYears(years){
   const n=$('cover').querySelector('p.small.muted:last-child');if(n)n.textContent='저장된 명식으로 '+curYears[0]+(curYears.length>1?'~'+curYears[curYears.length-1]:'')+'년을 다시 풀었습니다. 출생 정보는 다시 입력하지 않아도 됩니다.'}
 const yn=(id,fn)=>{const e=$(id);if(e)e.addEventListener('click',ev=>{if(!AUTH||!reportId||!curYears.length)return;ev.stopImmediatePropagation();ev.preventDefault();fn()},true)};
 yn('yprev',()=>reYears(curYears.map(y=>y-1)));yn('ynext',()=>reYears(curYears.map(y=>y+1)));
-yn('to5',()=>reYears(Array.from({length:5},(_,i)=>curYears[0]+i)));yn('to10',()=>reYears(Array.from({length:10},(_,i)=>curYears[0]+i)));
+yn('to1',()=>reYears([curYears[0]]));yn('to5',()=>reYears(Array.from({length:5},(_,i)=>curYears[0]+i)));yn('to10',()=>reYears(Array.from({length:10},(_,i)=>curYears[0]+i)));
 show();refresh();
 })();

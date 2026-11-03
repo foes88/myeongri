@@ -257,6 +257,8 @@ async def _no_store(request: Request, call_next):
 
 
 class OneshotBody(BirthInput):
+    focus_year: int | None = Field(default=None, ge=1901, le=2049, description='후속 질문이 화면에서 보고 있는 연도(선택, 판정에 영향 없음)')
+    focus_domain: str | None = Field(default=None, max_length=30, description='후속 질문이 화면에서 보고 있는 분야(선택)')
     years: list[int] = Field(default_factory=list, max_length=10)
     domains: list[str] = Field(default_factory=lambda: ['overall'], max_length=12)
     depth: Literal['summary', 'detailed', 'expert'] = 'detailed'
@@ -323,7 +325,9 @@ def oneshot_ask(b: OneshotBody):
     if not b.question.strip():
         raise HTTPException(status_code=422, detail='질문을 입력하세요')
     pre = _oneshot_pre(b)
-    return user_answer(consult_agent.answer(pre, b.question, domains_=b.domains, years=b.years, depth=b.depth))
+    from .consult import qa as _qa
+    ctx = _qa.focus_context(b.years, b.focus_year, b.focus_domain)
+    return user_answer(consult_agent.answer(pre, b.question, domains_=b.domains, years=b.years, depth=b.depth, context=ctx))
 
 
 @app.post('/api/v1/oneshot/reality')

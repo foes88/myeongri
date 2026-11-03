@@ -117,12 +117,14 @@ function periodEl(v){const p=v.period;const s=el('section',null,'vperiod');
   s.append(el('p','연도별 한 줄은 ‘'+(p.primary_domain==='overall'?'종합운':(DOM_KO[p.primary_domain]||p.primary_domain))+'’ 기준입니다. 두드러지는 해는 확률이 아니라 구조 변화의 크기로 고른 것입니다.','small muted'));
   return s}
 
-function chipsFor(a){const v=a.verdict;const box=$('chips');if(!box){return}box.textContent='';
-  const ys=a.years||[];const d0=(a.domains||[]).find(d=>d!=='overall'&&d!=='luck');const dn=d0?(DOM_KO[d0]||d0):'올해 흐름';
+function chipsFor(a,sel){const v=a.verdict;const box=$('chips');if(!box){return}box.textContent='';
+  const ys=a.years||[];const d0=(a.domains||[]).find(d=>d!=='overall'&&d!=='luck');
+  const selName=sel&&sel.domain&&sel.domain!=='overall'?sel.domainName:'';
+  const dn=selName||(d0?(DOM_KO[d0]||d0):'올해 흐름');
   const q=[];
-  const y=ys[0]||'';
+  const y=(sel&&sel.year)||ys[0]||'';
   q.push((y?y+'년 ':'')+dn+'은 그래서 어떻게 하는 게 좋다는 거야?');
-  if(ys.length>=2)q.push(ys[0]+'년과 '+ys[ys.length>1?1:0]+'년 중 어느 쪽이 더 나아?');
+  if(ys.length>=2){const o=ys.find(z=>z!==y);q.push(Math.min(y||ys[0],o)+'년과 '+Math.max(y||ys[0],o)+'년은 어떤 차이가 있어?')}
   q.push('결과에 나온 ‘점검할 점’은 무슨 뜻이야?');q.push('왜 그렇게 읽어?');
   q.forEach(t=>{const b=el('button',t,'chipq');b.type='button';b.onclick=()=>{$('q2').value=t;$('askb').click()};box.append(b)})}
 
@@ -135,15 +137,13 @@ renderReport=function(a,pre,reopened){
   add('분석 시기',(a.years&&a.years.length)?(a.years.length>1?a.years[0]+'~'+a.years[a.years.length-1]+'년':a.years[0]+'년'):'타고난 사주');
   add('살펴본 분야',(a.domains||[]).map(d=>DOM_KO[d]||d).join(', '));c.append(m);
   const out=$('out');out.textContent='';const v=a.verdict;const root=el('div');root.id='verdict';
-  /* 읽는 순서: 1 핵심 결론 → 2 선택한 시기의 변화·분야별 요약 → 3 자연물 비유 → 한계 */
-  if(v.profile){root.append(profileEl(v.profile))}
-  /* 넓은 화면(≥1000px)에서는 왼쪽 '이 사주의 모습', 오른쪽 '시기별 흐름/분야 풀이'를 나란히 놓는다. 좁은 화면에서는 위아래로 쌓여 순서가 같다. */
-  const cols=el('div',null,'vcols');const left=el('div',null,'vleft'),right=el('div',null,'vright');
-  if(v.profile&&v.profile.sipsung){left.append(sipEl(v.profile.sipsung,v.mode!=='multi'))}
-  if(v.mode==='multi'){right.append(periodEl(v))}
-  else{v.blocks.forEach((b,i)=>right.append(blockEl(v,b,i===0)))}
-  if(left.childElementCount)cols.append(left);cols.append(right);if(!left.childElementCount)cols.classList.add('one');root.append(cols);
-  if(v.profile&&v.profile.story){root.append(storyEl(v.profile.story))}
+  /* v10.1: 대시보드형 결과 — 컨트롤 바 → 핵심 결론 → 내 사주의 모습 | 시기별 흐름 → 분야별 해석 → 한계 (dashboard.js). 대시보드가 없으면(구버전 데모) 예전 구성으로 */
+  document.body.classList.toggle('has-dash',!!(window.MingliDash&&v.profile));document.body.classList.toggle('is-static',!!STATIC);
+  if(window.MingliDash&&v.profile){root.append(window.MingliDash.build(a))}
+  else{
+    if(v.profile){root.append(profileEl(v.profile))}
+    if(v.mode==='multi'){root.append(periodEl(v))}else{v.blocks.forEach((b,i)=>root.append(blockEl(v,b,i===0)))}
+  }
   root.append(limitsEl(v));out.append(root);
   /* 내 사주(네 기둥): 결론 아래에 접어 둔다 */
   const st=$('status');st.textContent='';st.hidden=false;st.className='chapter pillars-card';
@@ -151,7 +151,8 @@ renderReport=function(a,pre,reopened){
   const d=el('details');d.append(el('summary','내 사주(네 기둥) 보기'));d.append(pillarTable(pre.pillars));
   d.append(el('p','위쪽 글자(천간)와 아래쪽 글자(지지)로 이루어진 네 기둥입니다. 풀이의 바탕이 되는 계산 결과입니다.','small muted'));st.append(d);
   out.after(st);
-  chipsFor(a);
+  window.MingliChips=function(aa,sel){chipsFor(aa,sel)};
+  if(!window.MingliSel)chipsFor(a);
   const old=$('keypoints');if(old)old.remove();
 };
 renderRecord=function(a,question){

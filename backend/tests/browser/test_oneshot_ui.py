@@ -13,7 +13,7 @@ from .conftest import BACKEND, OUT, free_port, wait_http
 
 pytestmark = pytest.mark.browser
 WEB = BACKEND.parent / "web"
-SIZES = {"360": (360, 800), "768": (768, 1024), "1440": (1440, 900)}
+SIZES = {"360": (360, 800), "768": (768, 1024), "1024": (1024, 768), "1440": (1440, 900), "1920": (1920, 1080)}
 
 
 @pytest.fixture(scope="module")
@@ -76,7 +76,7 @@ def test_oneshot_full_flow_without_any_storage(browser, one):
     assert "저장되지 않는 일회성 분석" in p.inner_text("#cover")
     assert "상담 번호" not in p.inner_text("#cover") and p.locator("#status table.pillars").count() == 1
     assert_verdict_layout(p)
-    assert p.is_hidden("#f") and p.is_visible("#formbar")  # 분석 후 긴 입력란은 접힌다
+    assert p.is_hidden("#f") and p.is_visible("#dash-edit")  # 분석 후 긴 입력란은 접히고 컨트롤 바에 입력 수정 버튼이 있다
     # 후속 질문
     p.fill("#q2", "사업은 어떨까요?")
     p.click("#askb")
@@ -267,10 +267,10 @@ def test_mvp_human_flow_loading_year_switch_multi_year_follow_up(browser, one):
     p.click("#submitb")
     p.wait_for_function("!document.getElementById('busy').hidden")
     assert "분석 중" in p.inner_text("#busy") and p.is_disabled("#submitb")  # 로딩 표시 + 중복 제출 방지
-    p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
+    p.wait_for_selector("#verdict .dash-conclusion .concl-text", timeout=60000)
     assert p.is_enabled("#submitb") and p.is_hidden("#busy")
     # 첫 화면: 핵심 해석이 먼저, 상세는 접힘, 기술 로그 없음
-    assert p.is_visible("#verdict .verdict-a")
+    assert p.is_visible("#verdict .concl-text")
     top = lambda sel: p.evaluate(f"document.querySelector('{sel}').getBoundingClientRect().top + window.scrollY")
     assert top("#verdict") < top("#acct")  # 결과가 먼저, 회원 패널은 결과 아래
     assert p.locator("#verdict details[open]").count() == 0
@@ -278,20 +278,20 @@ def test_mvp_human_flow_loading_year_switch_multi_year_follow_up(browser, one):
     body = next(json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
     assert body["birth_place"] == "경기도 수원시" and body["years"] == [2030] and body["birth_time"] == "10:00"
     # 다른 연도 재분석: 입력을 다시 쓰지 않고 한 번에
-    p.click("#ynext")
+    p.click("#dash-next")
     p.wait_for_function("document.getElementById('formsum').textContent.includes('2031')", timeout=60000)
     bodies = [json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze")]
     assert bodies[-1]["years"] == [2031] and bodies[-1]["birth_date"] == "1984-06-15"
     head2031 = p.inner_text("#verdict")
     assert head2031 != head2030  # 연도를 바꾸면 해설도 달라진다(같은 문장을 연도만 바꿔 되풀이하지 않는다)
     # 5년 범위: 정보 구조가 달라진다(기간 핵심 흐름 + 연도별 한 줄)
-    p.click("#to5")
-    p.wait_for_selector("#verdict .vperiod", timeout=60000)
-    assert p.locator("#verdict .yearlines > li").count() == 5 and bodies is not None
-    # 연도를 고르면 그 해의 자세한 풀이가 열린다(처음에는 한 줄 요약만)
-    assert p.locator("#verdict .ydetail:visible").count() == 0
-    p.locator("#verdict .yearlines > li >> nth=2").locator("button").click()
-    p.wait_for_selector("#verdict .ydetail .verdict-a")
+    p.click("#dash-to5")
+    p.wait_for_selector("#verdict .timeline .tl-node", timeout=60000)
+    assert p.locator("#verdict .tl-node").count() == 5 and bodies is not None
+    # 연도를 고르면 그 해의 풀이가 해 패널과 분야 상세에 나타난다
+    p.locator("#verdict .tl-node >> nth=2").click()
+    p.wait_for_function("document.querySelector('#dash-year-panel h3').textContent==='2033년'")
+    assert p.is_visible("#dash-dom-panel .dp-headline")
     assert_verdict_layout(p)
     # 후속 질문
     p.fill("#q2", "사업 쪽은 어떻게 보이나요?")
@@ -343,7 +343,7 @@ def test_mvp_loading_animation_shows_while_analysis_runs_and_respects_reduced_mo
     assert p.is_visible("#busy .spin") and p.get_attribute("body", "aria-busy") == "true"
     anim = p.evaluate("[getComputedStyle(document.querySelector('#busy .spin')).animationName, getComputedStyle(document.getElementById('progress'),'::after').animationName]")
     assert anim == ["spin", "prog"]
-    p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
+    p.wait_for_selector("#verdict .dash-conclusion .concl-text", timeout=60000)
     assert p.is_hidden("#progress") and p.get_attribute("body", "aria-busy") is None  # 끝나면 사라진다
     ctx.close()
     # 움직임 줄이기 설정: 애니메이션 없음(표시는 남음)
@@ -379,22 +379,24 @@ def test_user_screen_and_api_expose_no_internal_information(browser, one):
         if cb.is_checked() != want:
             cb.set_checked(want)
     p.click("#submitb")
-    p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
+    p.wait_for_selector("#verdict .dash-conclusion .concl-text", timeout=60000)
     assert_verdict_layout(p)
-    # 블록 순서: 종합운이 먼저, 각 블록은 결론 → 풀이 → 현실에서 생각해 볼 점
-    names = p.eval_on_selector_all("#verdict .vblock h2", "els=>els.map(e=>e.textContent)")
+    # 분야 탭 순서: 종합운이 먼저. 선택한 분야는 결론 → 쉬운 설명 → 현실에서 생각해 볼 점 순서
+    names = p.eval_on_selector_all("#verdict .dtab .dn", "els=>els.map(e=>e.textContent)")
     assert names == ["종합운", "재물운", "직업·승진운"]
-    blk = p.locator("#verdict .vblock").nth(1)
-    order = blk.evaluate("e=>[...e.children].map(c=>c.className||c.tagName)")
-    assert order[1].startswith("verdict-a") and "vstory" in order[2] and any("H3" in o for o in order)
-    # 이유 보기(쉬운 말)도 전문 용어·번호가 없다
+    # 분야마다 이유 보기(쉬운 말)를 펼쳐도 전문 용어·번호가 없다
     for i in range(3):
-        p.locator("#verdict .why").nth(i).click()
+        p.locator("#verdict .dtab").nth(i).click()
+        order = p.evaluate("[...document.querySelector('#dash-dom-panel').children].map(c=>c.className||c.tagName)")
+        assert order[0] == "dp-head" and order[1].startswith("dp-headline") and order[2] == "dp-cols"
+        p.locator("#dash-dom-panel .fold summary").click()
     assert_verdict_layout(p)
-    assert p.locator("#verdict .vblock .whybox:visible").count() == 3   # 분야 블록의 근거 상자(종합 통변 상자는 따로 검증)
-    # 모바일 가독성: 가로 넘침 없고 첫 결론이 첫 두 화면 안에 있다
+    assert p.locator("#dash-dom-panel details[open]").count() == 1
+    # 모바일 가독성: 가로 넘침 없고 핵심 결론이 360px 첫 화면(800px) 안에 온전히 보인다
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
-    assert p.evaluate("document.querySelector('#verdict .verdict-a').getBoundingClientRect().top + window.scrollY") < 800  # 모바일 첫 화면(800px) 안에 첫 결론(핵심 결론이 맨 앞)
+    p.evaluate("window.scrollTo(0,0)")
+    box = p.locator("#verdict .concl-text").bounding_box()
+    assert box["y"] >= 0 and box["y"] + box["height"] <= 800, box
     # API 응답: 사용자용 키만, 내부 근거 문자열 없음
     body = next(json.loads(pd) for m, u, pd in reqs if m == "POST" and u.endswith("/oneshot/analyze"))
     raw = p.evaluate("async (b) => (await fetch('/api/v1/oneshot/analyze', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(b)})).text()", body)
@@ -416,23 +418,20 @@ def test_v83_one_five_ten_year_views_and_year_comparison(browser, one, size):
             cb.set_checked(want)
     # 1년
     p.click("#submitb")
-    p.wait_for_selector("#formbar:not([hidden])", timeout=60000)
+    p.wait_for_selector("#verdict .dash-conclusion .concl-text", timeout=60000)
     assert_verdict_layout(p)
-    assert p.locator("#verdict .vblock").count() == 3 and p.locator("#verdict .vperiod").count() == 0
+    assert p.locator("#verdict .dtab").count() == 3 and p.locator("#verdict .tl-node").count() == 1
     # 5년
-    p.click("#to5")
-    p.wait_for_selector("#verdict .vperiod", timeout=60000)
-    assert p.locator("#verdict .yearlines > li").count() == 5
+    p.click("#dash-to5")
+    p.wait_for_function("document.querySelectorAll('#verdict .tl-node').length===5", timeout=60000)
     assert_verdict_layout(p)
-    # 10년: 한 줄 요약 10개, 처음에는 연도 상세가 닫혀 있다
-    p.click("#to10")
-    p.wait_for_function("document.querySelectorAll('#verdict .yearlines > li').length===10", timeout=60000)
-    assert p.locator("#verdict .ydetail:visible").count() == 0
+    # 10년: 연도 노드 10개(촘촘한 보기), 선택한 해 패널이 하나
+    p.click("#dash-to10")
+    p.wait_for_function("document.querySelectorAll('#verdict .tl-node').length===10", timeout=60000)
+    assert p.locator("#verdict .timeline.compact").count() == 1 and p.locator("#dash-year-panel h3").count() == 1
     assert_verdict_layout(p)
-    first_line = p.locator("#verdict .yearlines > li").first.inner_text()
-    assert "상세" in first_line or "자세히" in first_line
     # 연도 비교(추천 질문 칩): 두 해를 함께 답한다
-    chip = p.locator("#chips .chipq", has_text="중 어느 쪽이 더 나아")
+    chip = p.locator("#chips .chipq", has_text="어떤 차이가 있어")
     assert chip.count() == 1
     chip.click()
     p.wait_for_selector("#out .record")

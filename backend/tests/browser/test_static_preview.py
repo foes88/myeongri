@@ -69,7 +69,7 @@ def test_demo_report_renders_without_any_network_send(browser, static_web, depth
     assert_verdict_layout(p)  # 결론형 화면(전문 용어·번호 없음)
     text = expanded_text(p, "#report")
     assert "합성 데모" in text and "실제 분석 결과가 아닙니다" in text
-    assert p.locator("#status table.pillars").count() == 1 and p.locator("#out table").count() == 0  # 기술적 표는 내 사주(접힘) 하나뿐
+    assert p.locator("#status table.pillars").count() == 1 and p.locator("#out table:not(.dgrid)").count() == 0  # 기술적 표는 내 사주(접힘) 하나뿐(분야×연도 한눈표는 화면용)
     # 후속 상담 예시
     p.click("#demoask")
     p.wait_for_selector("#out .record")

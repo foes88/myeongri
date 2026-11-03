@@ -780,6 +780,24 @@ def _dedupe_across_blocks(blocks: list[dict]) -> list[dict]:
     return blocks
 
 
+def segments_public(period: dict) -> list[dict]:
+    """한 해 안의 실제 구간(입춘·10년 큰 흐름 교체)을 화면용으로. 엔진이 나눈 구간을 그대로 옮기며 새로 판단하지 않는다.
+    share=그 구간이 해에서 차지하는 비율(일수 기준)."""
+    segs = period.get("segments") or []
+    total = sum(FA._days(s) for s in segs) or 1
+    out = []
+    for i, s in enumerate(segs):
+        note = None
+        if i == 0 and len(segs) > 1 and s["from"].endswith("-01-01") and s["sewun"] != segs[-1]["sewun"] and s["luck"] == segs[1]["luck"]:
+            note = "입춘 전: 전해의 기운이 적용되는 기간"
+        elif i > 0 and s["luck"] != segs[i - 1]["luck"]:
+            note = "이 날부터 10년 큰 흐름이 바뀜"
+        elif i > 0 and s["sewun"] != segs[i - 1]["sewun"]:
+            note = "입춘부터 그해의 기운이 적용"
+        out.append({"from": s["from"], "to": s["to"], "days": FA._days(s), "share": round(FA._days(s) / total, 3), "label": f"{S._md(s['from'])}~{S._md(s['to'])}", "note": note})
+    return out
+
+
 def build(pre: dict, ans: dict, question: str = "") -> dict:
     """answer() 가 끝난 뒤 호출. ans: blocks, periods, domains, years, synthesis 를 가진 답변."""
     base = pre["natal_structure"]
@@ -819,6 +837,7 @@ def build(pre: dict, ans: dict, question: str = "") -> dict:
     allb = result["blocks"] or [b for d in result["detail"].values() for b in d["blocks"]]
     focus_blocks = result["blocks"] if mode != "multi" else result["detail"][str(years[0])]["blocks"]
     cn = calc_notice({"verification": pre["verification"], "variants_count": pre.get("variants_count")}) or {}
+    result["segments"] = {str(y): segments_public(P[y]) for y in years if P.get(y)}   # 화면의 기간 구간 표시용(엔진 구간을 그대로)
     result["profile"] = PF.build(pre, P, years, focus_blocks, cn.get("alerts", []))   # v9.3: 명식 전체 종합 통변(사용자용). 내부 근거는 internal.profile 로
     profile_internal = result["profile"].pop("internal")
     syn = ans.get("synthesis") or {}
