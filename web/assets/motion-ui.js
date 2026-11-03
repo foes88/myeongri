@@ -44,18 +44,71 @@ function sweep(els,o){
 /* 연도·분야를 바꿀 때 내용이 갈아 끼워졌음을 알려 주는 짧은 전환(내용은 이미 바뀐 뒤) */
 function panel(el){if(!el)return;appear(el,{y:6,duration:0.28})}
 
+/* 인장: 결론 옆에 붉은 도장이 '찍힘'(크게 내려와 제자리). 최종 기울기는 CSS 가 가진다 */
+function stampIn(el,o){
+  if(!el||!on())return;o=o||{};
+  try{el.style.opacity='0';el.style.willChange='opacity, transform';
+    const a=M.animate(el,{opacity:[0,1],transform:['scale(2.4) rotate(-20deg)','scale(0.94) rotate(-6deg)','scale(1) rotate(-6deg)']},{duration:0.55,ease:[0.2,0.9,0.3,1.0],delay:o.delay||0});
+    const d=()=>later(()=>clean([el]));if(a&&a.finished&&a.finished.then)a.finished.then(d,d);else setTimeout(d,900)}
+  catch(e){clean([el])}}
+
+/* 붓 밑줄: 왼쪽에서 오른쪽으로 그어짐 */
+function brush(el,o){
+  if(!el||!on())return;o=o||{};
+  try{el.style.transformOrigin='left center';el.style.transform='scaleX(0)';
+    const a=M.animate(el,{transform:['scaleX(0)','scaleX(1)']},{duration:0.7,ease:[0.4,0,0.2,1],delay:o.delay||0});
+    const d=()=>later(()=>clean([el]));if(a&&a.finished&&a.finished.then)a.finished.then(d,d);else setTimeout(d,1000)}
+  catch(e){clean([el])}}
+
+/* ★(가장 달라지는 해) 표시가 반짝 커졌다 자리잡음 */
+function twinkle(els,o){
+  const list=arr(els).filter(e=>e&&e.textContent);if(!list.length||!on())return;o=o||{};
+  try{list.forEach(e=>{e.style.display='inline-block';e.style.transform='scale(0)'});
+    const a=M.animate(list,{transform:['scale(0) rotate(-90deg)','scale(1.5) rotate(10deg)','scale(1) rotate(0deg)']},{duration:0.6,delay:M.stagger(0.12,{startDelay:o.delay||0})});
+    const d=()=>later(()=>{clean(list);list.forEach(e=>{e.style.display=''})});if(a&&a.finished&&a.finished.then)a.finished.then(d,d);else setTimeout(d,1200)}
+  catch(e){clean(list);list.forEach(x=>{x.style.display=''})}}
+
+/* 연도 선택 표시(인장 테두리)가 이전 연도에서 새 연도로 미끄러져 이동 — 무엇이 선택됐는지 눈으로 따라가게 한다 */
+function slide(container,from,to){
+  if(!container||!from||!to||!on())return;
+  try{
+    const c=container.getBoundingClientRect(),f=from.getBoundingClientRect(),t=to.getBoundingClientRect();
+    const g=document.createElement('span');g.className='tl-ghost';g.setAttribute('aria-hidden','true');
+    const box=r=>({left:(r.left-c.left)+'px',top:(r.top-c.top)+'px',width:r.width+'px',height:r.height+'px'});
+    Object.assign(g.style,box(f));container.append(g);
+    const b=box(t);
+    const a=M.animate(g,{left:[g.style.left,b.left],top:[g.style.top,b.top],width:[g.style.width,b.width],height:[g.style.height,b.height],opacity:[1,1,0]},{duration:0.42,ease:[0.22,0.61,0.36,1]});
+    const rm=()=>{if(g.parentNode)g.parentNode.removeChild(g)};
+    if(a&&a.finished&&a.finished.then)a.finished.then(rm,rm);else setTimeout(rm,600)}
+  catch(e){}}
+
+/* 먹 번짐: 선택한 노드 자리에서 해 패널이 둥글게 퍼지며 열림(내용은 이미 바뀐 뒤) */
+function ink(el,origin){
+  if(!el||!on())return;
+  try{
+    const r=el.getBoundingClientRect(),o=origin?origin.getBoundingClientRect():null;
+    const x=o?Math.max(0,Math.min(r.width,o.left+o.width/2-r.left)):r.width/2,y=o?Math.max(0,Math.min(r.height,o.top+o.height/2-r.top)):0;
+    const from='circle(0px at '+x+'px '+y+'px)',to='circle('+Math.ceil(Math.hypot(Math.max(x,r.width-x),Math.max(y,r.height-y))+8)+'px at '+x+'px '+y+'px)';
+    el.style.clipPath=from;el.style.opacity='0.2';
+    const a=M.animate(el,{clipPath:[from,to],opacity:[0.2,1]},{duration:0.55,ease:EASE});
+    const d=()=>later(()=>{clean([el]);el.style.clipPath=''});if(a&&a.finished&&a.finished.then)a.finished.then(d,d);else setTimeout(d,800)}
+  catch(e){clean([el]);el.style.clipPath=''}}
+
 /* 결과 화면이 나타나는 순서 = 읽는 순서 */
 function results(root){
   if(!on()||!root)return;
   const q=s=>root.querySelectorAll(s),one=s=>root.querySelector(s);
   appear(one('.dash-bar'),{y:0,duration:0.3});
   appear(one('.dash-conclusion'),{y:12,duration:0.5,delay:0.05});
+  stampIn(one('.dash-conclusion .stamp'),{delay:0.35});
+  brush(one('.dash-conclusion .brush'),{delay:0.3});
   appear(q('.trio-item'),{y:8,duration:0.4,delay:0.25,stagger:0.09});
   appear(q('.dash-me > *'),{y:8,duration:0.4,delay:0.4,stagger:0.07});
   grow(q('.me-elements .efill'),{delay:0.55});
   appear(q('.dash-flow > h2, .dash-flow > .flow-lead'),{y:8,duration:0.4,delay:0.45,stagger:0.07});
   appear(q('.timeline .tl-node'),{y:10,duration:0.4,delay:0.55,stagger:0.05});
   sweep(q('.timeline .segpart'),{delay:0.75});
+  twinkle(q('.timeline .tl-star'),{delay:1.0});
   appear(q('.dgrid-wrap > h3, .dlegend'),{y:6,duration:0.35,delay:0.7,stagger:0.05});
   appear(q('.dgrid .cell'),{y:0,duration:0.3,delay:0.75,stagger:0.018});
   appear(one('.year-panel'),{y:8,duration:0.4,delay:0.9});
@@ -81,5 +134,5 @@ function sticky(bar){
 }
 
 if(document.getElementById('f'))intro();
-window.MingliMotion={enabled:on,appear,grow,sweep,panel,results,intro,sticky,version:M?'motion@14.9.0':null};
+window.MingliMotion={enabled:on,appear,grow,sweep,panel,stampIn,brush,twinkle,slide,ink,results,intro,sticky,version:M?'motion@14.9.0':null};
 })();

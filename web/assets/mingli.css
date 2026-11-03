@@ -453,3 +453,17 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
   .dash-bar,.tl-node,.cell,.dtab,.segbtn,.navbtn{transition:none}
   .tl-node:active,.segbtn:active,.navbtn:active,.dtab:active,.cell:active{transform:none}
 }
+
+/* ===== v10.2 정체성 연출: 인장·붓 밑줄·선택 표시 이동·먹 번짐. 모두 장식(aria-hidden)이며 내용과 무관 ===== */
+.dash-conclusion{position:relative;background-image:radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.55),transparent 60%),repeating-linear-gradient(0deg,rgba(166,70,42,.035) 0 1px,transparent 1px 5px)}
+.dash-conclusion .concl-text{padding-right:84px}
+.stamp{position:absolute;top:18px;right:22px;display:grid;grid-template-columns:1fr 1fr;width:56px;height:56px;border:2.5px solid var(--seal);border-radius:4px;color:var(--seal);font:700 1.05rem/1 var(--serif);transform:rotate(-6deg);background:rgba(166,70,42,.06);box-shadow:inset 0 0 0 2px var(--seal-soft);pointer-events:none}
+.stamp i{display:grid;place-items:center;font-style:normal}
+.stamp i:nth-child(n+3){display:none}
+.stamp{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+.brush{display:block;height:4px;width:min(260px,60%);margin:-.5rem 0 1rem;border-radius:3px;background:linear-gradient(90deg,var(--seal),rgba(166,70,42,.15));opacity:.8}
+.timeline{position:relative}
+.tl-ghost{position:absolute;z-index:2;border:2px solid var(--seal);border-radius:8px;background:rgba(166,70,42,.14);pointer-events:none;box-shadow:0 6px 18px -8px rgba(166,70,42,.6)}
+@media (max-width:600px){.stamp{width:44px;height:44px;top:14px;right:14px;font-size:.9rem}.dash-conclusion .concl-text{padding-right:56px}}
+
+.dash-conclusion{overflow:hidden}

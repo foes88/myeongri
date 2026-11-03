@@ -47,7 +47,9 @@ function conclusion(vm){
   const p=vm.profile,s=E('section',null,'dash-conclusion');s.setAttribute('aria-labelledby','h-concl');
   const h=E('h2','이 사주에서 중요하게 읽히는 것');h.id='h-concl';s.append(h);
   if(!p){s.append(E('p','이 결과에는 종합 결론이 없습니다.','concl-text'));return s}
+  const stamp=E('span',null,'stamp');A(stamp,{'aria-hidden':'true'});stamp.append(E('i','명'),E('i','리'));s.append(stamp);
   s.append(E('p',p.conclusion,'concl-text'));
+  const brush=E('span',null,'brush');A(brush,{'aria-hidden':'true'});s.append(brush);
   const re=p.reality||[];
   const timeLine=re.find(t=>t.indexOf('선택한 시기에 달라지는 조건')===0);
   const change=vm.multi&&vm.v.period&&vm.v.period.summary&&vm.v.period.summary.length>1?vm.v.period.summary[1]:(timeLine?timeLine.replace(/^선택한 시기에 달라지는 조건\s*[—-]\s*/,''):(vm.multi&&vm.v.period&&vm.v.period.summary?vm.v.period.summary[0]:null));
@@ -174,12 +176,15 @@ function build(a){
   let started=false,prevYear=null,prevDomain=null;
   function sel(p){
     if(p.year!==undefined&&p.year!==null)S.year=p.year;if(p.domain)S.domain=p.domain;
+    const prevNode=root.querySelector('.tl-node[aria-pressed="true"]');
     root.querySelectorAll('.tl-node').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.year)===S.year)));
+    const nextNode=root.querySelector('.tl-node[aria-pressed="true"]');
+    if(started&&window.MingliMotion&&prevNode&&nextNode&&prevNode!==nextNode)window.MingliMotion.slide(root.querySelector('.timeline'),prevNode,nextNode);
     root.querySelectorAll('.dgrid th[data-year]').forEach(th=>th.classList.toggle('selcol',Number(th.dataset.year)===S.year));
     root.querySelectorAll('.dgrid td').forEach(td=>{const on=Number(td.dataset.year)===S.year;td.classList.toggle('selcol',on);td.classList.toggle('selcell',on&&td.dataset.domain===S.domain)});
     root.querySelectorAll('.dgrid .cell').forEach(c=>c.setAttribute('aria-pressed',String(Number(c.dataset.year)===S.year&&c.dataset.domain===S.domain)));
     fillYearPanel(vm,S,root);fillDomain(vm,S,root);
-    if(started&&window.MingliMotion){if(S.year!==prevYear)window.MingliMotion.panel(root.querySelector('#dash-year-panel'));if(S.year!==prevYear||S.domain!==prevDomain)window.MingliMotion.panel(root.querySelector('#dash-dom-panel'))}
+    if(started&&window.MingliMotion){if(S.year!==prevYear)window.MingliMotion.ink(root.querySelector('#dash-year-panel'),nextNode);if(S.year!==prevYear||S.domain!==prevDomain)window.MingliMotion.panel(root.querySelector('#dash-dom-panel'))}
     prevYear=S.year;prevDomain=S.domain;started=true;
     const nm=(vm.domains.find(d=>d.domain===S.domain)||{}).name||'';
     window.MingliSel={year:S.year,domain:S.domain,domainName:nm};

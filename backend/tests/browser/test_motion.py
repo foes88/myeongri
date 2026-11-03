@@ -145,3 +145,31 @@ def test_input_screen_intro_ends_clean(browser, one):
     assert p.evaluate("[...document.querySelectorAll('main > h1, main > p.lead, main > ol.steps, #f > fieldset')].every(e=>e.style.opacity==='' && e.style.transform==='')")
     assert p.is_visible("#date") and p.is_visible("#f button[type=submit]")                                           # 입력 구역은 항상 사용할 수 있다
     ctx.close()
+
+
+def test_identity_effects_stamp_brush_slide_and_ink_end_clean(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "1440")
+    analyze(p)
+    assert p.locator("#verdict .dash-conclusion .stamp[aria-hidden=true]").count() == 1                              # 인장은 장식(스크린리더 제외)
+    settle(p)
+    p.wait_for_timeout(150)
+    assert p.evaluate(LEFTOVER) == 0 and p.evaluate("document.querySelectorAll('.tl-ghost').length") == 0
+    assert p.evaluate("getComputedStyle(document.querySelector('.stamp')).transform") != "none"                      # 최종 기울기는 CSS 가 가진다
+    p.locator("#verdict .tl-node[data-year='2029']").click()
+    p.wait_for_function("document.querySelectorAll('.tl-ghost').length===1", timeout=1500)                           # 선택 표시가 이동 중
+    assert p.inner_text("#dash-year-panel h3") == "2029년"                                                          # 텍스트는 기다리지 않고 바뀐다
+    settle(p)
+    p.wait_for_timeout(150)
+    assert p.evaluate("document.querySelectorAll('.tl-ghost').length") == 0 and p.evaluate("document.querySelector('#dash-year-panel').style.clipPath") == ""
+    assert p.evaluate(LEFTOVER) == 0
+    assert not p.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
+    ctx.close()
+
+
+def test_identity_effects_are_off_with_reduced_motion(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "1440", reduced="reduce")
+    analyze(p)
+    p.locator("#verdict .tl-node[data-year='2029']").click()
+    assert p.evaluate("document.querySelectorAll('.tl-ghost').length") == 0
+    assert p.evaluate("document.querySelector('#dash-year-panel').style.clipPath") == "" and p.evaluate(LEFTOVER) == 0
+    ctx.close()
