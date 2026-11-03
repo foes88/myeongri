@@ -482,3 +482,12 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 @media (prefers-reduced-motion:reduce){.tl-node:hover{transform:none}}
 .wc.e-wood{fill:#6a9a5b}.wc.e-fire{fill:#c4553b}.wc.e-earth{fill:#c9a24d}.wc.e-metal{fill:#8e969f}.wc.e-water{fill:#3f6fa0}
 .wname{paint-order:stroke;stroke:var(--paper);stroke-width:3px}
+
+/* ===== v10.2 마감: 순환도 원은 모두 같은 크기(강약 아님), 선택 노드는 호버 없이도 글자+테두리로 구분 ===== */
+.wc.zero{opacity:1;fill-opacity:.35;stroke-dasharray:3 3}
+.wheel{width:min(100%,320px)}
+.tl-node[aria-pressed="true"] .tl-year::after{content:" · 선택";font-size:.72rem;font-weight:700;color:var(--seal)}
+.timeline.compact .tl-node[aria-pressed="true"] .tl-year::after{content:"";}
+.timeline.compact .tl-node[aria-pressed="true"]{border-width:3px;padding:7px 4px 6px}
+
+.wheel-wrap{flex-direction:column;align-items:center}.wheel-note{margin:.2rem 0 0;text-align:center}

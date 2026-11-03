@@ -48,7 +48,7 @@ function conclusion(vm){
   const h=E('h2','이 사주에서 중요하게 읽히는 것');h.id='h-concl';s.append(h);
   if(!p){s.append(E('p','이 결과에는 종합 결론이 없습니다.','concl-text'));return s}
   const stamp=E('span',null,'stamp');A(stamp,{'aria-hidden':'true'});stamp.append(E('i','명'),E('i','리'));s.append(stamp);
-  const ct=E('p',null,'concl-text');String(p.conclusion).split(/(‘[^’]+’)/).forEach(t=>{if(!t)return;if(t[0]==='‘')ct.append(E('mark',t,'hl'));else ct.append(document.createTextNode(t))});s.append(ct);
+  const ct=E('p',null,'concl-text');let hlDone=false;String(p.conclusion).split(/(‘[^’]+’)/).forEach(t=>{if(!t)return;if(t[0]==='‘'&&!hlDone){hlDone=true;ct.append(E('mark',t,'hl'))}else ct.append(document.createTextNode(t))});s.append(ct);
   const brush=E('span',null,'brush');A(brush,{'aria-hidden':'true'});s.append(brush);
   const re=p.reality||[];
   const timeLine=re.find(t=>t.indexOf('선택한 시기에 달라지는 조건')===0);
@@ -65,16 +65,16 @@ function conclusion(vm){
 /* 다섯 기운의 상생 순환도(장식·보조): 나무→불→흙→쇠→물→나무. 원 크기는 글자 수. 값은 아래 막대·aria-label 이 그대로 전한다 */
 function wheel(shape,cl){
   const NS='http://www.w3.org/2000/svg',mk=(t,a)=>{const e=document.createElementNS(NS,t);Object.entries(a||{}).forEach(([k,v])=>e.setAttribute(k,v));return e};
-  const names=['나무','불','흙','쇠','물'],C=130,R=82,svg=mk('svg',{viewBox:'0 0 260 260',class:'wheel','aria-hidden':'true',focusable:'false'});
-  const pos=names.map((n,i)=>{const a=(-90+72*i)*Math.PI/180;return {n,x:C+R*Math.cos(a),y:C+R*Math.sin(a),r:13+Math.min(shape[n]||0,5)*3.2,c:shape[n]||0}});
+  const names=['나무','불','흙','쇠','물'],C=130,R=82,svg=mk('svg',{viewBox:'-12 -12 284 284',class:'wheel','aria-hidden':'true',focusable:'false'});
+  const pos=names.map((n,i)=>{const a=(-90+72*i)*Math.PI/180;return {n,x:C+R*Math.cos(a),y:C+R*Math.sin(a),r:19,c:shape[n]||0}});
   const defs=mk('defs'),mkr=mk('marker',{id:'wa',viewBox:'0 0 8 8',refX:'6',refY:'4',markerWidth:'6',markerHeight:'6',orient:'auto'});mkr.append(mk('path',{d:'M0 0L8 4L0 8z',fill:'#a89a8a'}));defs.append(mkr);svg.append(defs);
   pos.forEach((p,i)=>{const q=pos[(i+1)%5],dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d;
     svg.append(mk('line',{class:'wline',x1:p.x+ux*(p.r+3),y1:p.y+uy*(p.r+3),x2:q.x-ux*(q.r+6),y2:q.y-uy*(q.r+6),pathLength:'1','marker-end':'url(#wa)'}))});
   pos.forEach(p=>{const g=mk('g',{class:'wnode'}),ci=mk('circle',{cx:p.x,cy:p.y,r:p.r,class:cl[p.n]+' wc'+(p.c?'':' zero')});
     const t1=mk('text',{x:p.x,y:p.y+1,class:'wnum','text-anchor':'middle','dominant-baseline':'middle'});t1.textContent=String(p.c);
-    const lx=C+(R+p.r+15)*(p.x-C)/R*1,ly=C+(R+p.r+15)*(p.y-C)/R;
-    const t2=mk('text',{x:C+(p.x-C)*1.0,y:p.y+p.r+13,class:'wname','text-anchor':'middle'});t2.textContent=p.n;g.append(ci,t1,t2);svg.append(g)});
-  const w=E('div',null,'wheel-wrap');w.append(svg);return w}
+    const k=(R+p.r+26)/R,lx=C+(p.x-C)*k,ly=C+(p.y-C)*k;
+    const t2=mk('text',{x:lx,y:ly,class:'wname','text-anchor':'middle','dominant-baseline':'middle'});t2.textContent=p.n;g.append(ci,t1,t2);svg.append(g)});
+  const w=E('div',null,'wheel-wrap');w.append(svg,E('p','원 크기는 모두 같습니다. 숫자는 글자 수이며, 화살표는 기운이 이어지는 순서입니다.','small muted wheel-note'));return w}
 
 /* ---------- C-좌 내 사주의 모습 ---------- */
 function me(vm){

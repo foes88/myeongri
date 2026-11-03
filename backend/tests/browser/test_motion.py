@@ -173,3 +173,23 @@ def test_identity_effects_are_off_with_reduced_motion(browser, one):
     assert p.evaluate("document.querySelectorAll('.tl-ghost').length") == 0
     assert p.evaluate("document.querySelector('#dash-year-panel').style.clipPath") == "" and p.evaluate(LEFTOVER) == 0
     ctx.close()
+
+
+def test_final_polish_equal_circles_single_highlight_and_visible_selected_state(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "1440")
+    analyze(p)
+    settle(p)
+    p.wait_for_timeout(200)
+    radii = p.evaluate("[...document.querySelectorAll('.wheel .wc')].map(c=>c.getAttribute('r'))")
+    assert len(radii) == 5 and len(set(radii)) == 1                                                                   # 원 크기는 모두 같다(강약 표현 아님)
+    assert "크기는 모두 같" in p.inner_text(".wheel-note")
+    assert p.locator(".dash-conclusion .hl").count() <= 1                                                            # 형광펜은 결론에서 한 구절만
+    labels = p.evaluate("[...document.querySelectorAll('.wheel .wname')].map(t=>t.getBoundingClientRect()).map(r=>[r.left,r.top,r.right,r.bottom])")
+    circles = p.evaluate("[...document.querySelectorAll('.wheel .wc')].map(c=>c.getBoundingClientRect()).map(r=>[r.left,r.top,r.right,r.bottom])")
+    for l in labels:
+        for c in circles:
+            assert l[2] < c[0] or l[0] > c[2] or l[3] < c[1] or l[1] > c[3]                                          # 라벨이 원과 겹치지 않는다
+    # 호버 없이도 선택 상태가 글자로 구분된다
+    p.mouse.move(0, 0)
+    assert "선택" in p.evaluate("getComputedStyle(document.querySelector('.tl-node[aria-pressed=true] .tl-year'),'::after').content")
+    ctx.close()
