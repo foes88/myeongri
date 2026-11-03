@@ -207,3 +207,57 @@ def test_year_panel_lists_each_domain_and_click_opens_that_domain(browser, one):
     assert "네 기둥" in p.inner_text("#status summary") or p.locator("#status table.pillars").count() == 1
     assert p.locator("#status table.pillars .me-cell").count() == 1                                                  # 나의 중심(일간) 표시는 하나
     ctx.close()
+
+
+def test_year_panel_has_core_detail_and_reality_sections(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "1440")
+    analyze(p)
+    settle(p)
+    heads = p.evaluate("[...document.querySelectorAll('#dash-year-panel h4')].map(h=>h.textContent)")
+    assert "핵심 결론" in heads and "자세한 풀이" in heads                                                         # 결론 → 풀이 → (현실 관점) 구조
+    txt = p.inner_text("#dash-year-panel")
+    assert "반대로 보는 근거와 한계" in txt and "보장하지 않습니다" in txt
+    ctx.close()
+
+
+def test_monthly_flow_toggle_select_navigate_and_withheld_notice(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "1440")
+    analyze(p)
+    settle(p)
+    assert p.is_visible("#dash-months-toggle") and not p.is_visible("#dash-months-body")                            # 기본은 접힘
+    p.click("#dash-months-toggle")
+    p.wait_for_selector("#dash-months-body .mcell")
+    n = p.locator("#dash-months-body .mcell").count()
+    assert 12 <= n <= 14                                                                                             # 12개월(+이어지는 구간·큰 흐름 교체 분할)
+    assert p.locator("#dash-months-body .mcell[aria-pressed=true]").count() == 1
+    assert "선택됨" in p.inner_text("#dash-months-body .mcell[aria-pressed=true]")                                  # 선택 상태는 글자로도 구분
+    d = p.inner_text("#dash-month-detail")
+    assert "적용 기간" in d and "절입" in d and "이 달의 기운" in d and "타고난 사주와의 관계" in d
+    assert "좋고 나쁨을 가르는 판정은 하지 않습니다" in d                                                          # 월별 방향 판정 유보 명시
+    assert not any(sym in d for sym in "▲▽◆") and "▲" not in p.inner_text("#dash-months-body")                         # 월별에는 기회·주의 판정 기호가 없다
+    first = p.inner_text("#dash-month-detail .mhead h4")
+    p.click("#dash-month-detail .mnav .navbtn >> text=다음 달")
+    assert p.inner_text("#dash-month-detail .mhead h4") != first
+    p.locator("#dash-months-body .mcell").nth(1).click()
+    assert p.locator("#dash-months-body .mcell[aria-pressed=true]").count() == 1
+    ip = p.locator("#dash-months-body .mcell", has_text="입춘")
+    ip.first.click()
+    assert "입춘부터 그해의 기운이 적용됩니다" in p.inner_text("#dash-month-detail")
+    assert not p.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
+    ctx.close()
+
+
+def test_monthly_flow_follows_year_selection_and_domain(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "360")
+    analyze(p)
+    settle(p)
+    p.click("#dash-months-toggle")
+    p.wait_for_selector("#dash-months-body .mcell")
+    assert not p.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
+    y1 = p.inner_text("#dash-months-body .mcell >> nth=0")
+    p.locator("#verdict .tl-node[data-year='2029']").click()
+    p.wait_for_function("document.querySelector('#h-months') && document.querySelector('#dash-months-body .mcell')")
+    assert p.get_attribute("#dash-months-body .mgrid", "aria-label").startswith("2029")                              # 선택한 해의 월
+    p.locator("#verdict .dtab[data-domain=wealth]").click()
+    assert "재물운" in p.inner_text("#dash-month-detail") or "달라지는" in p.inner_text("#dash-month-detail")
+    ctx.close()

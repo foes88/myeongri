@@ -14,6 +14,7 @@ from . import compose_domains as CD
 from . import explain as E
 from . import facts as FA
 from . import domains as D
+from . import months as MO
 from . import judge as JD
 from . import profile as PF
 from . import readings as R
@@ -837,7 +838,8 @@ def build(pre: dict, ans: dict, question: str = "") -> dict:
     allb = result["blocks"] or [b for d in result["detail"].values() for b in d["blocks"]]
     focus_blocks = result["blocks"] if mode != "multi" else result["detail"][str(years[0])]["blocks"]
     cn = calc_notice({"verification": pre["verification"], "variants_count": pre.get("variants_count")}) or {}
-    result["segments"] = {str(y): segments_public(P[y]) for y in years if P.get(y)}   # 화면의 기간 구간 표시용(엔진 구간을 그대로)
+    result["segments"] = {str(y): segments_public(P[y]) for y in years if P.get(y)}
+    result["months"] = MO.build(pre, years, doms) if years else {}   # v10.3 월별 흐름(사실·관계만, 방향 판정 없음). 다른 결과에 영향 없음   # 화면의 기간 구간 표시용(엔진 구간을 그대로)
     result["profile"] = PF.build(pre, P, years, focus_blocks, cn.get("alerts", []))   # v9.3: 명식 전체 종합 통변(사용자용). 내부 근거는 internal.profile 로
     profile_internal = result["profile"].pop("internal")
     syn = ans.get("synthesis") or {}

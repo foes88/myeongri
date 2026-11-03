@@ -167,12 +167,15 @@ def test_year_why_questions_use_the_traced_reason_and_do_not_invent():
 
 
 # ---------------------------------------------------------------- 월운·내부 정보는 기본 화면에 없다
-def test_public_view_has_no_monthly_luck_and_no_internal_trace():
+def test_public_view_has_monthly_facts_only_and_no_internal_trace():
+    """v10.3 에서 월별 흐름이 공개 화면에 들어왔다(사실·관계만). 방향 판정·내부 추적·근거 번호는 여전히 없다."""
     pre, a = real((2030,))
     pv = verdict.public_view(a)
     raw = json.dumps(pv, ensure_ascii=False)
-    assert "월운" not in raw and "월별" not in raw and "months" not in raw and "internal" not in raw and "trace" not in raw and "claim" not in raw
-    # 이번 단계에서는 월운을 사용자 결과 화면(결론형 UI)에 넣지 않는다. 월운 코드는 개발용(live) 옛 화면에만 있다.
+    assert "internal" not in raw and "trace" not in raw and "claim" not in raw
+    months = pv["verdict"].get("months", {})
+    assert months and all(m["direction"] is None for m in months.values())
+    # 옛 결론형 화면(verdict_ui.js)에는 월운 코드가 없다. 월별 화면은 대시보드(dashboard.js)에만 있다.
     ui = open(__file__.replace("backend\\tests\\test_v82_quality.py", "web\\assets\\verdict_ui.js").replace("backend/tests/test_v82_quality.py", "web/assets/verdict_ui.js"), encoding="utf-8").read()
     assert "monthly" not in ui and "월운" not in ui
 

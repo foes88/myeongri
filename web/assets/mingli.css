@@ -504,3 +504,30 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 .yp-dom{display:grid;grid-template-columns:7.5em 1fr;gap:10px;align-items:start;width:100%;text-align:left;padding:9px 11px;border:1px solid var(--rule);border-radius:8px;background:var(--doc);color:var(--ink);cursor:pointer;font:inherit;min-height:44px}
 .yp-dom:hover{border-color:var(--seal)}.yp-dom .ydn{font-weight:700;white-space:nowrap}.yp-dom .ydh{line-height:1.55}
 @media (max-width:600px){.yp-dom{grid-template-columns:1fr;gap:2px}}
+
+/* ===== v10.3 연도 심화 풀이(핵심 결론·자세한 풀이·현실에서 생각해 볼 점) + 월별 흐름 ===== */
+.year-panel h4{font-size:1rem;margin:1.1rem 0 .35rem;color:var(--seal)}
+.year-panel h5{font-size:.95rem;margin:.9rem 0 .3rem;color:var(--ink)}
+.yp-core{border-left:4px solid var(--seal);padding:.1rem 0 .1rem .9rem;margin:.6rem 0}
+.yp-core h4{margin-top:0}
+.yp-para{margin:.55rem 0;line-height:1.75}
+.yp-para .ypl{display:block;font-size:.92rem;color:var(--ink2);margin-bottom:2px}
+.yp-limit{padding:.6rem .8rem;background:var(--seal-soft);border-radius:8px}
+.yp-think ul{margin:.3rem 0 .4rem 1.1rem;padding:0}
+.dash-months{margin:1.4rem 0 .6rem;border-top:1px solid var(--rule);padding-top:.9rem}
+.dash-months h3{margin:0 0 .4rem;font-size:1.25rem}
+.mbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:.6rem}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:.6rem 0 1rem}
+.mcell{display:flex;flex-direction:column;gap:2px;text-align:left;padding:9px 11px;min-height:44px;border:1px solid var(--rule);border-radius:8px;background:var(--doc);color:var(--ink);cursor:pointer;font:inherit}
+.mcell:hover{border-color:var(--seal)}
+.mcell .mspan{font-weight:700}.mcell .mterm,.mcell .mpil{font-size:.85rem;color:var(--ink2)}.mcell .mlv{font-size:.85rem;font-weight:600}
+.mcell.lv-changes{border-left:4px solid var(--seal)}.mcell.lv-relations{border-left:4px solid #c9a24d}.mcell.lv-none{border-left:4px solid var(--rule)}
+.mcell[aria-pressed="true"]{border:2px solid var(--seal);background:var(--seal-soft);padding:8px 10px;box-shadow:0 10px 22px -12px rgba(166,70,42,.75)}
+.mcell .msel{font-size:.78rem;font-weight:700;color:var(--seal)}.mcell .msel:empty{display:none}
+.mdetail{border:1px solid var(--rule);border-radius:10px;background:var(--doc);padding:14px 16px}
+.mhead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}.mhead h4{margin:0;font-size:1.1rem;color:var(--ink)}
+.mnav{display:flex;gap:8px}.mnav .navbtn[disabled]{opacity:.45;cursor:default}
+.mrow{display:grid;grid-template-columns:8.5em 1fr;gap:4px 12px;margin:.55rem 0;line-height:1.7}
+.mrow .mk{color:var(--ink2);font-size:.92rem}.mrow ul.mv{margin:0;padding-left:1.1rem}
+@media (max-width:600px){.mgrid{grid-template-columns:repeat(2,1fr)}.mrow{grid-template-columns:1fr;gap:0}}
+@media (min-width:1440px){.mgrid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}}
