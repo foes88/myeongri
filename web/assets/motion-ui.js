@@ -94,6 +94,25 @@ function ink(el,origin){
     const d=()=>later(()=>{clean([el]);el.style.clipPath=''});if(a&&a.finished&&a.finished.then)a.finished.then(d,d);else setTimeout(d,800)}
   catch(e){clean([el]);el.style.clipPath=''}}
 
+/* 상생 순환도: 원이 하나씩 커지고(나무→불→흙→쇠→물) 화살표가 이어서 그려짐 */
+function wheelIn(root,o){
+  if(!root||!on())return;o=o||{};const nodes=arr(root.querySelectorAll('.wnode')),lines=arr(root.querySelectorAll('.wline'));if(!nodes.length)return;
+  try{nodes.forEach(n=>{n.style.opacity='0';n.style.transformBox='fill-box';n.style.transformOrigin='center'});lines.forEach(l=>{l.style.strokeDasharray='1';l.style.strokeDashoffset='1'});
+    const a=M.animate(nodes,{opacity:[0,1],transform:['scale(0)','scale(1)']},{duration:0.5,ease:[0.34,1.56,0.64,1],delay:M.stagger(0.12,{startDelay:o.delay||0})});
+    const b=M.animate(lines,{strokeDashoffset:[1,0]},{duration:0.5,ease:EASE,delay:M.stagger(0.12,{startDelay:(o.delay||0)+0.25})});
+    const dn=()=>later(()=>nodes.forEach(n=>{n.style.opacity='';n.style.transform='';n.style.transformBox='';n.style.transformOrigin=''}));
+    const dl=()=>later(()=>lines.forEach(l=>{l.style.strokeDasharray='';l.style.strokeDashoffset=''}));
+    if(a&&a.finished)a.finished.then(dn,dn);else dn();if(b&&b.finished)b.finished.then(dl,dl);else dl()}
+  catch(e){nodes.forEach(n=>{n.style.opacity='';n.style.transform=''});lines.forEach(l=>{l.style.strokeDasharray='';l.style.strokeDashoffset=''})}}
+
+/* 형광펜: 결론의 핵심 구절(‘…’)에 노란 밑칠이 왼쪽에서 번짐 */
+function highlight(els,o){
+  const list=arr(els);if(!list.length||!on())return;o=o||{};
+  try{list.forEach(e=>{e.style.backgroundSize='0% 100%'});
+    const a=M.animate(list,{backgroundSize:['0% 100%','100% 100%']},{duration:0.7,ease:[0.4,0,0.2,1],delay:M.stagger(0.2,{startDelay:o.delay||0})});
+    const d=()=>later(()=>list.forEach(e=>{e.style.backgroundSize=''}));if(a&&a.finished&&a.finished.then)a.finished.then(d,d);else setTimeout(d,1400)}
+  catch(e){list.forEach(x=>{x.style.backgroundSize=''})}}
+
 /* 결과 화면이 나타나는 순서 = 읽는 순서 */
 function results(root){
   if(!on()||!root)return;
@@ -101,6 +120,8 @@ function results(root){
   appear(one('.dash-bar'),{y:0,duration:0.3});
   appear(one('.dash-conclusion'),{y:12,duration:0.5,delay:0.05});
   stampIn(one('.dash-conclusion .stamp'),{delay:0.35});
+  highlight(q('.dash-conclusion .hl'),{delay:0.7});
+  wheelIn(one('.me-elements'),{delay:0.6});
   brush(one('.dash-conclusion .brush'),{delay:0.3});
   appear(q('.trio-item'),{y:8,duration:0.4,delay:0.25,stagger:0.09});
   appear(q('.dash-me > *'),{y:8,duration:0.4,delay:0.4,stagger:0.07});
@@ -134,5 +155,5 @@ function sticky(bar){
 }
 
 if(document.getElementById('f'))intro();
-window.MingliMotion={enabled:on,appear,grow,sweep,panel,stampIn,brush,twinkle,slide,ink,results,intro,sticky,version:M?'motion@14.9.0':null};
+window.MingliMotion={enabled:on,appear,grow,sweep,panel,wheelIn,highlight,stampIn,brush,twinkle,slide,ink,results,intro,sticky,version:M?'motion@14.9.0':null};
 })();

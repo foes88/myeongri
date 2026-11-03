@@ -467,3 +467,18 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 @media (max-width:600px){.stamp{width:44px;height:44px;top:14px;right:14px;font-size:.9rem}.dash-conclusion .concl-text{padding-right:56px}}
 
 .dash-conclusion{overflow:hidden}
+
+/* ===== v10.2 강조·가독성: 핵심 구절 형광펜, 상생 순환도, 선택 노드 부각 ===== */
+.hl{background:linear-gradient(transparent 56%,rgba(214,168,60,.5) 56%) no-repeat;background-size:100% 100%;color:inherit;padding:0 .12em;margin:0 -.12em;border-radius:2px}
+.wheel-wrap{display:flex;justify-content:center;margin:.2rem 0 .6rem}
+.wheel{width:min(100%,300px);height:auto;overflow:visible}
+.wline{stroke:#a89a8a;stroke-width:1.6;fill:none}
+.wc{stroke:rgba(31,26,23,.25);stroke-width:1}.wc.zero{opacity:.35}
+.wnum{font:700 14px var(--sans);fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.35);stroke-width:2px}
+.wname{font:600 12.5px var(--sans);fill:var(--ink2)}
+.tl-node:hover{transform:translateY(-2px);box-shadow:0 8px 16px -10px rgba(31,26,23,.5)}
+.tl-node[aria-pressed="true"]{box-shadow:0 10px 22px -12px rgba(166,70,42,.75)}
+.cell:hover{box-shadow:0 0 0 2px var(--seal-soft),0 4px 10px -6px rgba(31,26,23,.4)}
+@media (prefers-reduced-motion:reduce){.tl-node:hover{transform:none}}
+.wc.e-wood{fill:#6a9a5b}.wc.e-fire{fill:#c4553b}.wc.e-earth{fill:#c9a24d}.wc.e-metal{fill:#8e969f}.wc.e-water{fill:#3f6fa0}
+.wname{paint-order:stroke;stroke:var(--paper);stroke-width:3px}
