@@ -17,6 +17,11 @@ COMPARE = re.compile(r"비교|어느 (쪽|해)|더 (나아|좋|유리|낫)|vs|�
 CONSIDER = re.compile(r"고려|살펴|주의할|조심|유의|챙겨|생각해 볼")
 RECAP = re.compile(r"(앞|아까|방금|이전|위)(에서|에|서)?\s*.{0,12}(말|결론|판단|이야기|답)|그렇게 (판단|결론|봤|읽|말)")
 RELATION = re.compile(r"관계|연결|영향|이어|서로|따로|같이|함께")
+MONTH_NUM = re.compile(r"(?<!\d)(\d{1,2})\s*월(?!\s*(?:간|동안))")
+THIS_MONTH = re.compile(r"(?<![가-힣])이\s*달(?![라리])|이번\s*달|선택한\s*달|(?<![가-힣])이\s*구간")
+PREV_MONTH = re.compile(r"지난\s*달|전\s*달|앞\s*달|이전\s*달")
+NEXT_MONTH = re.compile(r"다음\s*달|다음\s*구간")
+MONTH_NOTE = "월별로 좋고 나쁨을 가르는 판정은 하지 않습니다. 아래는 그 달 기운이 더해질 때 달라지는 구조와 관계의 사실만 정리한 것이며, 그 달에 특정한 일이 일어난다는 뜻이 아닙니다."
 REL_YEAR = {"올해": 0, "금년": 0, "내년": 1, "내후년": 2, "작년": -1}
 WHY = re.compile(r"왜|이유|근거|어떻게 (그렇게|알)")
 WHY_YEAR = re.compile(r"(\d{4})\s*년.*(왜|이유).*(달라|두드러|주목|다르|특별|변화)|왜.*(\d{4})\s*년.*(달라|두드러|주목|다르|특별|변화)")
@@ -62,13 +67,15 @@ def _best_domain(v: dict, question: str, doms: list[str]) -> str | None:
     return sel[0] if sel else None
 
 
-def focus_context(years: list[int], focus_year: int | None, focus_domain: str | None) -> dict:
+def focus_context(years: list[int], focus_year: int | None, focus_domain: str | None, focus_month: str | None = None) -> dict:
     """화면에서 사용자가 지금 보고 있는 연도·분야(선택). 분석 범위 밖이거나 알 수 없는 값은 버린다. 질문에 연도·분야가 없을 때만 쓰이며 판정에는 영향이 없다."""
     out: dict = {}
     if focus_year is not None and focus_year in (years or []):
         out["year"] = focus_year
     if focus_domain and focus_domain in D.DOMAINS and focus_domain not in ("luck",):
         out["domain"] = focus_domain
+    if focus_month and re.fullmatch(r"\d{4}-\d{2}-\d{2}", focus_month):
+        out["month"] = focus_month          # 화면에서 선택한 월 구간의 시작일(그 해의 월별 구간과 맞지 않으면 쓰지 않는다)
     return out
 
 
@@ -99,6 +106,9 @@ def answer_question(pre: dict, v: dict, question: str, doms: list[str], years: l
         if miss:  # ‘올해’가 분석 범위 밖이면 다른 해로 바꿔 답하지 않고 알린다
             w, yy = miss[0]
             return {**base, "kind": "unsupported", "text": f"‘{w}’({yy}년)는 지금 분석 범위에 없습니다. 연도를 {yy}년으로 바꿔 다시 분석한 뒤 물어봐 주세요.", "points": []}
+    mr = _month_request(q, v, ctx, qy, years)
+    if mr is not None:
+        return {**base, **_month_answer(v, mr, dom, ctx, q)}
     if MEANING.search(q):
         for rx, dd, key in PHRASES:
             if rx.search(q):
@@ -132,6 +142,110 @@ def answer_question(pre: dict, v: dict, question: str, doms: list[str], years: l
             return {**base, "kind": "unsupported", "text": _scope_text(), "points": []}
         return {**base, "kind": "detail", "year": y, "domain": b["domain"], "text": f"{b['name']}({V.when_phrase([y] if y else [])})을 자세히 풀면 다음과 같습니다.", "points": b["story"] + b["think"]}
     return {**base, "kind": "unsupported", "text": _scope_text(), "points": []}
+
+
+def _md(d: str) -> str:
+    return f"{int(d[5:7])}월 {int(d[8:10])}일"
+
+
+def _month_request(q: str, v: dict, ctx: dict, qy: list[int], years: list[int]) -> dict | None:
+    """질문이 월을 가리키면 {year, refs}. refs 는 ('calendar', 월 번호) 또는 ('item', 구간 번호). 월을 가리키지 않으면 None.
+    우선순위: 질문에 적은 연도·월 > 화면에서 선택한 연도·월 > (연도가 하나뿐이면) 그 연도. 질문에 없는 월은 만들지 않는다."""
+    nums = [int(m.group(1)) for m in MONTH_NUM.finditer(q) if 1 <= int(m.group(1)) <= 12]
+    rel = [k for k, rx in (("prev", PREV_MONTH), ("this", THIS_MONTH), ("next", NEXT_MONTH)) if rx.search(q)]
+    if not nums and not rel:
+        return None
+    year = qy[0] if qy else (ctx.get("year") if ctx.get("year") in years else (years[0] if len(years) == 1 else None))
+    return {"year": year, "nums": nums, "rel": rel}
+
+
+def _find_item(months: dict | None, month_from: str | None) -> int | None:
+    if not months or not month_from:
+        return None
+    for i, it in enumerate(months["items"]):
+        if it["from"] <= month_from <= it["to"]:
+            return i
+    return None
+
+
+def _item_lines(it: dict, v: dict, dom: str | None, only: tuple[str, str] | None = None) -> list[str]:
+    span = it["span"] if only is None else f"{_md(only[0])}~{_md(only[1])}"
+    out = [f"{span}은 {it['term']} 구간({it['pillar_ko']}월)입니다. 위 글자는 {it['stem_el']}, 아래 글자는 {it['branch_el']} 기운이고, 위 글자는 나에게 ‘{it['god']}’으로 작용합니다."]
+    for n in it.get("notes", []):
+        out.append(n)
+    rel = [f"{(r['where'] + '과 ') if r['where'] else ''}{r['kind']} 관계{'(참고용)' if r['reference'] else ''}" for r in it.get("relations", [])]
+    out.append("타고난 사주와의 관계: " + ("; ".join(rel) if rel else "새로 생기는 부딪힘·합이 확인되지 않았습니다."))
+    names = {k: x["name"] for k, x in D.DOMAINS.items()}
+    ch = it.get("changes", {})
+    pick = [dom] if dom else list(ch)
+    lines = [f"{names.get(k, k)}: {c['text']}" for k in pick for c in ch.get(k, [])]
+    out.append("달라지는 점: " + ("; ".join(lines) if lines else "대운·세운에 이 달의 기운을 더해도 달라지는 구조가 확인되지 않았습니다."))
+    return out
+
+
+def _year_context_line(v: dict, y: int, dom: str | None) -> str | None:
+    b = _pick_block(v, y, dom)
+    if not b:
+        return None
+    return f"참고로 {y}년 전체의 {b['name']} 흐름은 다음과 같이 읽습니다(월별 판정이 아니라 해 전체 해석입니다): {b['headline']}"
+
+
+def _calendar_segments(months: dict, y: int, m: int) -> list[tuple[dict, tuple[str, str]]]:
+    """달력상 m월이 걸쳐 있는 절기 구간들과 각 구간에서 그 달에 해당하는 날짜 범위."""
+    first = f"{y}-{m:02d}-01"
+    last = f"{y}-{m:02d}-{[31, 29 if y % 4 == 0 and (y % 100 or y % 400 == 0) else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1]:02d}"
+    out = []
+    for it in months["items"]:
+        lo, hi = max(it["from"], first), min(it["to"], last)
+        if lo <= hi:
+            out.append((it, (lo, hi)))
+    return out
+
+
+def _month_answer(v: dict, mr: dict, dom: str | None, ctx: dict, q: str) -> dict:
+    y = mr["year"]
+    mo_all = v.get("months") or {}
+    if y is None:
+        return {"kind": "unsupported", "text": "월을 알려면 어느 해인지 필요합니다. 질문에 연도를 적거나 화면에서 연도를 먼저 선택해 주세요.", "points": []}
+    months = mo_all.get(str(y))
+    if not months:
+        return {"kind": "unsupported", "text": f"{y}년은 월별 흐름이 제공되지 않습니다(분석 범위 밖이거나 계산할 수 없는 해입니다). 월별 정보는 1901~2049년의 분석한 해에서만 볼 수 있습니다.", "points": []}
+    items = months["items"]
+    cur = _find_item(months, ctx.get("month"))
+    refs: list = []   # (구간 또는 [(구간, 달력 범위)...], 달력 범위, 라벨)
+    for n in mr["nums"]:
+        segs = _calendar_segments(months, y, n)
+        if len(segs) > 1:
+            refs.append((segs, None, f"{n}월"))
+        elif segs:
+            refs.append((segs[0][0], segs[0][1], f"{n}월"))
+    for k in mr["rel"]:
+        if cur is None:
+            return {"kind": "unsupported", "text": "‘이 달·지난달·다음 달’은 화면에서 월을 선택해야 알 수 있습니다. 월별 흐름에서 월을 고르거나 ‘3월’처럼 월을 적어 주세요.", "points": []}
+        j = cur + {"prev": -1, "this": 0, "next": 1}[k]
+        if not (0 <= j < len(items)):
+            where = {"prev": "지난달", "next": "다음 달"}.get(k, "이 달")
+            return {"kind": "unsupported", "text": f"{where}은 {y}년 월별 구간 밖입니다. 연도를 바꿔 월별 흐름에서 확인해 주세요.", "points": []}
+        refs.append((items[j], None, {"prev": "지난달 구간", "this": "이 달 구간", "next": "다음 달 구간"}[k]))
+    if not refs:
+        return {"kind": "unsupported", "text": f"{y}년에서 해당 월을 찾지 못했습니다. 월은 1~12월로 적어 주세요.", "points": []}
+    pts: list[str] = []
+    for it, rng, label in refs[:2]:
+        if isinstance(it, list):                           # 달력상 한 달이 두 절기 구간에 걸친 경우: 사실대로 둘 다 설명
+            pts.append(f"{y}년 {label}은 절기로 보면 두 구간에 걸쳐 있습니다.")
+            for sg, r in it:
+                pts += _item_lines(sg, v, dom, only=r)
+        else:
+            pts.append(f"[{label}] " + _item_lines(it, v, dom, only=rng)[0])
+            pts += _item_lines(it, v, dom, only=rng)[1:]
+    head = f"{y}년 " + " · ".join(r[2] for r in refs[:2]) + ("을 비교하면" if len(refs) >= 2 else "에 대해 알려 드립니다.")
+    if len(refs) >= 2 and head.endswith("비교하면"):
+        head += " 다음과 같습니다."
+    extra = _year_context_line(v, y, dom)
+    if extra:
+        pts.append(extra)
+    pts.append(MONTH_NOTE)
+    return {"kind": "month", "year": y, "domain": dom or "overall", "text": head, "points": pts}
 
 
 def _advice(v: dict, y: int | None, dom: str | None, name: str, q: str) -> dict:

@@ -72,7 +72,7 @@ function wheel(shape,cl){
   pos.forEach((p,i)=>{const q=pos[(i+1)%5],dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy),ux=dx/d,uy=dy/d;
     svg.append(mk('line',{class:'wline',x1:p.x+ux*(p.r+3),y1:p.y+uy*(p.r+3),x2:q.x-ux*(q.r+6),y2:q.y-uy*(q.r+6),pathLength:'1','marker-end':'url(#wa)'}))});
   pos.forEach(p=>{const g=mk('g',{class:'wnode'}),ci=mk('circle',{cx:p.x,cy:p.y,r:p.r,class:cl[p.n]+' wc'+(p.c?'':' zero')});
-    const t1=mk('text',{x:p.x,y:p.y+1,class:'wnum','text-anchor':'middle','dominant-baseline':'middle'});t1.textContent=String(p.c);
+    const t1=mk('text',{x:p.x,y:p.y+1,class:'wnum'+(p.c?'':' z'),'text-anchor':'middle','dominant-baseline':'middle'});t1.textContent=String(p.c);
     const k=(R+p.r+26)/R,lx=C+(p.x-C)*k,ly=C+(p.y-C)*k;
     const t2=mk('text',{x:lx,y:ly,class:'wname','text-anchor':'middle','dominant-baseline':'middle'});t2.textContent=p.n;g.append(ci,t1,t2);svg.append(g)});
   const w=E('div',null,'wheel-wrap');w.append(svg,E('p','원 크기는 모두 같습니다. 숫자는 글자 수이며, 화살표는 기운이 이어지는 순서입니다.','small muted wheel-note'));return w}
@@ -108,7 +108,7 @@ function me(vm){
 
 /* ---------- C-우 시기별 흐름 ---------- */
 function flow(vm,S,sel){
-  const sec=E('section',null,'dash-flow');sec.setAttribute('aria-labelledby','h-flow');
+  const sec=E('section',null,'dash-flow'+(vm.years.length===1?' one-year':''));sec.setAttribute('aria-labelledby','h-flow');
   const n=vm.years.length,span=n?(n>1?vm.years[0]+'–'+vm.years[n-1]+'년':vm.years[0]+'년'):'타고난 사주';
   const h=E('h2',span+' 시기별 흐름');h.id='h-flow';sec.append(h);
   if(vm.multi&&vm.v.period&&vm.v.period.summary&&vm.v.period.summary[0])sec.append(E('p',vm.v.period.summary[0],'flow-lead'));
@@ -153,9 +153,10 @@ function fillYearPanel(vm,S,root){
   if(lead||r.caution)yp.append(core);
   /* 2 자세한 풀이 */
   const det=E('div',null,'yp-detail');det.append(E('h4','자세한 풀이'));let n=0;
-  const para=(label,texts)=>{const t=uniq(texts).slice(0,2);if(!t.length)return;n++;const d=E('div',null,'yp-para');d.append(E('b',label,'ypl'),E('span',t.join(' ')));det.append(d)};
-  para('타고난 사주에서는',why.natal);
-  para('이 해에 달라지는 조건은',[r.why].concat(why.period||[]));
+  const para=(label,texts,max)=>{const t=uniq(texts).slice(0,max||2);if(!t.length)return;n++;const d=E('div',null,'yp-para');d.append(E('b',label,'ypl'),E('span',t.join(' ')));det.append(d)};
+  para('타고난 사주에서는',why.natal,1);
+  if(S.domain!=='overall')para('이 해에 달라지는 조건은',[r.why].concat(why.period||[]),2);
+  else{n++;const d=E('div',null,'yp-para');d.append(E('b','이 해에 달라지는 조건은','ypl'),E('span','아래 ‘분야별 해석 · 종합운’에 자세히 풀어 두었습니다. 다른 분야의 조건을 보려면 분야 탭을 바꿔 보세요.'));det.append(d)}
   if(th)para('이 해의 주제는',[th.theme+' '+th.link]);
   const sg=vm.seg(y);
   if(sg.length>1){n++;const w=E('div',null,'yp-seg');w.append(E('h5','이 해의 구간(입춘·큰 흐름 교체 기준)'));const ul=E('ul');sg.forEach(s=>{const li=E('li');li.append(E('b',s.label),document.createTextNode(' ('+s.days+'일)'+(s.note?' · '+s.note:'')));ul.append(li)});w.append(ul);
@@ -168,13 +169,13 @@ function fillYearPanel(vm,S,root){
   {n++;const d=E('div',null,'yp-para yp-limit');d.append(E('b','반대로 보는 근거와 한계','ypl'),E('span',(lim.length?lim.join(' ')+' ':'')+'이 풀이는 전통 명리학의 해석이며, 일어날 일을 알려 주거나 보장하지 않습니다.'));det.append(d)}
   if(n)yp.append(det);
   /* 3 현실에서 생각해 볼 점 */
-  const think=uniq(ow.think||[]).slice(0,3);
+  const think=uniq(ow.think||[]).slice(0,2);
   if(think.length||th){const w=E('div',null,'yp-think');w.append(E('h4','현실에서 생각해 볼 점'));if(think.length){const ul=E('ul');think.forEach(t=>ul.append(E('li',t)));w.append(ul)}
     if(th&&th.prep)w.append(E('p','준비해 볼 일: '+th.prep,'yprep'));yp.append(w)}
 }
 
 /* ---------- C-하 월별 흐름(v10.3): 실제 절입 구간·월의 기운·원국과의 관계만. 월별 좋고 나쁨 판정은 하지 않는다 ---------- */
-const MS={open:false,year:null,idx:0};
+const MS={open:false,year:null,idx:0,pending:null};
 function monthLevel(it,dom){
   if(dom&&dom!=='overall'){if((it.changes||{})[dom])return 'changes'}else if(Object.keys(it.changes||{}).length)return 'changes';
   return (it.relations||[]).some(x=>!x.reference)?'relations':'none'}
@@ -187,27 +188,30 @@ function monthsSection(vm){
   bar.append(bt,E('span','선택한 해를 절기(절입) 기준으로 나눠 봅니다.','small muted'));sec.append(bar);
   const body=E('div',null,'mbody');body.id='dash-months-body';body.hidden=true;sec.append(body);
   return sec}
-function fillMonths(vm,S,root){
+function fillMonths(vm,S,root,sync,goYear){
   const sec=root.querySelector('.dash-months');if(!sec)return;
   const bt=sec.querySelector('.mtoggle'),body=sec.querySelector('#dash-months-body');
-  const has=vm.months(S.year)!==null;sec.hidden=!has;if(!has)return;
-  bt.onclick=()=>{MS.open=!MS.open;fillMonths(vm,S,root);if(MS.open&&window.MingliMotion)window.MingliMotion.appear(sec.querySelectorAll('.mcell'),{y:6,duration:0.3,stagger:0.03})};
+  const has=vm.months(S.year)!==null;sec.hidden=false;
+  if(!has){bt.hidden=true;body.hidden=false;body.textContent='';body.append(E('p','이 상담에는 월별 흐름이 들어 있지 않습니다. 월별 흐름이 생기기 전에 저장한 상담이거나, 1901~2049년 범위 밖의 해입니다. 다시 분석하면 월별 흐름을 볼 수 있습니다.','small muted'));return}
+  bt.hidden=false;
+  bt.onclick=()=>{MS.open=!MS.open;fillMonths(vm,S,root,sync,goYear);if(sync)sync();if(MS.open&&window.MingliMotion)window.MingliMotion.appear(sec.querySelectorAll('.mcell'),{y:6,duration:0.3,stagger:0.03})};
   bt.setAttribute('aria-expanded',String(MS.open));bt.textContent=MS.open?'월별 흐름 접기':'월별 흐름 보기';body.hidden=!MS.open;
   body.textContent='';if(!MS.open)return;
   const mo=vm.months(S.year),items=mo.items;
-  if(MS.year!==S.year){MS.year=S.year;const f=items.findIndex(x=>monthLevel(x,S.domain)==='changes');MS.idx=f>=0?f:0}
+  if(MS.year!==S.year){MS.year=S.year;const f=items.findIndex(x=>monthLevel(x,S.domain)==='changes');MS.idx=f>=0?f:0;if(MS.pending==='first')MS.idx=0;if(MS.pending==='last')MS.idx=items.length-1;MS.pending=null}
   if(MS.idx>=items.length)MS.idx=0;
   const dn=(vm.domains.find(d=>d.domain===S.domain)||{}).name||'종합운';
   const grid=E('div',null,'mgrid');A(grid,{role:'group','aria-label':S.year+'년 월별 구간(눌러서 선택)'});
   items.forEach((it,i)=>{const lv=monthLevel(it,S.domain),lm=MLV[lv];const b=E('button',null,'mcell lv-'+lv);b.type='button';b.dataset.idx=i;A(b,{'aria-pressed':String(i===MS.idx),'aria-label':it.span+', '+it.term+' 구간, '+lm[1]});
     b.append(E('span',it.span,'mspan'),E('span',it.term+' 구간'+(it.carry_in?' (이어짐)':''),'mterm'),E('span',it.pillar_ko+'월','mpil'),E('span',lm[0]+' '+lm[1],'mlv'),E('span',i===MS.idx?'선택됨':'','msel'));
-    b.onclick=()=>{MS.idx=i;fillMonths(vm,S,root);const nb=root.querySelector('.mcell[aria-pressed="true"]');if(nb)nb.focus()};grid.append(b)});
+    b.onclick=()=>{MS.idx=i;fillMonths(vm,S,root,sync,goYear);if(sync)sync();const nb=root.querySelector('.mcell[aria-pressed="true"]');if(nb)nb.focus()};grid.append(b)});
   body.append(grid);
   const it=items[MS.idx],det=E('div',null,'mdetail');det.id='dash-month-detail';A(det,{'aria-live':'polite'});
   const hd=E('div',null,'mhead');hd.append(E('h4',it.span+' · '+it.term+' 구간'));
   const nav=E('div',null,'mnav');
-  const pv=E('button','◀ 이전 달','navbtn');pv.type='button';pv.disabled=MS.idx===0;pv.onclick=()=>{MS.idx--;fillMonths(vm,S,root)};
-  const nx=E('button','다음 달 ▶','navbtn');nx.type='button';nx.disabled=MS.idx===items.length-1;nx.onclick=()=>{MS.idx++;fillMonths(vm,S,root)};
+  const prevY=vm.years.indexOf(S.year)>0&&vm.months(vm.years[vm.years.indexOf(S.year)-1])?vm.years[vm.years.indexOf(S.year)-1]:null,nextY=vm.years.indexOf(S.year)>=0&&vm.years.indexOf(S.year)<vm.years.length-1&&vm.months(vm.years[vm.years.indexOf(S.year)+1])?vm.years[vm.years.indexOf(S.year)+1]:null;
+  const pv=E('button',MS.idx===0&&prevY?'◀ '+prevY+'년 마지막 달':'◀ 이전 달','navbtn');pv.type='button';pv.disabled=MS.idx===0&&!prevY;pv.onclick=()=>{if(MS.idx===0){if(prevY&&goYear){MS.pending='last';goYear(prevY)}}else{MS.idx--;fillMonths(vm,S,root,sync,goYear);if(sync)sync()}};
+  const nx=E('button',MS.idx===items.length-1&&nextY?nextY+'년 첫 달 ▶':'다음 달 ▶','navbtn');nx.type='button';nx.disabled=MS.idx===items.length-1&&!nextY;nx.onclick=()=>{if(MS.idx===items.length-1){if(nextY&&goYear){MS.pending='first';goYear(nextY)}}else{MS.idx++;fillMonths(vm,S,root,sync,goYear);if(sync)sync()}};
   nav.append(pv,nx);hd.append(nav);det.append(hd);
   const kv=(k,v)=>{const d=E('div',null,'mrow');d.append(E('b',k,'mk'),E('span',v,'mv'));det.append(d)};
   kv('적용 기간',it.span+'(날짜 단위)'+(it.term_at?' · '+it.term+' 절입: '+Number(it.term_at.slice(0,2))+'월 '+Number(it.term_at.slice(3,5))+'일 '+it.term_at.slice(6):' · 이 구간은 전해 '+it.term+' 절입에서 이어집니다'));
@@ -259,7 +263,7 @@ function fillDomain(vm,S,root){
 
 /* ---------- 조립 ---------- */
 function build(a){
-  const vm=buildVM(a),S=makeState(vm),root=E('div',null,'dash');root.id='dash';MS.open=false;MS.year=null;MS.idx=0;
+  const vm=buildVM(a),S=makeState(vm),root=E('div',null,'dash');root.id='dash';MS.open=false;MS.year=null;MS.idx=0;MS.pending=null;
   let started=false,prevYear=null,prevDomain=null;
   function sel(p){
     if(p.year!==undefined&&p.year!==null)S.year=p.year;if(p.domain)S.domain=p.domain;
@@ -270,12 +274,16 @@ function build(a){
     root.querySelectorAll('.dgrid th[data-year]').forEach(th=>th.classList.toggle('selcol',Number(th.dataset.year)===S.year));
     root.querySelectorAll('.dgrid td').forEach(td=>{const on=Number(td.dataset.year)===S.year;td.classList.toggle('selcol',on);td.classList.toggle('selcell',on&&td.dataset.domain===S.domain)});
     root.querySelectorAll('.dgrid .cell').forEach(c=>c.setAttribute('aria-pressed',String(Number(c.dataset.year)===S.year&&c.dataset.domain===S.domain)));
-    fillYearPanel(vm,S,root);fillMonths(vm,S,root);fillDomain(vm,S,root);
+    fillYearPanel(vm,S,root);fillMonths(vm,S,root,syncCtx,y=>sel({year:y}));fillDomain(vm,S,root);
     if(started&&window.MingliMotion){if(S.year!==prevYear)window.MingliMotion.ink(root.querySelector('#dash-year-panel'),nextNode);if(S.year!==prevYear||S.domain!==prevDomain)window.MingliMotion.panel(root.querySelector('#dash-dom-panel'))}
     prevYear=S.year;prevDomain=S.domain;started=true;
+    syncCtx();
+  }
+  function syncCtx(){
     const nm=(vm.domains.find(d=>d.domain===S.domain)||{}).name||'';
-    window.MingliSel={year:S.year,domain:S.domain,domainName:nm};
-    const cx=document.getElementById('ctxline');if(cx)cx.textContent='지금 보고 있는 것: '+(S.year?S.year+'년 · ':'')+nm;
+    const mo=MS.open?vm.months(S.year):null,it=mo&&mo.items[MS.idx]?mo.items[MS.idx]:null;
+    window.MingliSel={year:S.year,domain:S.domain,domainName:nm,month:it?it.from:null,monthLabel:it?it.span+' '+it.term+' 구간':null};
+    const cx=document.getElementById('ctxline');if(cx)cx.textContent='지금 보고 있는 것: '+(S.year?S.year+'년 · ':'')+(it?it.span+' ('+it.term+' 구간) · ':'')+nm;
     if(typeof window.MingliChips==='function')window.MingliChips(a,window.MingliSel);
   }
   root.append(controlBar(vm),conclusion(vm));

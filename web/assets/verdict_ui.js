@@ -125,6 +125,7 @@ function chipsFor(a,sel){const v=a.verdict;const box=$('chips');if(!box){return}
   const y=(sel&&sel.year)||ys[0]||'';
   q.push((y?y+'년 ':'')+dn+'은 그래서 어떻게 하는 게 좋다는 거야?');
   if(ys.length>=2){const o=ys.find(z=>z!==y);q.push(Math.min(y||ys[0],o)+'년과 '+Math.max(y||ys[0],o)+'년은 어떤 차이가 있어?')}
+  if(sel&&sel.month){q.push('이 달에는 무엇이 달라지나요?');q.push('이 달과 지난달은 무엇이 다른가요?')}
   q.push('결과에 나온 ‘점검할 점’은 무슨 뜻이야?');q.push('왜 그렇게 읽어?');
   q.forEach(t=>{const b=el('button',t,'chipq');b.type='button';b.onclick=()=>{$('q2').value=t;$('askb').click()};box.append(b)})}
 

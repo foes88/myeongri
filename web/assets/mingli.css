@@ -531,3 +531,12 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 .mrow .mk{color:var(--ink2);font-size:.92rem}.mrow ul.mv{margin:0;padding-left:1.1rem}
 @media (max-width:600px){.mgrid{grid-template-columns:repeat(2,1fr)}.mrow{grid-template-columns:1fr;gap:0}}
 @media (min-width:1440px){.mgrid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}}
+
+/* ===== v11.0 가독성: 한 줄 길이 제한(약 40em), 문단 간격, 1년 보기 정리 ===== */
+.yp-para,.yp-core p,.yp-think li,.yp-think p,.dp-story,.dp-counter,.dp-headline,.dp-main p,.dp-side li{max-width:42em}
+.dp-headline{max-width:34em}
+.yp-para{margin:.8rem 0}
+.dp-main .dp-story{margin:.7rem 0}
+.one-year .timeline{grid-template-columns:minmax(150px,300px)}
+.one-year .dgrid-wrap .tw,.one-year .dgrid{max-width:560px}
+.wnum.z{fill:var(--ink2);stroke:none}

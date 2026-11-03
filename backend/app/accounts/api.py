@@ -171,6 +171,7 @@ class ReportCreate(BaseModel):
 class ReportAsk(BaseModel):
     focus_year: int | None = Field(default=None, ge=1901, le=2049)
     focus_domain: str | None = Field(default=None, max_length=30)
+    focus_month: str | None = Field(default=None, max_length=10)
     question: str = Field(min_length=1, max_length=500)
     years: list[int] | None = Field(default=None, max_length=10)
     domains: list[str] | None = Field(default=None, max_length=12)
@@ -333,7 +334,7 @@ def ask(rid: str, b: ReportAsk, req: Request, authorization: str | None = Header
     qa_prev = (last or {}).get("answer", {}).get("qa") or {}
     ctx = {k: qa_prev.get(k) for k in ("domain", "year", "kind") if qa_prev.get(k)}  # 직전 답변의 분야·연도만 이어받는다(질문 원문은 넘기지 않는다)
     from ..consult import qa as _qa
-    ctx.update(_qa.focus_context(years, b.focus_year, b.focus_domain))                # 화면에서 지금 보고 있는 연도·분야가 있으면 그것이 우선
+    ctx.update(_qa.focus_context(years, b.focus_year, b.focus_domain, b.focus_month))                # 화면에서 지금 보고 있는 연도·분야가 있으면 그것이 우선
     ans = consult_agent.answer(pre, b.question, domains_=doms, years=years, depth=b.depth or pre["depth"], context=ctx)
     n = repo().add_turn(uid, rid, "answer", {"question": b.question, "domains": ans.get("domains", doms), "years": ans.get("years", years), "answer": ans})
     repo().audit(uid, "ask", rid[:8])

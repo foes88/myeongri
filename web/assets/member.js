@@ -17,7 +17,7 @@ call=async function(path,opt){
   if(!AUTH)return origCall(path,opt);
   const body=opt&&opt.body?JSON.parse(opt.body):null;
   if(path==='/api/v1/oneshot/analyze'){return origCall('/api/v1/reports',{method:'POST',headers:H(),body:JSON.stringify({title:'',request:body})})}
-  if(path==='/api/v1/oneshot/ask'&&reportId){return origCall('/api/v1/reports/'+reportId+'/ask',{method:'POST',headers:H(),body:JSON.stringify({question:body.question,years:body.years&&body.years.length?body.years:null,domains:null,focus_year:body.focus_year||null,focus_domain:body.focus_domain||null})}).then(r=>{if(r.ok)r.j=r.j.answer;return r})}
+  if(path==='/api/v1/oneshot/ask'&&reportId){return origCall('/api/v1/reports/'+reportId+'/ask',{method:'POST',headers:H(),body:JSON.stringify({question:body.question,years:body.years&&body.years.length?body.years:null,domains:null,focus_year:body.focus_year||null,focus_domain:body.focus_domain||null,focus_month:body.focus_month||null})}).then(r=>{if(r.ok)r.j=r.j.answer;return r})}
   if(path==='/api/v1/oneshot/reality'&&reportId){return origCall('/api/v1/reports/'+reportId+'/reality',{method:'POST',headers:H(),body:JSON.stringify(body.event)})}
   return origCall(path,opt)};
 const origBegin=begin;
