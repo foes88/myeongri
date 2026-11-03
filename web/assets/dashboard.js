@@ -2,7 +2,7 @@
    새 점수·확률을 만들지 않는다(엔진이 준 상태와 문장만 배치). 내부 근거 ID·전문 용어는 다루지 않는다. */
 (function(){
 'use strict';
-const TV={opportunity:['▲','기회','t-opp'],cautious:['▽','주의','t-cau'],mixed:['◆','맞섬','t-mix'],thin:['?','근거 부족','t-thin'],quiet:['–','변화 없음','t-quiet'],steady:['●','안정','t-steady'],balance:['○','균형','t-steady']};
+const TV={opportunity:['▲','기회','t-opp'],cautious:['▽','주의','t-cau'],mixed:['◆','양면','t-mix'],thin:['?','근거 부족','t-thin'],quiet:['–','변화 없음','t-quiet'],steady:['●','안정','t-steady'],balance:['○','균형','t-steady']};
 const tv=t=>TV[t]||['·','','t-quiet'];
 const first=t=>{const m=String(t||'').match(/^.*?[.!?](\s|$)/);return m?m[0].trim():String(t||'')};
 const rest=t=>String(t||'').slice(first(t).length).trim();
@@ -53,7 +53,7 @@ function conclusion(vm){
   const re=p.reality||[];
   const timeLine=re.find(t=>t.indexOf('선택한 시기에 달라지는 조건')===0);
   const change=vm.multi&&vm.v.period&&vm.v.period.summary&&vm.v.period.summary.length>1?vm.v.period.summary[1]:(timeLine?timeLine.replace(/^선택한 시기에 달라지는 조건\s*[—-]\s*/,''):(vm.multi&&vm.v.period&&vm.v.period.summary?vm.v.period.summary[0]:null));
-  const viewRaw=re.find(t=>/방향이 읽힙니다|판단을 유보|맞서/.test(t))||re.find(t=>t!==timeLine)||null;const view=viewRaw?first(viewRaw):null;
+  const viewRaw=re.find(t=>/방향이 읽힙니다|판단을 유보|함께 있어 하나로|맞서/.test(t))||re.find(t=>t!==timeLine)||null;const view=viewRaw?first(viewRaw):null;
   const tend=vm.ss&&vm.ss.sections&&vm.ss.sections[0]?first(vm.ss.sections[0].text):null;const feat=tend||(vm.ss&&vm.ss.summary?vm.ss.summary.replace(/^한 줄로 말하면,\s*/,''):null);
   const trio=E('div',null,'concl-trio');
   [['이 사주의 특징',feat],['선택한 시기의 변화',change],['참고할 관점',view]].forEach(([lab,txt])=>{const d=E('div',null,'trio-item');d.append(E('h3',lab));d.append(E('p',txt||'이 항목은 근거가 부족해 말하지 않습니다.',txt?'':'muted'));trio.append(d)});
@@ -129,7 +129,7 @@ function flow(vm,S,sel){
   const tb=E('tbody');vm.domains.forEach(d=>{const r=E('tr');const nm=E('th',d.name);nm.scope='row';r.append(nm);
     vm.years.forEach(y=>{const b=vm.block(y,d.domain),td=E('td');td.dataset.year=y;td.dataset.domain=d.domain;if(b){const m=tv(b.tone);td.className=m[2];const bt=E('button',null,'cell');bt.type='button';A(bt,{'aria-label':y+'년 '+d.name+' '+m[1],'data-year':y,'data-domain':d.domain});bt.append(E('span',m[0],'sym'),E('span',m[1],'lab'));bt.onclick=()=>sel({year:y,domain:d.domain});td.append(bt)}r.append(td)});tb.append(r)});
   t.append(tb);sc.append(t);gw.append(sc);
-  const lg=E('p',null,'dlegend');['opportunity','cautious','mixed','thin','quiet','steady'].forEach(k=>{const m=TV[k];const sp=E('span',null,m[2]);sp.textContent=m[0]+' '+m[1];lg.append(sp)});gw.append(lg);
+  const lg=E('p',null,'dlegend');['opportunity','cautious','mixed','thin','quiet','steady'].forEach(k=>{const m=TV[k];const sp=E('span',null,m[2]);sp.textContent=m[0]+' '+m[1]+(k==='mixed'?'(기회와 점검할 점이 함께)':'');lg.append(sp)});gw.append(lg);
   gw.append(E('p','기회·주의는 그해의 구조 변화가 한쪽으로 뚜렷할 때만 표시합니다. 좋은 일·나쁜 일이 일어난다는 뜻이 아니며 확률이나 점수도 아닙니다. 근거가 부족하면 ‘근거 부족’으로 두고 억지로 방향을 정하지 않습니다.','small muted'));
   sec.append(gw);
   // 선택한 해 패널

@@ -82,7 +82,7 @@ function blockEl(v,b,lead){const s=el('section',null,'vblock'+(lead?' lead':''))
 function limitsEl(v){const s=el('section',null,'vlimits');s.append(el('h3','해석의 한계'));s.append(ul(v.limits));return s}
 
 /* 한눈표: 분야(행) × 연도(열)의 판정. 색에만 의존하지 않도록 기호와 글자를 함께 쓴다. 판정이 '확률'이나 '좋고 나쁨의 점수'가 아님을 범례에 밝힌다. */
-const TONE_VIS={opportunity:['▲','기회','t-opp'],cautious:['▽','주의','t-cau'],mixed:['◆','맞섬','t-mix'],thin:['?','근거 부족','t-thin'],quiet:['–','변화 없음','t-quiet'],steady:['●','안정','t-steady'],balance:['○','균형','t-steady']};
+const TONE_VIS={opportunity:['▲','기회','t-opp'],cautious:['▽','주의','t-cau'],mixed:['◆','양면','t-mix'],thin:['?','근거 부족','t-thin'],quiet:['–','변화 없음','t-quiet'],steady:['●','안정','t-steady'],balance:['○','균형','t-steady']};
 function heatEl(v){const p=v.period;const ys=p.years.map(r=>r.year);const doms=[];const cell={};
   ys.forEach(y=>{((v.detail[String(y)]||{}).blocks||[]).forEach(b=>{if(!doms.find(d=>d.domain===b.domain))doms.push({domain:b.domain,name:b.name});cell[b.domain+'|'+y]=b})});
   if(!doms.length)return null;

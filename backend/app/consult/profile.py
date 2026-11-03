@@ -322,7 +322,7 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
     if firm:
         reality.append(f"{years[0]}년에는 {'·'.join(firm[:4])}에서 방향이 읽힙니다." if years else "·".join(firm[:4]) + "에서 방향이 읽힙니다.")
     if clash:
-        reality.append("서로 다른 근거가 맞서 하나로 정하지 않은 분야: " + "·".join(clash[:4]) + ". 돕는 쪽과 부딪히는 쪽을 각각 분야 풀이에서 설명합니다.")
+        reality.append("기회와 점검할 점이 함께 있어 하나로 정하지 않은 분야: " + "·".join(clash[:4]) + ". 돕는 쪽과 부딪히는 쪽을 각각 분야 풀이에서 설명합니다.")
     if held:
         reality.append("근거가 부족해 판단을 유보한 분야: " + "·".join(held[:5]) + ". 이 분야는 현실의 상황과 계획을 우선 기준으로 삼는 편이 좋습니다.")
     reality += shared_basis_notes(blocks)
@@ -341,7 +341,7 @@ def build(pre: dict, P: dict, years: list[int], blocks: list[dict], calc_items: 
     if any(r["luck_split"] for r in ly):
         conds.append("선택한 연도 중 10년 큰 흐름이 바뀌는 해가 있어, 그 전과 후는 다르게 읽어야 합니다.")
     if clash:
-        conds.append("서로 맞서는 근거가 있는 분야는 어느 쪽 근거가 현실에 더 맞는지에 따라 판단이 달라질 수 있습니다.")
+        conds.append("기회와 점검할 점이 함께 있는 분야는 어느 쪽 근거가 현실에 더 맞는지에 따라 판단이 달라질 수 있습니다.")
     if held:
         conds.append("근거가 부족한 분야는 새로운 정보(실제 상황)가 더해지면 판단이 달라질 수 있습니다.")
     if not conds:
