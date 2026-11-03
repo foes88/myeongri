@@ -193,3 +193,17 @@ def test_final_polish_equal_circles_single_highlight_and_visible_selected_state(
     p.mouse.move(0, 0)
     assert "선택" in p.evaluate("getComputedStyle(document.querySelector('.tl-node[aria-pressed=true] .tl-year'),'::after').content")
     ctx.close()
+
+
+def test_year_panel_lists_each_domain_and_click_opens_that_domain(browser, one):
+    ctx, p, reqs, console = open_page(browser, one, "1440")
+    analyze(p)
+    settle(p)
+    n = p.locator("#dash-year-panel .yp-dom").count()
+    assert n >= 2                                                                                                    # 분야별 한 줄 요약(종합 제외)
+    first = p.locator("#dash-year-panel .yp-dom .ydn").first.inner_text()
+    p.locator("#dash-year-panel .yp-dom").first.click()
+    assert p.inner_text("#dash-dom-panel .dp-head h3") in first                                                      # 눌러서 해당 분야 상세로 이동
+    assert "네 기둥" in p.inner_text("#status summary") or p.locator("#status table.pillars").count() == 1
+    assert p.locator("#status table.pillars .me-cell").count() == 1                                                  # 나의 중심(일간) 표시는 하나
+    ctx.close()

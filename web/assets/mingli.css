@@ -491,3 +491,16 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 .timeline.compact .tl-node[aria-pressed="true"]{border-width:3px;padding:7px 4px 6px}
 
 .wheel-wrap{flex-direction:column;align-items:center}.wheel-note{margin:.2rem 0 0;text-align:center}
+
+/* 네 기둥 표: 해→달→날→시각 순서, 오행 색 띠·글자, 나의 중심 표시 */
+.pillars .rowh{font-size:.8rem;font-weight:600;color:var(--ink2);text-align:center;width:2.6em;padding-left:2px;padding-right:2px}
+.pillars .me-tag{display:block;font-size:.72rem;font-weight:700;color:var(--seal)}
+.pillars td .pe{display:block;font-size:.82rem;font-weight:600;color:var(--ink2);margin-top:2px}
+.pillars td.pe-wood{border-top:4px solid #6a9a5b}.pillars td.pe-fire{border-top:4px solid #c4553b}.pillars td.pe-earth{border-top:4px solid #c9a24d}.pillars td.pe-metal{border-top:4px solid #8e969f}.pillars td.pe-water{border-top:4px solid #56687a}
+.pillars td.me-cell{background:var(--seal-soft);outline:2px solid var(--seal);outline-offset:-2px}
+
+/* 해 패널: 분야별 한 줄 요약 목록 */
+.yp-doms ul{list-style:none;margin:.3rem 0;padding:0;display:grid;gap:6px}
+.yp-dom{display:grid;grid-template-columns:7.5em 1fr;gap:10px;align-items:start;width:100%;text-align:left;padding:9px 11px;border:1px solid var(--rule);border-radius:8px;background:var(--doc);color:var(--ink);cursor:pointer;font:inherit;min-height:44px}
+.yp-dom:hover{border-color:var(--seal)}.yp-dom .ydn{font-weight:700;white-space:nowrap}.yp-dom .ydh{line-height:1.55}
+@media (max-width:600px){.yp-dom{grid-template-columns:1fr;gap:2px}}

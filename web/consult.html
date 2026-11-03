@@ -216,10 +216,12 @@ $('depth').addEventListener('input',depthNote);depthNote();
 
 /* ---------- 리포트 구성 ---------- */
 function chapter(no,title,...c){const s=el('section',null,'chapter');s.setAttribute('aria-labelledby','ch'+no);s.append(el('span','제'+no+'장','no'));const h=el('h2',title);h.id='ch'+no;s.append(h);return kids(s,c)}
-function pillarTable(pil){if(!pil)return null;const w=el('div',null,'tw');const t=el('table',null,'pillars');t.append(el('caption','명식(네 기둥)'));
-  const order=[['hour','시주'],['day','일주'],['month','월주'],['year','연주']];
-  const hr=el('tr');order.forEach(o=>hr.append(el('th',o[1])));const head=el('thead');head.append(hr);t.append(head);
-  const b=el('tbody');[0,1].forEach(i=>{const r=el('tr');order.forEach(o=>{const v=pil[o[0]];const td=el('td');if(v){const ch=v[i];td.className='g han';td.textContent=ch;td.append(el('span',(i===0?STEM[ch]:BR[ch])+(i===0?' · 천간':' · 지지'),'k'))}else{td.textContent='미상';td.className='muted'}r.append(td)});b.append(r)});t.append(b);w.append(t);return w}
+function pillarTable(pil){if(!pil)return null;const w=el('div',null,'tw');const t=el('table',null,'pillars');t.append(el('caption','내 사주 네 기둥 — 태어난 해·달·날·시각'));
+  const SE={'甲':['나무','wood'],'乙':['나무','wood'],'丙':['불','fire'],'丁':['불','fire'],'戊':['흙','earth'],'己':['흙','earth'],'庚':['쇠','metal'],'辛':['쇠','metal'],'壬':['물','water'],'癸':['물','water']};
+  const BE={'子':['물','water'],'丑':['흙','earth'],'寅':['나무','wood'],'卯':['나무','wood'],'辰':['흙','earth'],'巳':['불','fire'],'午':['불','fire'],'未':['흙','earth'],'申':['쇠','metal'],'酉':['쇠','metal'],'戌':['흙','earth'],'亥':['물','water']};
+  const order=[['year','태어난 해'],['month','태어난 달'],['day','태어난 날'],['hour','태어난 시각']];
+  const hr=el('tr');hr.append(el('th','',null));order.forEach(o=>{const th=el('th',o[1]);if(o[0]==='day'){th.append(el('span','나의 중심','me-tag'))}hr.append(th)});const head=el('thead');head.append(hr);t.append(head);
+  const b=el('tbody');[[0,'하늘'],[1,'땅']].forEach(rw=>{const i=rw[0],r=el('tr');r.append(el('th',rw[1],'rowh'));order.forEach(o=>{const v=pil[o[0]];const td=el('td');if(v){const ch=v[i],e=(i===0?SE:BE)[ch]||['',''];td.className='g han pe-'+e[1]+((o[0]==='day'&&i===0)?' me-cell':'');td.textContent=ch;td.append(el('span',(i===0?STEM[ch]:BR[ch]),'k'),el('span',e[0]+' 기운','pe'))}else{td.textContent='미상';td.className='muted'}r.append(td)});b.append(r)});t.append(b);w.append(t);return w}
 const T=t=>String(t).replace(/'([^']+)'\(([^()]*)\(([^()]*)\)\)/g,"'$1' — $2, $3").replace(/'([^']+)'\(([^()]*)\)/g,"'$1'($2)");
 function firstSentence(t){const m=t.match(/^.*?[.!?](\s|$)/);return m?m[0].trim():t}
 

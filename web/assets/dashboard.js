@@ -148,6 +148,10 @@ function fillYearPanel(vm,S,root){
   if(sg.length>1){const w=E('div',null,'yp-seg');w.append(E('h4','이 해의 구간'));const ul=E('ul');sg.forEach(s=>{const li=E('li');li.append(E('b',s.label),document.createTextNode(' ('+s.days+'일)'+(s.note?' · '+s.note:'')));ul.append(li)});w.append(ul);
     w.append(E('p','구간이 나뉘면 짧은 구간의 변화를 한 해 전체의 특징으로 읽지 않습니다.','small muted'));yp.append(w)}
   const th=vm.theme(y);
+  const others=vm.domains.filter(d=>d.domain!=='overall').map(d=>({d,b:vm.block(y,d.domain)})).filter(x=>x.b&&x.b.headline);
+  if(others.length){const w=E('div',null,'yp-doms');w.append(E('h4','이 해를 분야별로 읽으면'));const ul=E('ul');
+    others.forEach(({d,b})=>{const mm=tv(b.tone),li=E('li'),bt=E('button',null,'yp-dom');bt.type='button';bt.append(E('span',mm[0]+' '+d.name,'ydn '+mm[2]),E('span',b.headline,'ydh'));bt.onclick=()=>{const t=root.querySelector('.dtab[data-domain="'+d.domain+'"]');if(t)t.click()};li.append(bt);ul.append(li)});
+    w.append(ul,E('p','눌러서 분야별 상세 풀이로 이동합니다. 좋고 나쁜 일이 일어난다는 뜻이 아니라, 그해 기운이 각 분야에서 어떤 쪽으로 기울어 읽히는지입니다.','small muted'));yp.append(w)}
   if(th){const w=E('div',null,'yp-theme');w.append(E('h4','이 해의 주제'),E('p',th.theme+' '+th.link),E('p','준비해 볼 일: '+th.prep,'yprep'));yp.append(w)}
 }
 
