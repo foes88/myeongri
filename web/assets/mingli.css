@@ -540,3 +540,21 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 .one-year .timeline{grid-template-columns:minmax(150px,300px)}
 .one-year .dgrid-wrap .tw,.one-year .dgrid{max-width:560px}
 .wnum.z{fill:var(--ink2);stroke:none}
+
+/* ===== v11.0 화면 검수 반영: 모바일 결론 폭, 밀어 보기 안내, 왼쪽 열 따라오기 ===== */
+.swipe-hint{display:none;margin:.2rem 0 .3rem}
+@media (max-width:600px){
+  .swipe-hint{display:block}
+  .dash-conclusion .concl-text{padding-right:0}
+  .dash-conclusion h2{padding-right:52px}
+}
+@media (min-width:960px){
+  .dash-me{position:sticky;top:84px;align-self:start;max-height:calc(100vh - 104px);overflow-y:auto;scrollbar-width:thin}
+  .dash-me:focus-visible{outline-offset:-3px}
+}
+
+/* v11.0 검수: 모바일에서 인장이 결론 첫 줄을 가리지 않게(인장은 제목 줄 안에만 둔다) */
+@media (max-width:600px){
+  .stamp{width:36px;height:36px;top:10px;right:12px;font-size:.78rem;border-width:2px}
+  .dash-conclusion h2{margin-bottom:.8rem;min-height:38px}
+}

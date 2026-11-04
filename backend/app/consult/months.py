@@ -55,7 +55,9 @@ def _rel_items(rels: list[dict], variants_count: int) -> list[dict]:
             continue
         w = r.get("with")
         ref = (t != "충" and "합" not in t) or bool(w == "hour" and variants_count > 1)   # 형·파·해는 참고용, 시주가 하나로 정해지지 않으면 시주 관계도 참고만
-        out.append({"kind": phrase, "where": AREA.get(w) or WITH_PLAIN.get(w, ""), "reference": ref})
+        item = {"kind": phrase, "where": AREA.get(w) or WITH_PLAIN.get(w, ""), "reference": ref}
+        if item not in out:                                                              # 같은 자리·같은 종류 관계는 한 번만(천간합+육합 등이 같은 말로 반복되지 않게)
+            out.append(item)
     return out
 
 

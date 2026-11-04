@@ -148,6 +148,41 @@ THINK = {
         "quiet": ["큰 변화가 두드러지지 않는 시기이니 평소의 습관과 관계를 다지는 데 시간을 쓰는 관점을 생각해 볼 수 있습니다."],
         "thin": ["사주만으로 말할 수 있는 것이 적으니 현실의 상황과 계획을 우선 기준으로 삼는 편이 좋습니다."]},
 }
+# v11.0 '현실에서 생각해 볼 점'을 근거와 잇는다. 예전에는 (분야, 톤)만으로 같은 조언이 모든 명식에 붙었다.
+# 이제는 이 해·이 명식에서 실제로 부각된 구조를 읽은 뒤, 그 구조와 직접 관련된 기존 조언을 '왜 이 조언인지'와 함께 보인다.
+# 조언 문장은 THINK 의 기존 문장을 그대로 재사용한다(새 해석·새 규칙·새 조언 아님). 구조와 맞는 조언이 없으면 기존 (분야, 톤) 조언을 그대로 쓴다.
+_ADV_W = {"식상생재": ("wealth", "opportunity", 0), "군겁쟁재": ("wealth", "cautious", 1)}
+_ADV_C = {"재생관": ("career", "opportunity", 0), "관인상생": ("career", "opportunity", 1), "살인상생": ("career", "cautious", 0), "상관견관": ("career", "cautious", 1)}
+STRUCT_ADVICE = {
+    "wealth": _ADV_W,
+    "career": _ADV_C,
+    "business": {"식상생재": ("business", "opportunity", 0), "군겁쟁재": ("business", "mixed", 0)},
+    "overall": {**_ADV_W, **_ADV_C},
+}
+_ADV_LEAD = {"year": "이 해에 ‘{x}’ 쪽 변화가 있어, ", "part": "이 해 일부 기간에 ‘{x}’ 쪽 변화가 있어, ",
+             "persist": "이어지는 10년 큰 흐름에서 ‘{x}’ 쪽이 이어져, ", "natal": "타고난 사주에 ‘{x}’ 쪽이 있어, "}
+
+
+def think_for(dom: str, tone: str, t: dict) -> list[str]:
+    base = list(THINK.get(dom, {}).get(tone, THINK["overall"]["thin"]))[:2]
+    adv = STRUCT_ADVICE.get(dom)
+    if not adv or tone not in ("opportunity", "mixed", "cautious"):
+        return base
+    order = [("year", list(t.get("sup_up", [])) + list(t.get("ten_up", []))), ("part", list(t.get("sup_part", [])) + list(t.get("ten_part", []))),
+             ("persist", list(t.get("sup_pers", [])) + list(t.get("ten_pers", []))), ("natal", list(t.get("natal_support", [])) + list(t.get("natal_tension", [])))]
+    out: list[str] = []
+    seen: set[str] = set()
+    for kind, names in order:
+        for n in names:
+            if n in adv and n not in seen:
+                seen.add(n)
+                d_, tn, i = adv[n]
+                out.append(_ADV_LEAD[kind].format(x=S.STRUCT[n]["short"]) + THINK[d_][tn][i])
+        if len(out) >= 2:
+            break
+    return out[:2] or base
+
+
 MIXED_FLAT = {
     "wealth": "{w}은 재물 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 타고난 대로 수입으로 이어질 기회와 나누거나 새어 나가기 쉬운 부분이 함께 있으니, 버는 것만큼 지키는 것을 살펴볼 만합니다.",
     "career": "{w}은 직업 흐름이 타고난 모습에서 크게 달라지지 않는 시기입니다. 타고난 대로 평가와 자리로 이어질 기회와 조직과 부딪히기 쉬운 부분이 함께 있습니다.",
@@ -511,7 +546,7 @@ def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm:
     explain_missing = weak or tone == "thin" or (t["present"] == {} and not changed)  # 근거가 약하거나 없으면 '왜 결론을 내리지 않는지'를 반드시 말한다
     story = _compose(dom, slots, must=["period", "contrast", "timing"] + (["natal"] if explain_missing else []), skeleton=skeleton)
     headline = _headline(dom, tone, w, t, flat, head_tpl, weak)
-    think = list(THINK.get(dom, {}).get(think_tone, THINK["overall"]["thin"]))[:2]
+    think = think_for(dom, think_tone, t)
     claim_ids = [layer3[n]["claim_id"] for n in nat_sup + nat_ten] + (yr["claim_ids"] if yr else [])
     return {"domain": dom, "name": name, "tone": tone, "tone_label": TONE_SHORT[tone], "headline": headline, "story": story, "think": think, "counter": counter, "why": why,
             "scores": {"S": t["S"], "T": t["T"]}, "_claims": claim_ids}
@@ -663,7 +698,7 @@ def overall_block(pre: dict, years: list[int], period: dict | None, nm: dict, lu
     think_tone = tone
     if flat_mixed:
         tone = "quiet"
-    return {"domain": "overall", "name": "종합운", "tone": tone, "tone_label": TONE_SHORT[tone], "headline": head, "story": story, "think": list(THINK["overall"][think_tone])[:2], "counter": [],
+    return {"domain": "overall", "name": "종합운", "tone": tone, "tone_label": TONE_SHORT[tone], "headline": head, "story": story, "think": think_for("overall", think_tone, t), "counter": [],
             "why": why, "scores": {"S": t["S"], "T": t["T"]}, "_claims": [layer3[n]["claim_id"] for n in nat_sup + nat_ten] + (yr["claim_ids"] if yr else [])}
 
 

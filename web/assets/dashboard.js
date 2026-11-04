@@ -79,7 +79,7 @@ function wheel(shape,cl){
 
 /* ---------- C-좌 내 사주의 모습 ---------- */
 function me(vm){
-  const aside=E('aside',null,'dash-me');aside.setAttribute('aria-labelledby','h-me');
+  const aside=E('aside',null,'dash-me');aside.setAttribute('aria-labelledby','h-me');aside.tabIndex=0;
   const h=E('h2','내 사주의 모습');h.id='h-me';aside.append(h);
   const st=vm.profile&&vm.profile.story;
   if(st){
@@ -113,7 +113,7 @@ function flow(vm,S,sel){
   const h=E('h2',span+' 시기별 흐름');h.id='h-flow';sec.append(h);
   if(vm.multi&&vm.v.period&&vm.v.period.summary&&vm.v.period.summary[0])sec.append(E('p',vm.v.period.summary[0],'flow-lead'));
   // 타임라인
-  const tl=E('div',null,'timeline'+(n>6?' compact':''));A(tl,{role:'group','aria-label':'연도별 흐름(연도를 눌러 선택)'});
+  const tl=E('div',null,'timeline'+(n>6?' compact':''));sec.append(E('p','옆으로 밀어서 다른 해를 볼 수 있습니다.','small muted swipe-hint'));A(tl,{role:'group','aria-label':'연도별 흐름(연도를 눌러 선택)'});
   let lastLine=null;
   vm.years.forEach(y=>{const r=vm.row(y),m=tv(r.tone);const b=E('button',null,'tl-node '+m[2]);b.type='button';b.dataset.year=y;A(b,{'aria-pressed':String(y===S.year),'aria-label':y+'년 '+m[1]+(r.standout?', 가장 달라지는 해':'')});
     const hd=E('span',null,'tl-head');hd.append(E('b',String(y),'tl-year'),E('span',r.standout?'★':'','tl-star'));b.append(hd);
@@ -130,6 +130,7 @@ function flow(vm,S,sel){
   const tb=E('tbody');vm.domains.forEach(d=>{const r=E('tr');const nm=E('th',d.name);nm.scope='row';r.append(nm);
     vm.years.forEach(y=>{const b=vm.block(y,d.domain),td=E('td');td.dataset.year=y;td.dataset.domain=d.domain;if(b){const m=tv(b.tone);td.className=m[2];const bt=E('button',null,'cell');bt.type='button';A(bt,{'aria-label':y+'년 '+d.name+' '+m[1],'data-year':y,'data-domain':d.domain});bt.append(E('span',m[0],'sym'),E('span',m[1],'lab'));bt.onclick=()=>sel({year:y,domain:d.domain});td.append(bt)}r.append(td)});tb.append(r)});
   t.append(tb);sc.append(t);gw.append(sc);
+  gw.append(E('p','표는 옆으로 밀어서 볼 수 있습니다.','small muted swipe-hint'));
   const lg=E('p',null,'dlegend');['opportunity','cautious','mixed','thin','quiet','steady'].forEach(k=>{const m=TV[k];const sp=E('span',null,m[2]);sp.textContent=m[0]+' '+m[1]+(k==='mixed'?'(기회와 점검할 점이 함께)':'');lg.append(sp)});gw.append(lg);
   gw.append(E('p','기회·주의는 그해의 구조 변화가 한쪽으로 뚜렷할 때만 표시합니다. 좋은 일·나쁜 일이 일어난다는 뜻이 아니며 확률이나 점수도 아닙니다. 근거가 부족하면 ‘근거 부족’으로 두고 억지로 방향을 정하지 않습니다.','small muted'));
   sec.append(gw);
@@ -169,7 +170,8 @@ function fillYearPanel(vm,S,root){
   {n++;const d=E('div',null,'yp-para yp-limit');d.append(E('b','반대로 보는 근거와 한계','ypl'),E('span',(lim.length?lim.join(' ')+' ':'')+'이 풀이는 전통 명리학의 해석이며, 일어날 일을 알려 주거나 보장하지 않습니다.'));det.append(d)}
   if(n)yp.append(det);
   /* 3 현실에서 생각해 볼 점 */
-  const think=uniq(ow.think||[]).slice(0,2);
+  const domThink=S.domain!=='overall'?((vm.block(y,S.domain)||{}).think||[]):[];   // 아래 분야 패널에 이미 있는 조언은 해 패널에서 빼 같은 문장이 한 화면에 두 번 나오지 않게 한다
+  const think=uniq((ow.think||[]).filter(x=>domThink.indexOf(x)<0)).slice(0,2);
   if(think.length||th){const w=E('div',null,'yp-think');w.append(E('h4','현실에서 생각해 볼 점'));if(think.length){const ul=E('ul');think.forEach(t=>ul.append(E('li',t)));w.append(ul)}
     if(th&&th.prep)w.append(E('p','준비해 볼 일: '+th.prep,'yprep'));yp.append(w)}
 }
@@ -218,11 +220,12 @@ function fillMonths(vm,S,root,sync,goYear){
   (it.notes||[]).forEach(t=>kv('경계',t));
   kv('이 달의 기운',it.pillar_ko+'월 — 위 글자는 '+it.stem_el+', 아래 글자는 '+it.branch_el+' 기운입니다. 위 글자는 나에게 ‘'+it.god+'’으로 작용합니다.');
   const rl=(it.relations||[]);
-  if(rl.length){const d=E('div',null,'mrow');d.append(E('b','타고난 사주와의 관계','mk'));const ul=E('ul',null,'mv');rl.forEach(x=>ul.append(E('li',(x.where?x.where+'과 ':'')+x.kind+' 관계'+(x.reference?' (참고용)':''))));d.append(ul);det.append(d)}
+  if(rl.length){const d=E('div',null,'mrow');d.append(E('b','타고난 사주와의 관계','mk'));const ul=E('ul',null,'mv');rl.forEach(x=>ul.append(E('li',(x.where?x.where+': ':'')+x.kind+' 관계'+(x.reference?' (참고용)':''))));d.append(ul);det.append(d)}
   else kv('타고난 사주와의 관계','새로 생기는 부딪힘·합이 확인되지 않았습니다.');
   const ch=it.changes||{},names=Object.keys(ch).filter(k=>S.domain==='overall'||k===S.domain);
   if(names.length){const d=E('div',null,'mrow');d.append(E('b','달라지는 점'+(S.domain!=='overall'?'('+dn+')':''),'mk'));const ul=E('ul',null,'mv');
-    names.forEach(k=>{const nm=(vm.domains.find(z=>z.domain===k)||{}).name||k;ch[k].forEach(c=>ul.append(E('li',nm+': '+c.text)))});d.append(ul);det.append(d)}
+    const by={};names.forEach(k=>{const nm=(vm.domains.find(z=>z.domain===k)||{}).name||k;ch[k].forEach(c=>{(by[c.text]=by[c.text]||[]).push(nm)})});
+    Object.keys(by).forEach(t=>ul.append(E('li',t+(S.domain==='overall'?' — '+by[t].join('·')+' 관련':''))));d.append(ul);det.append(d)}
   else kv('달라지는 점',S.domain==='overall'?'대운·세운에 이 달의 기운을 더해도 달라지는 구조가 확인되지 않았습니다.':dn+' 관련해서 달라지는 구조가 확인되지 않았습니다.');
   det.append(E('p',mo.withheld,'small muted mwith'));
   det.append(E('p','‘달라지는 점’은 그 달 기운이 더해질 때 구조가 더해지거나 커지는지만 보여 줍니다. 좋은 달·나쁜 달을 뜻하지 않으며 점수나 순위가 아닙니다. 월운 해석은 고전과 대조하지 않은 구현 규약입니다.','small muted'));
@@ -254,7 +257,7 @@ function fillDomain(vm,S,root){
   const storyText=(b.story||[]).join(' ');
   const per=((b.why&&b.why.period)||[]).filter(t=>t&&storyText.indexOf(t.slice(0,18))<0);
   if(per.length){R.append(E('h4','이 해의 변화'));const ul=E('ul');per.slice(0,2).forEach(t=>ul.append(E('li',t)));R.append(ul)}
-  if((b.think||[]).length){R.append(E('h4','현실에서 생각해 볼 점'));const ul=E('ul');b.think.forEach(t=>ul.append(E('li',t)));R.append(ul)}
+  if((b.think||[]).length&&!(S.domain==='overall'&&root.querySelector('#dash-year-panel .yp-think'))){R.append(E('h4','현실에서 생각해 볼 점'));const ul=E('ul');b.think.forEach(t=>ul.append(E('li',t)));R.append(ul)}
   cols.append(L,R);pn.append(cols);
   const w=b.why||{},d=E('details',null,'fold');d.append(E('summary','왜 그렇게 해석하나요?'));
   [['타고난 사주에서',w.natal],['이 시기에는',w.period],['반대로 보는 이유',w.against]].forEach(([lab,arr])=>{if(arr&&arr.length){d.append(E('h4',lab));const ul=E('ul');arr.forEach(t=>ul.append(E('li',t)));d.append(ul)}});

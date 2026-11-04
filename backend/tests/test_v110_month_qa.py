@@ -32,7 +32,9 @@ def test_explicit_month_and_year_answer_with_facts_not_a_luck_verdict(pre):
     assert r["kind"] == "month" and r["year"] == 2028
     t = text(r)
     assert "입하 구간" in t and "좋고 나쁨을 가르는 판정은 하지 않습니다" in t
-    assert "참고로 2028년 전체의" in t and "월별 판정이 아니라 해 전체 해석" in t     # 월별 사실과 해 전체 해석을 구분
+    assert "참고로" not in t and "해 전체 흐름은 이 답변에 섞지 않았습니다" in t       # 월 질문에 연간 해석을 섞지 않는다(월운의 빈자리를 연간 해석으로 채우지 않는다)
+    r2 = ask(pre, "2028년 5월과 2028년 전체를 비교해 주세요")
+    assert "해 전체 해석" in text(r2) and "월별 판정이 아니라" in text(r2)               # 연간 비교를 요청한 경우에만 연간 해석을 별도로 제공
 
 
 def test_calendar_month_spanning_two_solar_terms_is_explained_honestly(pre):

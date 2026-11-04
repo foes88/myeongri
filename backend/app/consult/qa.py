@@ -21,6 +21,7 @@ MONTH_NUM = re.compile(r"(?<!\d)(\d{1,2})\s*월(?!\s*(?:간|동안))")
 THIS_MONTH = re.compile(r"(?<![가-힣])이\s*달(?![라리])|이번\s*달|선택한\s*달|(?<![가-힣])이\s*구간")
 PREV_MONTH = re.compile(r"지난\s*달|전\s*달|앞\s*달|이전\s*달")
 NEXT_MONTH = re.compile(r"다음\s*달|다음\s*구간")
+ANNUAL_REQ = re.compile(r"(연간|해\s*전체|한\s*해|그해|올해|내년|이\s*해|\d{4}년\s*(전체|흐름|연간)).{0,12}(비교|차이|대비|비해|견주)|(비교|차이|대비|견주).{0,12}(연간|해\s*전체|그해|올해|내년|\d{4}년\s*(전체|흐름|연간))")   # 연간 해석을 함께 달라고 한 경우
 MONTH_NOTE = "월별로 좋고 나쁨을 가르는 판정은 하지 않습니다. 아래는 그 달 기운이 더해질 때 달라지는 구조와 관계의 사실만 정리한 것이며, 그 달에 특정한 일이 일어난다는 뜻이 아닙니다."
 REL_YEAR = {"올해": 0, "금년": 0, "내년": 1, "내후년": 2, "작년": -1}
 WHY = re.compile(r"왜|이유|근거|어떻게 (그렇게|알)")
@@ -173,7 +174,7 @@ def _item_lines(it: dict, v: dict, dom: str | None, only: tuple[str, str] | None
     out = [f"{span}은 {it['term']} 구간({it['pillar_ko']}월)입니다. 위 글자는 {it['stem_el']}, 아래 글자는 {it['branch_el']} 기운이고, 위 글자는 나에게 ‘{it['god']}’으로 작용합니다."]
     for n in it.get("notes", []):
         out.append(n)
-    rel = [f"{(r['where'] + '과 ') if r['where'] else ''}{r['kind']} 관계{'(참고용)' if r['reference'] else ''}" for r in it.get("relations", [])]
+    rel = [f"{(r['where'] + ': ') if r['where'] else ''}{r['kind']} 관계{'(참고용)' if r['reference'] else ''}" for r in it.get("relations", [])]
     out.append("타고난 사주와의 관계: " + ("; ".join(rel) if rel else "새로 생기는 부딪힘·합이 확인되지 않았습니다."))
     names = {k: x["name"] for k, x in D.DOMAINS.items()}
     ch = it.get("changes", {})
@@ -181,6 +182,10 @@ def _item_lines(it: dict, v: dict, dom: str | None, only: tuple[str, str] | None
     lines = [f"{names.get(k, k)}: {c['text']}" for k in pick for c in ch.get(k, [])]
     out.append("달라지는 점: " + ("; ".join(lines) if lines else "대운·세운에 이 달의 기운을 더해도 달라지는 구조가 확인되지 않았습니다."))
     return out
+
+
+def names_of(dom: str | None) -> str:
+    return D.DOMAINS[dom]["name"] if dom and dom in D.DOMAINS else "흐름"
 
 
 def _year_context_line(v: dict, y: int, dom: str | None) -> str | None:
@@ -241,9 +246,12 @@ def _month_answer(v: dict, mr: dict, dom: str | None, ctx: dict, q: str) -> dict
     head = f"{y}년 " + " · ".join(r[2] for r in refs[:2]) + ("을 비교하면" if len(refs) >= 2 else "에 대해 알려 드립니다.")
     if len(refs) >= 2 and head.endswith("비교하면"):
         head += " 다음과 같습니다."
-    extra = _year_context_line(v, y, dom)
-    if extra:
-        pts.append(extra)
+    if ANNUAL_REQ.search(q):                                   # 연간 비교를 요청한 경우에만 연간 해석을 '별도로' 보탠다(월운의 빈자리를 연간 해석으로 채우지 않는다)
+        extra = _year_context_line(v, y, dom)
+        if extra:
+            pts.append(extra)
+    else:
+        pts.append(f"해 전체 흐름은 이 답변에 섞지 않았습니다. 궁금하면 ‘{y}년 {names_of(dom)} 알려줘’처럼 따로 물어보세요.")
     pts.append(MONTH_NOTE)
     return {"kind": "month", "year": y, "domain": dom or "overall", "text": head, "points": pts}
 
