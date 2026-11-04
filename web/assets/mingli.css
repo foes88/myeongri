@@ -548,13 +548,48 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
   .dash-conclusion .concl-text{padding-right:0}
   .dash-conclusion h2{padding-right:52px}
 }
-@media (min-width:960px){
-  .dash-me{position:sticky;top:84px;align-self:start;max-height:calc(100vh - 104px);overflow-y:auto;scrollbar-width:thin}
-  .dash-me:focus-visible{outline-offset:-3px}
-}
 
 /* v11.0 검수: 모바일에서 인장이 결론 첫 줄을 가리지 않게(인장은 제목 줄 안에만 둔다) */
 @media (max-width:600px){
   .stamp{width:36px;height:36px;top:10px;right:12px;font-size:.78rem;border-width:2px}
   .dash-conclusion h2{margin-bottom:.8rem;min-height:38px}
 }
+
+/* ===== v11.1 최종 UI/UX: 내 사주의 모습은 가로 띠(독립 스크롤·고정·빈 공간 없음), 본문 타이포, 1·5·10년 구성, 분야 탭 ===== */
+.dash-grid{display:block;margin:0 0 26px}
+.dash-me{position:static;max-height:none;overflow:visible;border:0;border-bottom:1px solid var(--rule);padding:6px 0 24px;margin:0 0 28px}
+.me-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:0 clamp(28px,4vw,64px);align-items:start}
+.me-col{min-width:0}
+.dash-me>.fold{margin-top:12px}
+.wheel-fold{margin-top:.7rem}
+.wheel-fold summary{font-weight:600}
+.dash-flow{padding-top:0}
+.yp-cols{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+@media (min-width:1100px){.yp-cols{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:0 clamp(28px,3.5vw,56px)}}
+.yp-right{min-width:0}
+.yp-core .yp-change{font-size:clamp(1.2rem,1.7vw,1.4rem);font-weight:650;line-height:1.55}
+.yp-para,.yp-think li,.yp-think p,.yp-core p,.dp-story,.dp-main p,.dp-side li{font-size:1.06rem;line-height:1.8}
+.yp-para{margin:1.1rem 0}
+.yp-para .ypl{font-size:.95rem;margin-bottom:.15rem}
+.dp-story{margin:.95rem 0}
+.dp-headline{font-size:clamp(1.25rem,1.9vw,1.5rem);line-height:1.5;max-width:36em}
+.year-panel h4{font-size:1.08rem;margin:1.4rem 0 .4rem}
+.dash-domains{scroll-margin-top:84px}
+.dtabs{gap:6px;border-bottom:2px solid var(--rule)}
+.dtab{font-size:1rem;min-height:48px;padding:10px 18px;border-radius:8px 8px 0 0}
+.dtab[aria-selected="true"]{background:var(--seal-soft);color:var(--ink);font-weight:800;border-bottom:3px solid var(--seal);margin-bottom:-2px}
+.one-year .dgrid-wrap{margin:.2rem 0 1rem}
+.one-year .year-panel{margin-top:.4rem}
+/* 후속 질문·저장: 큰 카드 대신 간결하게 */
+#session{padding:16px 20px;margin-top:18px}
+#session h2{font-size:1.3rem;margin:0 0 .3rem}
+#session textarea,#session input[type=text],#session input:not([type]){min-height:46px;font-size:1rem}
+#session .chips,#chips{margin:.3rem 0 .5rem}
+#acct{padding:14px 20px;margin-top:14px}
+#acct h2{font-size:1.15rem;margin:0 0 .25rem}
+#acct p{margin:.3rem 0}
+#acct .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:8px 16px}
+#acct input{min-height:44px}
+.dash-flow h2,.dash-domains h2,.dash-me h2{font-size:clamp(1.5rem,2.2vw,1.9rem)}
+
+#acct .grid>div{display:flex;flex-direction:column;justify-content:flex-end}

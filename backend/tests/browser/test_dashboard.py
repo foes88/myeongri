@@ -19,7 +19,7 @@ def analyze(p, kind="r5", doms=DOMS5, y1="2027"):
             cb.set_checked(want)
     p.click("#f button[type=submit]")
     p.wait_for_selector("#verdict .dash-conclusion .concl-text", timeout=60000)
-    p.wait_for_function("document.querySelectorAll('#dash-dom-panel .dp-headline').length===1")
+    p.wait_for_function("document.querySelectorAll('#dash-dom-panel .dp-head').length===1")
 
 
 def box(p, sel):
@@ -39,10 +39,8 @@ def test_layout_at_five_widths(browser, one, size):
     c = box(p, "#verdict .concl-text")                                                                              # 핵심 결론이 첫 화면 안에 온전히 보인다
     assert c["y"] >= 0 and c["b"] <= vh, (c, vh)
     me, fl = box(p, ".dash-me"), box(p, ".dash-flow")
-    if vw >= 960:
-        assert me["x"] < fl["x"] and abs(me["y"] - fl["y"]) < 80 and me["w"] / (me["w"] + fl["w"]) < 0.45             # 2열: 왼쪽이 더 좁다
-    else:
-        assert fl["y"] >= me["b"] - 5                                                                               # 1열로 쌓인다
+    assert fl["y"] >= me["b"] - 5                                                                                   # v11.1: 내 사주의 모습은 가로 띠, 시기별 흐름은 그 아래(좌우 높이 불일치·내부 스크롤 없음)
+    assert me["w"] / vw > 0.6 or vw < 700                                                                          # 띠가 가로폭을 쓴다
     order = p.evaluate("['.dash-bar','.dash-conclusion','.dash-grid','.dash-domains'].map(s=>document.querySelector(s).getBoundingClientRect().top+scrollY)")
     assert order == sorted(order)                                                                                   # 컨트롤 바 → 결론 → 내 사주|시기 → 분야
     assert not [x for x in console if "PAGEERROR" in x or "Content Security" in x]
@@ -123,15 +121,11 @@ def test_one_year_and_five_year_views_agree_on_the_same_year(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "1440")
     analyze(p)                                                                                                       # 5년: 2027~2031
     p.locator("#verdict .dgrid .cell[data-year='2028'][data-domain='wealth']").click()
-    five = {"label": p.inner_text("#verdict .dgrid .cell[data-year='2028'][data-domain='wealth'] .lab"), "head": p.inner_text("#dash-dom-panel .dp-headline"),
-            "overall": p.inner_text("#verdict .dgrid .cell[data-year='2028'][data-domain='overall'] .lab")}
-    p.click("#dash-to1")
-    p.wait_for_function("document.querySelectorAll('#verdict .tl-node').length===1", timeout=60000)
-    p.click("#dash-next")                                                                                            # 2028 한 해만
-    p.wait_for_function("(document.getElementById('dash-span')||{}).textContent==='2028년'", timeout=60000)
-    p.locator("#verdict .dtab[data-domain=wealth]").click()
-    one_y = {"label": p.inner_text("#verdict .dgrid .cell[data-year='2028'][data-domain='wealth'] .lab"), "head": p.inner_text("#dash-dom-panel .dp-headline"),
-             "overall": p.inner_text("#verdict .dgrid .cell[data-year='2028'][data-domain='overall'] .lab")}
+    five = {"label": p.inner_text("#dash-year-panel .yp-dom:has-text('재물운') .ydn"), "head": p.inner_text("#dash-dom-panel .dp-headline"), "yp": p.inner_text("#dash-year-panel .yp-dom:has-text('재물운') .ydh")}
+    p.click("#dash-to1")                                                                                             # v11.1: 모드를 바꿔도 선택한 연도(2028)·분야(재물)가 유지된다
+    p.wait_for_function("document.querySelectorAll('#verdict .tl-node').length===0 && (document.getElementById('dash-span')||{}).textContent==='2028년'", timeout=60000)
+    assert p.locator("#verdict .dtab[aria-selected=true]").get_attribute("data-domain") == "wealth"
+    one_y = {"label": p.inner_text("#dash-year-panel .yp-dom:has-text('재물운') .ydn"), "head": p.inner_text("#dash-dom-panel .dp-headline"), "yp": p.inner_text("#dash-year-panel .yp-dom:has-text('재물운') .ydh")}
     assert one_y == five                                                                                             # 같은 해의 결론이 보기 범위와 무관하게 같다
     ctx.close()
 
@@ -212,6 +206,6 @@ def test_new_analysis_starts_from_first_year_and_overall(browser, one):
     p.locator("#verdict .dgrid .cell[data-year='2030'][data-domain='career']").click()
     p.click("#dash-next")
     p.wait_for_function("(document.getElementById('dash-span')||{}).textContent==='2028–2032년'", timeout=60000)
-    assert p.locator("#verdict .tl-node[aria-pressed=true]").get_attribute("data-year") == "2028"                    # 새 분석은 첫 해·종합에서 시작
-    assert p.locator("#verdict .dtab[aria-selected=true]").get_attribute("data-domain") == "overall"
+    assert p.locator("#verdict .tl-node[aria-pressed=true]").get_attribute("data-year") == "2031"                    # v11.1: 다음 해로 옮기면 선택한 해도 함께 한 해 뒤(2030→2031)
+    assert p.locator("#verdict .dtab[aria-selected=true]").get_attribute("data-domain") == "career"                  # 선택한 분야는 유지
     ctx.close()

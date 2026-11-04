@@ -391,7 +391,8 @@ def test_user_screen_and_api_expose_no_internal_information(browser, one):
     for i in range(3):
         p.locator("#verdict .dtab").nth(i).click()
         order = p.evaluate("[...document.querySelector('#dash-dom-panel').children].map(c=>c.className||c.tagName)")
-        assert order[0] == "dp-head" and order[1].startswith("dp-headline") and order[2] == "dp-cols"
+        deduped = p.evaluate("+document.querySelector('#dash-dom-panel').dataset.deduped")
+        assert order[0] == "dp-head" and ((order[1].startswith("dp-headline") and order[2] == "dp-cols") or (deduped >= 1 and order[1] == "dp-cols"))   # 해 패널에 이미 있는 같은 문장은 다시 쓰지 않는다
         p.locator("#dash-dom-panel .fold summary").click()
     assert_verdict_layout(p)
     assert p.locator("#dash-dom-panel details[open]").count() == 1
@@ -423,7 +424,7 @@ def test_v83_one_five_ten_year_views_and_year_comparison(browser, one, size):
     p.click("#submitb")
     p.wait_for_selector("#verdict .dash-conclusion .concl-text", timeout=60000)
     assert_verdict_layout(p)
-    assert p.locator("#verdict .dtab").count() == 3 and p.locator("#verdict .tl-node").count() == 1
+    assert p.locator("#verdict .dtab").count() == 3 and p.locator("#verdict .tl-node").count() == 0 and p.locator("#verdict .dgrid").count() == 0   # v11.1: 1년 보기에는 한 칸짜리 타임라인·비교표가 없다
     # 5년
     p.click("#dash-to5")
     p.wait_for_function("document.querySelectorAll('#verdict .tl-node').length===5", timeout=60000)

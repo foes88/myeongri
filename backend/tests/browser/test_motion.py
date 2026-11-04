@@ -180,6 +180,8 @@ def test_final_polish_equal_circles_single_highlight_and_visible_selected_state(
     analyze(p)
     settle(p)
     p.wait_for_timeout(200)
+    p.click(".wheel-fold summary")                                                                                      # v11.1: 순환도는 접힌 보조 설명이라 펼쳐서 확인
+    p.wait_for_timeout(300)
     radii = p.evaluate("[...document.querySelectorAll('.wheel .wc')].map(c=>c.getAttribute('r'))")
     assert len(radii) == 5 and len(set(radii)) == 1                                                                   # 원 크기는 모두 같다(강약 표현 아님)
     assert "크기는 모두 같" in p.inner_text(".wheel-note")
