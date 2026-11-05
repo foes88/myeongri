@@ -8,7 +8,7 @@ from app.consult import agent, explain as E
 from tools.bias_probe import charts
 
 DOMS = ["overall", "wealth", "career", "love_marriage", "family"]
-KINDS = {"natal", "period", "relation", "contrast", "counter", "timing", "cross", "emphasis", "where", "where2"}
+KINDS = {"natal", "period", "relation", "relation2", "contrast", "counter", "timing", "cross", "emphasis", "where", "where2"}
 
 
 def reason(evidence):

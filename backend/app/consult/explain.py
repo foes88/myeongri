@@ -34,8 +34,13 @@ def _areas(parsed: list[dict]) -> str:
     return seen[0] if seen else ""
 
 
+def _and(items: list[str]) -> str:
+    """기운 이름 사이는 ‘과’로 잇는다(이름 안에 이미 ‘·’이 있어 ‘ · ’로 이으면 어디서 끊기는지 알 수 없다)."""
+    return items[0] if len(items) == 1 else f"{items[0]}과 {items[1]}"
+
+
 def _gods(parsed: list[dict]) -> str:
-    return " · ".join(list(dict.fromkeys(p["god"] for p in parsed))[:2])
+    return _and(list(dict.fromkeys(p["god"] for p in parsed))[:2])
 
 
 def natal_reason(s: dict, theme: str) -> str | None:
@@ -70,11 +75,11 @@ def period_reason(period: dict | None, name: str, theme: str, detail: dict, segm
     only_l, only_y = [g for g in luck_g if g not in year_g], [g for g in year_g if g not in luck_g]
     parts = []                                                    # 같은 기운이 두 쪽에서 들어오면 '함께 들여온'으로 한 번만 말한다(같은 문구를 되풀이하지 않는다)
     if both:
-        parts.append(f"10년 큰 흐름과 그해가 함께 들여온 {' · '.join(both)}")
+        parts.append(f"10년 큰 흐름과 그해가 함께 들여온 {_and(both)}")
     if only_l:
-        parts.append(f"10년 큰 흐름{'만' if both else '이'} 들여온 {' · '.join(only_l)}")
+        parts.append(f"10년 큰 흐름{'만' if both else '이'} 들여온 {_and(only_l)}")
     if only_y:
-        parts.append(f"그해{'만' if both else '가'} 들여온 {' · '.join(only_y)}")
+        parts.append(f"그해{'만' if both else '가'} 들여온 {_and(only_y)}")
     if not parts:
         return None
     if len(parts) == 1:
@@ -84,7 +89,7 @@ def period_reason(period: dict | None, name: str, theme: str, detail: dict, segm
     else:
         subject = ", ".join(parts[:-1]) + "과 " + parts[-1] + "이"
     a, b = F.merged_range(rng)
-    span = "그해 내내" if F._days({"from": a, "to": b}) >= 350 else f"{int(a[5:7])}월 {int(a[8:10])}일~{int(b[5:7])}월 {int(b[8:10])}일 동안"
+    span = "그해 내내" if F._days({"from": a, "to": b}) >= 350 and len(F.contiguous_ranges(list(rng))) == 1 else F.range_phrase(rng, F.pre_ipchun_end(segs)) + " 동안"   # 이어진 범위만, 입춘 전은 그 기간에만
     return f"{span} {subject} 타고난 사주의 기운과 이어지면서 {theme}이 더 뚜렷해지는 쪽으로 읽힙니다."
 
 

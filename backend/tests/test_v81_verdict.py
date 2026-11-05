@@ -69,7 +69,8 @@ def test_a_to_d_structure_and_sentence_budget():
         assert v["blocks"][0]["domain"] == "overall"  # 종합운이 먼저
         for b in v["blocks"]:
             assert 1 <= sentence_count(b["headline"]) <= 2, b["headline"]              # A: 1~2문장
-            assert 2 <= len(b["story"]) <= 5 or b["tone"] == "balance", (b["name"], b["story"])  # B: 자연스러운 문장 2~5개
+            n_story = len(b["story"]) - sum(1 for p_ in b.get("story_parts", []) if p_["kind"] == "relation2")   # v11.3b: 한 덩어리였던 관계 문장을 둘로 나눈 두 번째 문장은 칸 수에 세지 않는다
+            assert 2 <= n_story <= 5 or b["tone"] == "balance", (b["name"], b["story"])  # B: 자연스러운 문장 2~5개
             assert 1 <= len(b["think"]) <= 2 and all("해야 합니다" not in t for t in b["think"])  # C: 강요하지 않는 관점
         ov = v["blocks"][0]
         assert 3 <= len(ov["story"]) <= 5 or len(ov["story"]) >= 2  # 종합운은 짧게 핵심만
@@ -103,7 +104,7 @@ def test_2027_vs_2030_and_same_year_same_conclusion_regardless_of_range():
     _, a30 = run(None, (2030,), ("wealth", "career"))
     t27, t30 = a27["verdict"], a30["verdict"]
     assert [b["story"] for b in t27["blocks"]] != [b["story"] for b in t30["blocks"]]
-    assert any("무렵 10년 단위로 바뀌는 큰 흐름이 바뀌" in s for b in t30["blocks"] for s in b["story"]) and not any("무렵 10년 단위로 바뀌는 큰 흐름이 바뀌" in s for b in t27["blocks"] for s in b["story"])  # 대운 교체 전후 설명
+    assert any("무렵 10년 단위 큰 흐름이 바뀌" in s for b in t30["blocks"] for s in b["story"]) and not any("무렵 10년 단위 큰 흐름이 바뀌" in s for b in t27["blocks"] for s in b["story"])  # 대운 교체 전후 설명
     assert any("6월 15일" in s for b in t30["blocks"] for s in b["story"])
     # 같은 해는 단일 연도로 보든 5년 범위로 보든 같은 결론
     _, multi = run(None, (2027, 2028, 2029, 2030, 2031), ("wealth", "career"))

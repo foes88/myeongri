@@ -67,18 +67,17 @@ def test_domain_panel_has_summary_then_topics_then_a_folded_source_area(browser,
         head = p.inner_text("#dash-dom-panel .dp-headline")
         assert head and n_sent(head) <= 2                                                                                   # A: 핵심 요약 최대 2문장
         assert p.evaluate("+getComputedStyle(document.querySelector('#dash-dom-panel .dp-headline')).fontWeight") <= 500   # 문장 전체를 굵게 하지 않는다
-        topics = p.locator("#dash-dom-panel .dp-topic")
-        assert topics.count() >= 1                                                                                          # B: 실제 데이터에 있는 주제만
+        topics = p.locator("#dash-dom-panel .dp-topics > .dp-topic")                                                        # B: 기본으로 보이는 주제(중요한 것만, 없으면 만들지 않는다)
         for i in range(topics.count()):
             t = topics.nth(i)
             assert t.locator("h4").count() == 1 and len(t.locator("h4").inner_text()) >= 4
             body = " ".join(x.inner_text() for x in t.locator("p, li").all())
             assert 1 <= n_sent(body) <= 5
         assert p.locator("#dash-dom-panel .dp-more").evaluate("e=>e.open") is False                                         # C: 원문과 근거는 접힘
-        assert "원문과 해석 근거 보기" in p.locator("#dash-dom-panel .dp-more > summary").text_content()
+        assert "전체 해석과 근거 보기" in p.locator("#dash-dom-panel .dp-more > summary").text_content()
         p.locator("#dash-dom-panel .dp-more > summary").click()
         heads = p.evaluate("[...document.querySelectorAll('#dash-dom-panel .dp-more .dp-src h4')].map(h=>h.textContent)")
-        assert heads and heads[0] == "상세 해석 원문"                                                                        # 원문이 가장 먼저
+        assert heads and set(heads) <= {"전체 해석", "명리 용어 설명", "해석 근거", "상반되는 근거와 한계"}                      # 비어 있는 항목은 만들지 않는다
     ctx.close()
 
 
