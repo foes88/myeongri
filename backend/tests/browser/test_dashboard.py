@@ -113,6 +113,7 @@ def test_every_status_is_symbol_plus_text_not_color_only(browser, one):
         for i in range(n):
             e = p.locator(sel).nth(i)
             assert e.locator(".sym").inner_text().strip() and e.locator(".lab").inner_text().strip()
+    p.evaluate("document.querySelector('.legend-fold').open=true")                                                  # 기호 설명은 접혀 있다(v11.2b)
     assert p.locator("#verdict .dlegend span").count() == 6 and "확률이나 점수도 아닙니다" in p.inner_text("#verdict .dgrid-wrap")
     ctx.close()
 

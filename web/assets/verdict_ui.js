@@ -15,7 +15,7 @@ function trimSession(){const s=$('session');s.querySelectorAll('h3').forEach(h=>
   const hd=s.querySelector('h2');if(hd)hd.textContent='더 물어보기';const k=s.querySelector('.kicker');if(k)k.textContent='후속 상담';
   const lab=s.querySelector('label[for=q2]');if(lab)lab.textContent='궁금한 점을 그대로 적어 보세요';
   $('askb').textContent='물어보기';
-  if(!s.querySelector('.ask-purpose')){const pp=el('p','지금 보고 있는 연도·월·분야를 기준으로 답합니다. 질문에 연도나 월을 적으면 그쪽이 우선합니다. 예: ‘2028년 5월은 어때요?’, ‘재물과 직업은 어떻게 이어져요?’','small muted ask-purpose');const ctx=$('ctxline');if(ctx)ctx.before(pp)}
+  if(!s.querySelector('.ask-purpose')){const pp=el('p','지금 보고 있는 연도·월·분야 기준으로 답하며, 질문에 적은 연도·월이 우선합니다. 예: ‘2028년 5월은 어때요?’','small muted ask-purpose');const ctx=$('ctxline');if(ctx)ctx.before(pp)}
   const dp=$('depth');if(dp){const g=dp.closest('div');if(g)g.hidden=true}}
 trimSession();
 
@@ -150,10 +150,11 @@ renderReport=function(a,pre,reopened){
   if(window.MingliMotion&&document.getElementById('dash')){window.MingliMotion.results(document.getElementById('dash'));window.MingliMotion.sticky(document.querySelector('#dash .dash-bar'))}
   /* 내 사주(네 기둥): 결론 아래에 접어 둔다 */
   const st=$('status');st.textContent='';st.hidden=false;st.className='chapter pillars-card';
-  if(pre.calc){const cn=el('div',null,'calc calc-'+pre.calc.level);cn.append(el('b',pre.calc.title));const ul=el('ul');pre.calc.items.forEach(t=>ul.append(el('li',t)));cn.append(ul);cn.setAttribute('data-calc',pre.calc.level);st.append(cn)}
-  const d=el('details');d.append(el('summary','내 사주(네 기둥) 보기'));d.append(pillarTable(pre.pillars));
+  const d=el('details');d.className='calc-fold';d.append(el('summary',(pre.calc?pre.calc.title+' · ':'')+'내 사주(네 기둥) 보기'));
+  if(pre.calc){const cn=el('div',null,'calc calc-'+pre.calc.level);const ul=el('ul');pre.calc.items.forEach(t=>ul.append(el('li',t)));cn.append(ul);cn.setAttribute('data-calc',pre.calc.level);d.append(cn)}
+  d.append(pillarTable(pre.pillars));
   d.append(el('p','태어난 해·달·날·시각을 각각 한자 두 글자(위=하늘 기운, 아래=땅 기운)로 적은 것입니다. ‘나의 중심’은 태어난 날의 위 글자로, 풀이에서 나를 대표하는 글자로 삼습니다. 아래 풀이의 바탕이 되는 계산 결과입니다.','small muted'));st.append(d);
-  out.after(st);
+  const ses=$('session');if(ses)ses.after(st);else out.after(st);   // 질문 입력 바로 아래로: 질문창이 먼저 눈에 띈다
   window.MingliChips=function(aa,sel){chipsFor(aa,sel)};
   if(!window.MingliSel)chipsFor(a);
   const old=$('keypoints');if(old)old.remove();

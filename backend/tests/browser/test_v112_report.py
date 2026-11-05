@@ -107,6 +107,6 @@ def test_save_area_states_that_login_is_required_and_follow_up_explains_its_cont
     analyze(p)
     settle(p)
     assert "저장하려면 로그인이 필요합니다" in p.inner_text("#acct")
-    assert "지금 보고 있는 연도·월·분야를 기준으로 답합니다" in p.inner_text("#session")
-    assert "연도나 월을 적으면 그쪽이 우선합니다" in p.inner_text("#session")
+    assert "지금 보고 있는 연도·월·분야 기준으로 답하며" in p.inner_text("#session")
+    assert "질문에 적은 연도·월이 우선합니다" in p.inner_text("#session")
     ctx.close()

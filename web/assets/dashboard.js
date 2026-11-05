@@ -55,8 +55,11 @@ function hero(vm){
   const s=E('section',null,'dash-conclusion');s.setAttribute('aria-labelledby','h-concl');
   const k=E('div',null,'hero-head');const h=E('h2','');h.id='h-concl';k.append(h,E('span','','hero-tone'));s.append(k);
   s.append(E('p','','concl-text'),E('p','','hero-sub'));
-  const d=E('details',null,'hero-more');d.append(E('summary','자세한 해석 보기'));
-  const yp=E('div',null,'year-panel');yp.id='dash-year-panel';A(yp,{'aria-live':'polite'});d.append(yp);s.append(d);
+  const act=E('div',null,'hero-actions');
+  const ask=E('button','궁금한 점 물어보기','hero-ask');ask.type='button';ask.onclick=()=>{const q=document.getElementById('q2');if(!q)return;const red=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;q.scrollIntoView({block:'center',behavior:red?'auto':'smooth'});q.focus({preventScroll:true})};
+  act.append(ask);
+  const d=E('details',null,'hero-more');d.append(E('summary','자세한 해석 보기'),E('p',null,'hero-extra'));
+  const yp=E('div',null,'year-panel');yp.id='dash-year-panel';A(yp,{'aria-live':'polite'});d.append(yp);const row=E('div',null,'hero-row');row.append(act,d);s.append(row);
   return s}
 function fillHero(vm,S,root){
   const s=root.querySelector('.dash-conclusion');if(!s)return;
@@ -66,7 +69,8 @@ function fillHero(vm,S,root){
   const text=ow&&ow.headline?ow.headline:(vm.profile?vm.profile.conclusion:'이 결과에는 종합 결론이 없습니다.');
   const lead=first(text),sub=rest(text),ct=s.querySelector('.concl-text');ct.textContent='';
   let hl=false;String(lead).split(/(‘[^’]+’)/).forEach(t=>{if(!t)return;if(t[0]==='‘'&&!hl){hl=true;ct.append(E('mark',t,'hl'))}else ct.append(document.createTextNode(t))});
-  const sb=s.querySelector('.hero-sub');sb.textContent=sub;sb.hidden=!sub}
+  const r1=sub,sub1=first(r1),sb=s.querySelector('.hero-sub');sb.textContent=sub1;sb.hidden=!sub1;
+  const ex=s.querySelector('.hero-extra');ex.textContent='';ex.append(E('b','핵심 해석 전문 '),document.createTextNode(text))}
 
 /* ---------- 2 올해의 주요 변화: 기존 데이터의 변화·기간·점검 문장과 기존 판정 요약만 보여 준다 ---------- */
 function changes(vm){
@@ -77,13 +81,14 @@ function fillChanges(vm,S,root){
   s.querySelector('#h-chg').textContent=has?y+'년의 주요 변화':'주요 변화';
   const list=s.querySelector('.chg-list');list.textContent='';
   const r=has?vm.row(y):{},ow=(has&&vm.block(y,'overall'))||{},why=ow.why||{},th=has?vm.theme(y):null,sg=has?vm.seg(y):[];
-  const items=[];
-  const c1=r.change||(th?th.theme:null);if(c1)items.push([r.change?'이 해에 달라지는 점':'이 해의 주제',c1]);
-  if(sg.length>1)items.push(['변화가 적용되는 기간',sg.map(g=>g.label+(g.note?'('+g.note+')':'')).join(' · ')]);
-  const c3=r.caution||((why.against||[])[0]);if(c3)items.push([r.caution?'점검할 점':'반대로 보는 근거',c3]);
-  items.slice(0,3).forEach(([t,txt])=>{const d=E('div',null,'chg-item');d.append(E('h3',t));const f=first(txt),rs=rest(txt);d.append(E('p',f));
-    if(rs){const dt=E('details',null,'fold chg-more');dt.append(E('summary','자세히 보기'),E('p',rs));d.append(dt)}list.append(d)});
-  if(!items.length)list.append(E('p','이 해에는 따로 짚을 변화가 확인되지 않았습니다.','muted'));
+  const heroKeys=new Set();root.querySelectorAll('.dash-conclusion .concl-text,.dash-conclusion .hero-sub').forEach(e=>heroKeys.add(key18(e.textContent)));
+  const items=[];   // [제목, 한 문장 요약, 접힌 상세(문자열 또는 DOM 만드는 함수)]
+  const c1=r.change||(th?th.theme:null);if(c1)items.push([r.change?'이 해에 달라지는 점':'이 해의 주제',first(c1),rest(c1)]);
+  if(sg.length>1)items.push(['변화가 적용되는 기간','이 해는 '+sg.length+'개 구간으로 나뉩니다.',()=>{const ul=E('ul');sg.forEach(g=>{const li=E('li');li.append(E('b',g.label),document.createTextNode(' ('+g.days+'일)'+(g.note?' · '+g.note:'')));ul.append(li)});return ul}]);
+  const c3=r.caution||((why.against||[])[0]);if(c3)items.push([r.caution?'점검할 점':'반대로 보는 근거',first(c3),rest(c3)]);
+  items.filter(it=>!heroKeys.has(key18(it[1]))).slice(0,3).forEach(([t,one,more])=>{const d=E('div',null,'chg-item');d.append(E('h3',t),E('p',one));
+    if(more){const dt=E('details',null,'fold chg-more');dt.append(E('summary','자세히 보기'));dt.append(typeof more==='function'?more():E('p',more));d.append(dt)}list.append(d)});
+  if(!list.childElementCount)list.append(E('p','이 해에는 따로 짚을 변화가 확인되지 않았습니다.','muted'));
   const groups={};vm.domains.forEach(d=>{const b=has?vm.block(y,d.domain):null;if(!b)return;const m=tv(b.tone);(groups[m[1]]=groups[m[1]]||{sym:m[0],names:[]}).names.push(d.name)});
   const tl=s.querySelector('.chg-tones');tl.textContent='';const keys=Object.keys(groups);
   if(keys.length){tl.append(E('b','분야별 판정 요약 '));keys.forEach((k,i)=>tl.append(document.createTextNode((i?'  ·  ':'')+groups[k].sym+' '+k+': '+groups[k].names.join('·'))))}}
@@ -161,6 +166,8 @@ function flow(vm,S,sel){
   const single=n===1;
   const h=E('h2',span+' 시기별 흐름');h.id='h-flow';sec.append(h);
   if(vm.multi&&vm.v.period&&vm.v.period.summary&&vm.v.period.summary[0])sec.append(E('p',vm.v.period.summary[0],'flow-lead'));
+  if(!single){const rows=vm.years.map(y=>vm.row(y)),ky=(rows.some(r=>r.standout)?rows.filter(r=>r.standout):rows.filter(r=>r.change)).map(r=>r.year).slice(0,3);
+    if(ky.length){const kp=E('p',null,'key-years');kp.append(E('b','먼저 볼 시기 '));ky.forEach(y=>{const bt=E('button',y+'년','keyyear');bt.type='button';bt.onclick=()=>sel({year:y});kp.append(bt)});sec.append(kp)}}
   // 타임라인
   const tl=E('div',null,'timeline'+(n>6?' compact':''));if(!single)sec.append(E('p','옆으로 밀어서 다른 해를 볼 수 있습니다.','small muted swipe-hint'));A(tl,{role:'group','aria-label':'연도별 흐름(연도를 눌러 선택)'});
   let lastLine=null;
@@ -180,8 +187,8 @@ function flow(vm,S,sel){
     vm.years.forEach(y=>{const b=vm.block(y,d.domain),td=E('td');td.dataset.year=y;td.dataset.domain=d.domain;if(b){const m=tv(b.tone);td.className=m[2];const bt=E('button',null,'cell');bt.type='button';A(bt,{'aria-label':y+'년 '+d.name+' '+m[1],'data-year':y,'data-domain':d.domain});bt.append(E('span',m[0],'sym'),E('span',m[1],'lab'));bt.onclick=()=>sel({year:y,domain:d.domain,scroll:true});td.append(bt)}r.append(td)});tb.append(r)});
   t.append(tb);sc.append(t);if(!single)gw.append(sc);
   if(!single)gw.append(E('p','표는 옆으로 밀어서 볼 수 있습니다.','small muted swipe-hint'));
-  const lg=E('p',null,'dlegend');['opportunity','cautious','mixed','thin','quiet','steady'].forEach(k=>{const m=TV[k];const sp=E('span',null,m[2]);sp.textContent=m[0]+' '+m[1]+(k==='mixed'?'(기회와 점검할 점이 함께)':'');lg.append(sp)});gw.append(lg);
-  gw.append(E('p','기회·주의는 그해의 구조 변화가 한쪽으로 뚜렷할 때만 표시합니다. 좋은 일·나쁜 일이 일어난다는 뜻이 아니며 확률이나 점수도 아닙니다. 근거가 부족하면 ‘근거 부족’으로 두고 억지로 방향을 정하지 않습니다.','small muted'));
+  const lg=E('p',null,'dlegend');['opportunity','cautious','mixed','thin','quiet','steady'].forEach(k=>{const m=TV[k];const sp=E('span',null,m[2]);sp.textContent=m[0]+' '+m[1]+(k==='mixed'?'(기회와 점검할 점이 함께)':'');lg.append(sp)});const lf=E('details',null,'fold legend-fold');lf.append(E('summary','기호 설명 보기'),lg);
+  lf.append(E('p','기회·주의는 그해의 구조 변화가 한쪽으로 뚜렷할 때만 표시합니다. 좋은 일·나쁜 일이 일어난다는 뜻이 아니며 확률이나 점수도 아닙니다. 근거가 부족하면 ‘근거 부족’으로 두고 억지로 방향을 정하지 않습니다.','small muted'));gw.append(lf);
   sec.append(gw);
   // 선택한 해 패널
   sec.append(monthsSection(vm));
@@ -299,22 +306,25 @@ function fillDomain(vm,S,root){
   const hd=E('div',null,'dp-head');hd.append(E('h3',b.name),E('span',m[0]+' '+m[1],'chip '+m[2]));pn.append(hd);
   const ypEl=root.querySelector('#dash-year-panel'),kk=t=>String(t).replace(/\s+/g,'').slice(0,18),seen=new Set(),dropped=[];
   if(S.domain==='overall'){root.querySelectorAll('.dash-conclusion .concl-text,.dash-conclusion .hero-sub,.dash-changes .chg-item p').forEach(e=>seen.add(kk(e.textContent)));if(ypEl)ypEl.querySelectorAll('.yp-change,.yp-caution,.yp-para span').forEach(e=>seen.add(kk(e.textContent)))}
-  if(seen.has(kk(b.headline)))dropped.push(b.headline);else pn.append(E('p',b.headline,'dp-headline'));
-  const cols=E('div',null,'dp-cols');const L=E('div',null,'dp-main'),R=E('div',null,'dp-side');
   const paras=[];(b.story||[]).forEach(t=>{if(seen.has(kk(t)))dropped.push(t);else paras.push(t)});
+  let more=paras.slice(),shown=false;
+  if(seen.has(kk(b.headline)))dropped.push(b.headline);else{pn.append(E('p',b.headline,'dp-headline'));shown=true}
+  if(!shown&&more.length){const f=first(more[0]),r0=more[0].slice(f.length).trim();pn.append(E('p',f,'dp-headline dp-summary'));more=r0?[r0].concat(more.slice(1)):more.slice(1)}   // 종합운: 핵심 해석과 겹치지 않는 첫 문장을 요약으로 유지
   const cnt=[].concat(b.counter||[]).filter(Boolean).slice(0,2);
-  paras.slice(0,1).forEach(t=>L.append(E('p',t,'dp-story')));
-  if(paras.length>1||cnt.length){const dm=E('details',null,'fold dp-more');dm.append(E('summary','상세 해석 펼치기'));paras.slice(1).forEach(t=>dm.append(E('p',t,'dp-story')));cnt.forEach(t=>dm.append(E('p','다만 '+String(t).replace(/^다만\s*/,''),'dp-counter')));L.append(dm)}
   pn.dataset.deduped=String(dropped.length);pn.dataset.dropkeys=dropped.map(kk).join("|");
   const storyText=(b.story||[]).join(' ');
   const per=((b.why&&b.why.period)||[]).filter(t=>t&&storyText.indexOf(t.slice(0,18))<0);
+  const L=E('div',null,'dp-main'),R=E('div',null,'dp-side');
+  more.forEach(t=>L.append(E('p',t,'dp-story')));
+  cnt.forEach(t=>L.append(E('p','다만 '+String(t).replace(/^다만\s*/,''),'dp-counter')));
   if(per.length){R.append(E('h4','이 해의 변화'));const ul=E('ul');per.slice(0,2).forEach(t=>ul.append(E('li',t)));R.append(ul)}
   if((b.think||[]).length&&!(S.domain==='overall'&&root.querySelector('#dash-year-panel .yp-think'))){R.append(E('h4','현실에서 생각해 볼 점'));const ul=E('ul');b.think.forEach(t=>ul.append(E('li',t)));R.append(ul)}
-  cols.append(L,R);pn.append(cols);
-  const w=b.why||{},d=E('details',null,'fold');d.append(E('summary','왜 그렇게 해석하나요?'));
+  const w=b.why||{},d=E('details',null,'fold dp-why');d.append(E('summary','근거 보기: 왜 그렇게 해석하나요?'));
   [['타고난 사주에서',w.natal],['이 시기에는',w.period],['반대로 보는 이유',w.against]].forEach(([lab,arr])=>{if(arr&&arr.length){d.append(E('h4',lab));const ul=E('ul');arr.forEach(t=>ul.append(E('li',t)));d.append(ul)}});
   if(w.nature)d.append(E('p',w.nature,'small muted'));
-  pn.append(d)}
+  const hasMore=L.childElementCount||R.childElementCount||d.childElementCount>1;
+  if(hasMore){const dm=E('details',null,'fold dp-more');dm.append(E('summary','상세 해석 펼치기'));
+    const cols=E('div',null,'dp-cols');cols.append(L,R);dm.append(cols);if(d.childElementCount>1)dm.append(d);pn.append(dm)}}
 
 /* ---------- 조립 ---------- */
 function build(a){

@@ -636,3 +636,28 @@ body.has-dash #report>.doc.cover,body.has-dash #report .cover{border:0;box-shado
 .ev-extra{margin-top:18px}
 .ev-natal .concl-trio{margin:.4rem 0}
 @media (max-width:600px){.dash-conclusion{padding-top:18px}.ev-body{padding:2px 14px 20px}.dash-evidence>summary{padding:14px}}
+
+/* ===== v11.2b 텍스트 밀도 축소: 보조 설명 2줄, 요약만 먼저·나머지는 접힘 ===== */
+.dash .hero-sub{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:1.1rem;line-height:1.7;margin:0 0 .8rem}
+.hero-extra{margin:0 0 1rem;font-size:1.02rem;line-height:1.8;color:var(--ink);max-width:44em}.hero-extra b{color:var(--seal)}
+.chg-item p{margin:0}
+.dash .dp-headline.dp-summary{font-weight:700}
+.dp-more{margin:.5rem 0}.dp-more>summary{display:inline-block;padding:8px 16px;border:1px solid var(--rule);border-radius:8px;background:var(--doc);font-size:.98rem;min-height:40px}
+.dp-more[open]>summary{background:var(--seal-soft);border-color:var(--seal)}
+.dp-why{margin:.8rem 0 .2rem}
+.legend-fold{margin:.6rem 0}.legend-fold>summary{font-size:.92rem;font-weight:600}
+.key-years{margin:.2rem 0 .8rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.keyyear{min-height:40px;padding:6px 16px;border:1px solid var(--seal);border-radius:999px;background:var(--doc);color:var(--seal);font:700 .98rem var(--sans);cursor:pointer}
+.keyyear:hover{background:var(--seal-soft)}
+.calc-fold{margin:0}.calc-fold>summary{font-weight:700}
+#status.pillars-card{padding:6px 18px;margin-top:12px}
+#session{border-left:4px solid var(--seal)}
+
+.hero-actions{margin:.2rem 0 .6rem}
+.hero-ask{min-height:44px;padding:10px 18px;border:0;border-radius:8px;background:var(--seal);color:#fff;font:700 1rem var(--sans);cursor:pointer}
+.hero-ask:hover{background:#8d3a22}
+body.is-static .hero-ask{display:none}
+
+.hero-row{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-start}
+.hero-row .hero-actions,.hero-row .hero-more{margin:0}
+.hero-row .hero-more[open]{flex:1 0 100%}
