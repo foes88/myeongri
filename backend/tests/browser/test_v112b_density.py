@@ -58,22 +58,27 @@ def test_changes_are_three_items_of_title_plus_one_sentence_and_summaries_are_ex
     ctx.close()
 
 
-def test_domain_panel_shows_only_the_core_summary_then_opens_in_steps(browser, one):
+def test_domain_panel_has_summary_then_topics_then_a_folded_source_area(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "1440")
     analyze(p)
     settle(p)
     for dom in ("overall", "wealth", "career"):
         p.locator(f"#verdict .dtab[data-domain={dom}]").click()
         head = p.inner_text("#dash-dom-panel .dp-headline")
-        assert head and n_sent(head) <= 2                                                                                   # 기본 화면: 핵심 요약 1~2문장(종합운도 비어 보이지 않음)
-        assert p.locator("#dash-dom-panel .dp-more").evaluate("e=>e.open") is False
-        assert not p.locator("#dash-dom-panel .dp-cols").is_visible()                                                       # 설명·현실 관점은 접힘
+        assert head and n_sent(head) <= 2                                                                                   # A: 핵심 요약 최대 2문장
+        assert p.evaluate("+getComputedStyle(document.querySelector('#dash-dom-panel .dp-headline')).fontWeight") <= 500   # 문장 전체를 굵게 하지 않는다
+        topics = p.locator("#dash-dom-panel .dp-topic")
+        assert topics.count() >= 1                                                                                          # B: 실제 데이터에 있는 주제만
+        for i in range(topics.count()):
+            t = topics.nth(i)
+            assert t.locator("h4").count() == 1 and len(t.locator("h4").inner_text()) >= 4
+            body = " ".join(x.inner_text() for x in t.locator("p, li").all())
+            assert 1 <= n_sent(body) <= 5
+        assert p.locator("#dash-dom-panel .dp-more").evaluate("e=>e.open") is False                                         # C: 원문과 근거는 접힘
+        assert "원문과 해석 근거 보기" in p.locator("#dash-dom-panel .dp-more > summary").text_content()
         p.locator("#dash-dom-panel .dp-more > summary").click()
-        assert p.locator("#dash-dom-panel .dp-cols").is_visible() and not p.locator("#dash-dom-panel .dp-why").evaluate("e=>e.open")   # 1단계: 설명, 근거는 아직 접힘
-        order = p.evaluate("(()=>{const m=document.querySelector('#dash-dom-panel .dp-more');return [...m.children].map(c=>c.className||c.tagName)})()")
-        assert order == ["summary", "dp-cols", "fold dp-why"] or order == ["SUMMARY", "dp-cols", "fold dp-why"] or order[-2:] == ["dp-cols", "fold dp-why"]   # 핵심 요약 → 설명 → 근거
-        p.locator("#dash-dom-panel .dp-why > summary").click()
-        assert p.locator("#dash-dom-panel .dp-why").evaluate("e=>e.open")                                                   # 2단계: 근거
+        heads = p.evaluate("[...document.querySelectorAll('#dash-dom-panel .dp-more .dp-src h4')].map(h=>h.textContent)")
+        assert heads and heads[0] == "상세 해석 원문"                                                                        # 원문이 가장 먼저
     ctx.close()
 
 
@@ -117,5 +122,5 @@ def test_visible_text_volume_stays_low_by_default(browser, one):
     analyze(p)
     settle(p)
     n = p.evaluate("""()=>{const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let t=0,n;while(n=w.nextNode()){const e=n.parentElement;if(!e||!e.checkVisibility())continue;t+=n.textContent.replace(/\\s+/g,'').length}return t}""")
-    assert n <= 1400, n
+    assert n <= 1900, n                                                                                                    # v11.3: 주제별 해석이 기본으로 보이므로 상한을 1,900자로(측정값은 docs/41)
     ctx.close()

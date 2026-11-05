@@ -311,27 +311,35 @@ function fillDomain(vm,S,root){
   const m=tv(b.tone);
   pn.setAttribute('aria-labelledby','dtab-'+S.domain);
   const hd=E('div',null,'dp-head');hd.append(E('h3',b.name),E('span',m[0]+' '+m[1],'chip '+m[2]));pn.append(hd);
-  const ypEl=root.querySelector('#dash-year-panel'),kk=t=>String(t).replace(/\s+/g,'').slice(0,18),seen=new Set(),dropped=[];
-  if(S.domain==='overall'){root.querySelectorAll('.dash-conclusion .concl-text,.dash-conclusion .hero-sub,.dash-changes .chg-item p').forEach(e=>seen.add(kk(e.textContent)));if(ypEl)ypEl.querySelectorAll('.yp-change,.yp-caution,.yp-para span').forEach(e=>seen.add(kk(e.textContent)))}
-  const paras=[];(b.story||[]).forEach(t=>{if(seen.has(kk(t)))dropped.push(t);else paras.push(t)});
-  let more=paras.slice(),shown=false;
-  if(seen.has(kk(b.headline)))dropped.push(b.headline);else{pn.append(E('p',b.headline,'dp-headline'));shown=true}
-  if(!shown&&more.length){const f=first(more[0]),r0=more[0].slice(f.length).trim();pn.append(E('p',f,'dp-headline dp-summary'));more=r0?[r0].concat(more.slice(1)):more.slice(1)}   // 종합운: 핵심 해석과 겹치지 않는 첫 문장을 요약으로 유지
-  const cnt=[].concat(b.counter||[]).filter(Boolean).slice(0,2);
-  pn.dataset.deduped=String(dropped.length);pn.dataset.dropkeys=dropped.map(kk).join("|");
-  const storyText=(b.story||[]).join(' ');
-  const per=((b.why&&b.why.period)||[]).filter(t=>t&&storyText.indexOf(t.slice(0,18))<0);
-  const L=E('div',null,'dp-main'),R=E('div',null,'dp-side');
-  more.forEach(t=>L.append(E('p',t,'dp-story')));
-  cnt.forEach(t=>L.append(E('p','다만 '+String(t).replace(/^다만\s*/,''),'dp-counter')));
-  if(per.length){R.append(E('h4','이 해의 변화'));const ul=E('ul');per.slice(0,2).forEach(t=>ul.append(E('li',t)));R.append(ul)}
-  if((b.think||[]).length&&!(S.domain==='overall'&&root.querySelector('#dash-year-panel .yp-think'))){R.append(E('h4','현실에서 생각해 볼 점'));const ul=E('ul');b.think.forEach(t=>ul.append(E('li',t)));R.append(ul)}
-  const w=b.why||{},d=E('details',null,'fold dp-why');d.append(E('summary','근거 보기: 왜 그렇게 해석하나요?'));
-  [['타고난 사주에서',w.natal],['이 시기에는',w.period],['반대로 보는 이유',w.against]].forEach(([lab,arr])=>{if(arr&&arr.length){d.append(E('h4',lab));const ul=E('ul');arr.forEach(t=>ul.append(E('li',t)));d.append(ul)}});
-  if(w.nature)d.append(E('p',w.nature,'small muted'));
-  const hasMore=L.childElementCount||R.childElementCount||d.childElementCount>1;
-  if(hasMore){const dm=E('details',null,'fold dp-more');const dsm=E('summary');dsm.append(E('b','상세 해석 펼치기'),E('span','  설명 · 현실 관점 · 근거','sum-hint'));dm.append(dsm);
-    const cols=E('div',null,'dp-cols');cols.append(L,R);dm.append(cols);if(d.childElementCount>1)dm.append(d);pn.append(dm)}}
+  const kk=t=>String(t).replace(/\s+/g,'').slice(0,18);
+  pn.dataset.deduped='0';pn.dataset.dropkeys='';   // 요약·주제별 해석·원문을 함께 두므로 화면에서 지우는 문장이 없다
+  /* A 핵심 요약: 머리 문장 최대 2문장(원문 그대로). 남는 문장은 아래 ‘원문’ 영역에 있다 */
+  const f1=first(b.headline),r1=rest(b.headline),f2=first(r1),sumText=(f1+(f2?' '+f2:'')).trim();
+  const f2rest=f2?r1.slice(f2.length).trim():'';
+  pn.append(E('p',sumText||b.headline,'dp-headline'));
+  /* B 주제별 해석: 엔진이 문장을 만든 칸(kind)별로 묶는다. 실제로 있는 칸만, 문장은 쪼개거나 바꾸지 않는다 */
+  const TITLES={natal:'타고난 모습',period:'이 해에 달라지는 조건',relation:'관계와 변화',contrast:'함께 고려할 점',counter:'다른 견해',timing:'시기 참고',cross:'다른 분야와의 연결',emphasis:'무게가 실린 쪽',where:'나타나는 영역',where2:'나타나는 영역'};
+  const CAUTION={relation:1,contrast:1,counter:1};
+  const parts=(b.story_parts&&b.story_parts.length)?b.story_parts:null;
+  const topics=E('div',null,'dp-topics');
+  if(parts){const order=[],by={};parts.forEach(pt=>{const t=TITLES[pt.kind]||'해석';if(!by[t]){by[t]={caution:!!CAUTION[pt.kind],texts:[]};order.push(t)}by[t].texts.push(pt.text)});
+    order.forEach(t=>{const sc=E('section',null,'dp-topic'+(by[t].caution?' caution':''));sc.append(E('h4',t));by[t].texts.forEach(x=>sc.append(E('p',x,'dp-story')));topics.append(sc)})}
+  else if((b.story||[]).length){const sc=E('section',null,'dp-topic');sc.append(E('h4','해석'));(b.story||[]).forEach(x=>sc.append(E('p',x,'dp-story')));topics.append(sc)}
+  if((b.think||[]).length&&!(S.domain==='overall'&&root.querySelector('#dash-year-panel .yp-think'))){const sc=E('section',null,'dp-topic dp-think');sc.append(E('h4','현실에서 생각해 볼 점'));const ul=E('ul');b.think.forEach(t=>ul.append(E('li',t)));sc.append(ul);topics.append(sc)}
+  if(topics.childElementCount)pn.append(topics);
+  /* C 원문과 해석 근거(접힘): 상세 원문 · 용어 설명 · 해석 근거 · 상반되는 근거와 한계 */
+  const w=b.why||{},cnt=[].concat(b.counter||[]).filter(Boolean);
+  const c=E('details',null,'fold dp-more');const sm=E('summary');sm.append(E('b','원문과 해석 근거 보기'),E('span','  상세 원문 · 해석 근거 · 상반되는 근거와 한계','sum-hint'));c.append(sm);
+  const sect=(title,items,cls)=>{const arr=items.filter(Boolean);if(!arr.length)return;const d=E('div',null,'dp-src '+(cls||''));d.append(E('h4',title));arr.forEach(t=>d.append(E('p',t,'dp-story')));c.append(d)};
+  sect('상세 해석 원문',[f2rest].concat(b.story||[]));
+  const gl=(vm.a&&vm.a.glossary)||null;
+  if(gl&&typeof gl==='object'){const all=[b.headline].concat(b.story||[],w.natal||[],w.period||[],w.against||[]).join(' ');const terms=Object.keys(gl).filter(k=>all.indexOf(k)>=0);
+    if(terms.length){const d=E('div',null,'dp-src');d.append(E('h4','명리 용어 설명'));terms.forEach(k=>d.append(E('p',k+': '+gl[k],'dp-story')));c.append(d)}}
+  const sk=new Set((b.story||[]).map(kk));   // 상세 원문에 이미 있는 문장은 근거 목록에서 다시 쓰지 않는다(같은 접힘 안에 그대로 있다)
+  sect('해석 근거',[].concat(w.natal||[],(w.period||[]).filter(t=>!sk.has(kk(t)))));
+  if(w.nature)c.append(E('p',w.nature,'small muted'));
+  sect('상반되는 근거와 한계',cnt.map(t=>'다만 '+String(t).replace(/^다만\s*/,'')).concat(w.against||[]),'caution');
+  if(c.childElementCount>1)pn.append(c)}
 
 /* ---------- 조립 ---------- */
 function build(a){

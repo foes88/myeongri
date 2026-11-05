@@ -252,8 +252,14 @@ IMPL_GOOD = {"wealth": "수입과 관련한 인연이나 기회가 묶여 들어
              "overall": "그 영역에서 인연이 묶이는 쪽으로 읽을 수 있습니다"}
 
 
+def _join_areas(items: list[str]) -> str:
+    """영역 이름이 모두 '…쪽(태어난 X)' 꼴이라 '과'로 잇는다(‘·’는 영역 이름 안에서도 쓰여 구분이 안 됨)."""
+    items = list(items)[:2]
+    return items[0] if len(items) == 1 else (f"{items[0]}과 {items[1]}" if items else "")
+
+
 def _areas_of(palaces) -> str:
-    return " · ".join(E.AREA[p] for p in list(dict.fromkeys(palaces))[:2])
+    return _join_areas([E.AREA[p] for p in list(dict.fromkeys(palaces))[:2]])
 
 
 def relation_sentence(dom: str, prels: list[dict], w: str, with_luck: bool = True, year: int | None = None) -> str | None:
@@ -366,7 +372,7 @@ def _where_sentence(s: dict, theme: str | None = None) -> str | None:
     areas = list(dict.fromkeys(p["area"] for p in ev if p["area"]))
     if not areas:
         return None
-    return f"{theme}은 주로 {' · '.join(areas[:2])}에서 나타납니다." if theme else f"이 흐름은 주로 {' · '.join(areas[:2])}에서 나타납니다."
+    return f"{theme}은 주로 {_join_areas(areas[:2])}에서 나타납니다." if theme else f"이 흐름은 주로 {_join_areas(areas[:2])}에서 나타납니다."
 
 
 EMPHASIS_CAREER = {"재생관": ("쌓은 실적이 직책·평가로 이어지는 쪽", "성과가 눈에 보이는 일에서 평가받기 쉬운 구조로 읽습니다."),
@@ -544,15 +550,16 @@ def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm:
         skeleton = skeleton[:2] + ["emphasis"] + skeleton[2:]
     skeleton += [k for k in ("where", "where2") if k not in skeleton]
     explain_missing = weak or tone == "thin" or (t["present"] == {} and not changed)  # 근거가 약하거나 없으면 '왜 결론을 내리지 않는지'를 반드시 말한다
-    story = _compose(dom, slots, must=["period", "contrast", "timing"] + (["natal"] if explain_missing else []), skeleton=skeleton)
+    kinds: list[str] = []
+    story = _compose(dom, slots, must=["period", "contrast", "timing"] + (["natal"] if explain_missing else []), skeleton=skeleton, kinds=kinds)
     headline = _headline(dom, tone, w, t, flat, head_tpl, weak)
     think = think_for(dom, think_tone, t)
     claim_ids = [layer3[n]["claim_id"] for n in nat_sup + nat_ten] + (yr["claim_ids"] if yr else [])
-    return {"domain": dom, "name": name, "tone": tone, "tone_label": TONE_SHORT[tone], "headline": headline, "story": story, "think": think, "counter": counter, "why": why,
+    return {"domain": dom, "name": name, "tone": tone, "tone_label": TONE_SHORT[tone], "headline": headline, "story": story, "story_parts": [{"kind": kd, "text": tx} for kd, tx in zip(kinds, story)], "think": think, "counter": counter, "why": why,
             "scores": {"S": t["S"], "T": t["T"]}, "_claims": claim_ids}
 
 
-def _compose(dom: str, slots: dict[str, str], must: list[str], skeleton: list[str], cap: int = 4) -> list[str]:
+def _compose(dom: str, slots: dict[str, str], must: list[str], skeleton: list[str], cap: int = 4, kinds: list[str] | None = None) -> list[str]:
     """분야마다 다른 순서(skeleton)로 문장을 놓는다. 반드시 말해야 하는 것(must: 시기 변화·반대 근거·교체 시점)을 먼저 확보하고 남는 자리를 순서대로 채운다."""
     chosen = [k for k in must if k in slots]
     for k in skeleton:
@@ -568,6 +575,8 @@ def _compose(dom: str, slots: dict[str, str], must: list[str], skeleton: list[st
             lead = "또한 " if prev_lead == "다만" or (out and out[-1].startswith("다만")) else "다만 "
             s = lead + s.rstrip(".") + "."
         out.append(s)
+        if kinds is not None:
+            kinds.append(k)
         prev_lead = "다만" if s.startswith("다만") else ""
     return out
 
@@ -694,11 +703,12 @@ def overall_block(pre: dict, years: list[int], period: dict | None, nm: dict, lu
         slots["cross"] = f"선택하신 분야 중에서는 {_join([x['name'] for x in hi], 2)} 쪽이 상대적으로 순조롭게, {_join([x['name'] for x in lo], 2)} 쪽은 조율이 필요하게 읽힙니다."
     why["against"] = [f"타고난 사주에 {_theme('overall', n)}이 있어 한쪽으로만 읽지 않습니다." for n in nat_ten[:2]] or ["눈에 띄는 반대 근거는 확인되지 않았습니다."]
     why["nature"] = E.nature_note(_rule_ids(nat_sup + nat_ten + t["sup_up"] + t["ten_up"]))
-    story = _compose("overall", slots, must=["natal", "period", "contrast", "timing", "cross"], skeleton=["natal", "period", "relation", "contrast", "timing", "cross", "where", "where2"], cap=5)
+    kinds: list[str] = []
+    story = _compose("overall", slots, must=["natal", "period", "contrast", "timing", "cross"], skeleton=["natal", "period", "relation", "contrast", "timing", "cross", "where", "where2"], cap=5, kinds=kinds)
     think_tone = tone
     if flat_mixed:
         tone = "quiet"
-    return {"domain": "overall", "name": "종합운", "tone": tone, "tone_label": TONE_SHORT[tone], "headline": head, "story": story, "think": think_for("overall", think_tone, t), "counter": [],
+    return {"domain": "overall", "name": "종합운", "tone": tone, "tone_label": TONE_SHORT[tone], "headline": head, "story": story, "story_parts": [{"kind": kd, "text": tx} for kd, tx in zip(kinds, story)], "think": think_for("overall", think_tone, t), "counter": [],
             "why": why, "scores": {"S": t["S"], "T": t["T"]}, "_claims": [layer3[n]["claim_id"] for n in nat_sup + nat_ten] + (yr["claim_ids"] if yr else [])}
 
 
@@ -812,6 +822,8 @@ def _dedupe_across_blocks(blocks: list[dict]) -> list[dict]:
                 continue
             keep.append(sent)
         b["story"] = keep
+        if "story_parts" in b:
+            b["story_parts"] = [p for p in b["story_parts"] if p["text"] in keep]
         seen.update(keep)
     return blocks
 

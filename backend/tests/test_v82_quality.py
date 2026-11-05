@@ -142,7 +142,7 @@ def test_why_period_text_names_the_added_luck_stems_in_plain_words():
     pre, a = real((2028,))
     w = next(b for b in a["verdict"]["blocks"] if b["domain"] == "wealth")["why"]
     joined = " ".join(w["period"])
-    assert "1월 1일~2월 3일" in joined and "그해가 들여온" in joined and "10년 큰 흐름이 들여온" in joined
+    assert "1월 1일~2월 3일" in joined and "그해" in joined and "10년 큰 흐름" in joined and "들여온" in joined   # 두 쪽의 기운이 같으면 ‘함께 들여온’으로 한 번만 말한다
     assert "원국" not in joined and "세운" not in joined and "대운" not in joined
 
 

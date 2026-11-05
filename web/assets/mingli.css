@@ -667,3 +667,12 @@ body.is-static .hero-ask{display:none}
 .sum-hint{font-weight:400;font-size:.88rem;color:var(--ink2)}
 .hero-more>summary .sum-hint{display:none}
 @media (min-width:700px){.hero-more>summary .sum-hint{display:inline}}
+
+/* ===== v11.3 종합운·분야 패널: 핵심 요약(굵지 않게) → 주제별 해석 → 원문과 해석 근거(접힘) ===== */
+.dash .dp-headline{font-weight:500;font-size:clamp(1.15rem,1.7vw,1.3rem);line-height:1.65;max-width:40em;margin:.2rem 0 .8rem}
+.dp-topics{display:grid;gap:1.1rem;margin:.6rem 0 1rem;max-width:44em}
+.dp-topic h4{font:700 1rem/1.4 var(--sans);color:var(--ink);margin:0 0 .25rem}
+.dp-topic.caution h4{color:var(--seal)}
+.dp-topic .dp-story{margin:.2rem 0}
+.dp-topic ul{margin:.2rem 0 0 1.1rem;padding:0}
+.dp-src{margin:.8rem 0}.dp-src h4{font:700 .98rem var(--sans);margin:0 0 .2rem}.dp-src.caution h4{color:var(--seal)}

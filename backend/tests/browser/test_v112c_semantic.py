@@ -52,6 +52,6 @@ def test_change_cards_use_decorative_icons_with_text_titles_and_accordion_header
         assert len(title) >= 4                                                                                          # 의미는 글자 제목이 전달
     assert "핵심 해석 전문" in p.locator(".hero-more > summary").text_content() and "자세한 풀이" in p.locator(".hero-more > summary").text_content()
     p.locator("#verdict .dtab[data-domain=wealth]").click()
-    assert "설명" in p.locator("#dash-dom-panel .dp-more > summary").text_content() and "근거" in p.locator("#dash-dom-panel .dp-more > summary").text_content()
+    assert "원문" in p.locator("#dash-dom-panel .dp-more > summary").text_content() and "근거" in p.locator("#dash-dom-panel .dp-more > summary").text_content()
     assert p.evaluate("document.querySelector('.hero-more').tagName") == "DETAILS"                                       # 네이티브 details: 펼침 상태가 보조기기에 전달되고 Enter/Space 로 열림
     ctx.close()

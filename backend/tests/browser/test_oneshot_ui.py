@@ -392,11 +392,10 @@ def test_user_screen_and_api_expose_no_internal_information(browser, one):
         p.locator("#verdict .dtab").nth(i).click()
         order = p.evaluate("[...document.querySelector('#dash-dom-panel').children].map(c=>c.className||c.tagName)")
         deduped = p.evaluate("+document.querySelector('#dash-dom-panel').dataset.deduped")
-        assert order[0] == "dp-head" and order[1].startswith("dp-headline") and (len(order) == 2 or order[2] == "fold dp-more")   # 핵심 요약 1~2문장만 먼저, 나머지는 접힘
+        assert order[0] == "dp-head" and order[1].startswith("dp-headline") and order[-1] == "fold dp-more"             # 핵심 요약 → 주제별 해석 → 원문·근거(접힘)
         p.locator("#dash-dom-panel .dp-more > summary").click()
-        p.locator("#dash-dom-panel .dp-why > summary").click()                                                            # 설명 → 근거 순으로 단계적으로 공개
     assert_verdict_layout(p)
-    assert p.locator("#dash-dom-panel details[open]").count() == 2
+    assert p.locator("#dash-dom-panel details[open]").count() == 1
     # 모바일 가독성: 가로 넘침 없고 핵심 결론이 360px 첫 화면(800px) 안에 온전히 보인다
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     p.evaluate("window.scrollTo(0,0)")

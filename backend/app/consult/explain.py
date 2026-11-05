@@ -65,12 +65,27 @@ def period_reason(period: dict | None, name: str, theme: str, detail: dict, segm
         m = EV.match(e.strip())
         if m and m.group(4) in GODS:
             by["10년 큰 흐름이" if m.group(2) == "대운" else "그해가"].append(GODS[m.group(4)])
-    parts = [f"{who} 들여온 {' · '.join(list(dict.fromkeys(g))[:2])}" for who, g in by.items() if g]
+    luck_g, year_g = list(dict.fromkeys(by["10년 큰 흐름이"]))[:2], list(dict.fromkeys(by["그해가"]))[:2]
+    both = [g for g in luck_g if g in year_g]
+    only_l, only_y = [g for g in luck_g if g not in year_g], [g for g in year_g if g not in luck_g]
+    parts = []                                                    # 같은 기운이 두 쪽에서 들어오면 '함께 들여온'으로 한 번만 말한다(같은 문구를 되풀이하지 않는다)
+    if both:
+        parts.append(f"10년 큰 흐름과 그해가 함께 들여온 {' · '.join(both)}")
+    if only_l:
+        parts.append(f"10년 큰 흐름{'만' if both else '이'} 들여온 {' · '.join(only_l)}")
+    if only_y:
+        parts.append(f"그해{'만' if both else '가'} 들여온 {' · '.join(only_y)}")
     if not parts:
         return None
+    if len(parts) == 1:
+        subject = parts[0] + "이"
+    elif both:                                                    # 겹치는 기운이 있으면 ‘과’를 두 번 쓰지 않고 쉼표로 잇는다
+        subject = ", ".join(parts) + "이 모두"
+    else:
+        subject = ", ".join(parts[:-1]) + "과 " + parts[-1] + "이"
     a, b = F.merged_range(rng)
     span = "그해 내내" if F._days({"from": a, "to": b}) >= 350 else f"{int(a[5:7])}월 {int(a[8:10])}일~{int(b[5:7])}월 {int(b[8:10])}일 동안"
-    return f"{span} {', '.join(parts)}이 타고난 사주의 기운과 이어지면서 {theme}이 더 뚜렷해지는 쪽으로 읽힙니다."
+    return f"{span} {subject} 타고난 사주의 기운과 이어지면서 {theme}이 더 뚜렷해지는 쪽으로 읽힙니다."
 
 
 def _when(ranges) -> str:
