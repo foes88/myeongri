@@ -61,6 +61,7 @@ def test_no_sentence_names_the_same_area_twice_with_a_dot_and_no_repeated_gods(s
                 for t in texts:
                     assert not re.search(r"쪽\(태어난 [해달날시]\) · [^()]+쪽\(", t), t[:80]       # 영역 이름 사이를 ‘ · ’ 로 잇지 않는다
                     for god in ("표현·기술의 기운", "재물·현실 자원의 기운", "직책·규율의 기운", "압박·경쟁의 기운", "배움·보호의 기운"):
-                        if "들여온" in t:
-                            assert t.count(god) <= 1, (god, t[:120])                            # 같은 문장 안에 같은 기운 이름이 두 번 나오지 않는다
+                        for one in t.split("읽힙니다."):                                         # 기간이 달라 기운이 다르면 기간별 문장이 이어질 수 있다(v11.4): 문장 하나 안에서만 센다
+                            if "들여온" in one:
+                                assert one.count(god) <= 1, (god, one[:120])                    # 같은 문장 안에 같은 기운 이름이 두 번 나오지 않는다
 

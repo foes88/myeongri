@@ -35,7 +35,7 @@ def test_layout_at_five_widths(browser, one, size):
     d = box(p, "#dash")
     assert d["w"] <= 1520                                                                                           # 최대 콘텐츠 폭
     if vw >= 1440:
-        assert d["w"] / vw >= 0.72                                                                                  # 데스크톱 가로폭 활용
+        assert 960 <= d["w"] <= 1080                                                                                # v11.4: 콘텐츠 폭 1040px 안팎(읽기 편한 폭, 넓은 화면에서도 퍼지지 않음)
     c = box(p, "#verdict .concl-text")                                                                              # 핵심 결론이 첫 화면 안에 온전히 보인다
     assert c["y"] >= 0 and c["b"] <= vh, (c, vh)
     assert p.evaluate("document.getElementById('dash-evidence').open") is False                                       # v11.2: 해석의 근거는 기본 접힘

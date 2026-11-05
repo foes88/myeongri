@@ -42,7 +42,8 @@ def test_summary_is_not_bold_has_no_repeated_sentence_and_the_period_sentence_ha
     settle(p)
     for dom in ("overall", "wealth"):
         p.locator(f"#verdict .dtab[data-domain={dom}]").click()
-        assert p.evaluate("+getComputedStyle(document.querySelector('#dash-dom-panel .dp-headline')).fontWeight") <= 500
+        if p.locator('#dash-dom-panel .dp-headline').count():
+            assert p.evaluate("+getComputedStyle(document.querySelector('#dash-dom-panel .dp-headline')).fontWeight") <= 500
         vis = p.evaluate("[...document.querySelectorAll('#dash-dom-panel .dp-headline, #dash-dom-panel .dp-topic p, #dash-dom-panel .dp-topic li')].filter(e=>e.checkVisibility()).map(e=>e.textContent)")
         sents = [s.strip() for t in vis for s in re.split(r"(?<=[.!?])\s+", t) if len(s.strip()) > 8]
         assert len(sents) == len(set(sents)), [s for s in sents if sents.count(s) > 1][:2]                                    # 화면에 보이는 문장이 되풀이되지 않는다

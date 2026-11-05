@@ -57,20 +57,19 @@ def natal_reason(s: dict, theme: str) -> str | None:
     return f"{link}, {theme}이 {TIER_TXT[s['rank']]} 있다고 읽습니다." + tail
 
 
-def period_reason(period: dict | None, name: str, theme: str, detail: dict, segments: list | None = None) -> str | None:
-    """그해(또는 일부 기간)에 이 흐름이 달라지는 이유: 어떤 운 글자가 들어왔는지(10년 큰 흐름/그해)."""
-    segs = segments if segments is not None else period["segments"]
-    rng = detail["ranges"]
-    seg = next((s for s in segs if (s["from"], s["to"]) == rng[0]), None)
-    if not seg:
-        return None
-    ev = [e for e in seg.get("struct_evidence", {}).get(name, []) if e.lstrip("→ ").startswith(("대운", "세운"))]
-    by: dict[str, list[str]] = {"10년 큰 흐름이": [], "그해가": []}
-    for e in ev:
+def _seg_gods(seg: dict, name: str) -> tuple[list[str], list[str]]:
+    """한 구간에서 10년 큰 흐름·그해가 들여온 기운(증거 순서 그대로, 최대 2개씩)."""
+    by: dict[str, list[str]] = {"luck": [], "year": []}
+    for e in seg.get("struct_evidence", {}).get(name, []):
+        if not e.lstrip("→ ").startswith(("대운", "세운")):
+            continue
         m = EV.match(e.strip())
         if m and m.group(4) in GODS:
-            by["10년 큰 흐름이" if m.group(2) == "대운" else "그해가"].append(GODS[m.group(4)])
-    luck_g, year_g = list(dict.fromkeys(by["10년 큰 흐름이"]))[:2], list(dict.fromkeys(by["그해가"]))[:2]
+            by["luck" if m.group(2) == "대운" else "year"].append(GODS[m.group(4)])
+    return list(dict.fromkeys(by["luck"]))[:2], list(dict.fromkeys(by["year"]))[:2]
+
+
+def _reason_for(rngs: list, luck_g: list[str], year_g: list[str], theme: str, segs: list) -> str | None:
     both = [g for g in luck_g if g in year_g]
     only_l, only_y = [g for g in luck_g if g not in year_g], [g for g in year_g if g not in luck_g]
     parts = []                                                    # 같은 기운이 두 쪽에서 들어오면 '함께 들여온'으로 한 번만 말한다(같은 문구를 되풀이하지 않는다)
@@ -88,9 +87,36 @@ def period_reason(period: dict | None, name: str, theme: str, detail: dict, segm
         subject = ", ".join(parts) + "이 모두"
     else:
         subject = ", ".join(parts[:-1]) + "과 " + parts[-1] + "이"
-    a, b = F.merged_range(rng)
-    span = "그해 내내" if F._days({"from": a, "to": b}) >= 350 and len(F.contiguous_ranges(list(rng))) == 1 else F.range_phrase(rng, F.pre_ipchun_end(segs)) + " 동안"   # 이어진 범위만, 입춘 전은 그 기간에만
+    a, b = F.merged_range(rngs)
+    span = "그해 내내" if F._days({"from": a, "to": b}) >= 350 and len(F.contiguous_ranges(list(rngs))) == 1 else F.range_phrase(rngs, F.pre_ipchun_end(segs)) + " 동안"   # 이어진 범위만, 입춘 전은 그 기간에만
     return f"{span} {subject} 타고난 사주의 기운과 이어지면서 {theme}이 더 뚜렷해지는 쪽으로 읽힙니다."
+
+
+def period_reasons(period: dict | None, name: str, theme: str, detail: dict, segments: list | None = None) -> list[str]:
+    """그해(또는 일부 기간)에 이 흐름이 달라지는 이유: 어떤 운 글자가 들어왔는지(10년 큰 흐름/그해).
+    기간이 여러 구간에 걸치면 구간마다 증거를 보고, 들여온 기운이 같은 구간끼리 묶어 각각 말한다(첫 구간의 증거로 전체를 설명하지 않는다)."""
+    segs = segments if segments is not None else period["segments"]
+    rng = [tuple(r) for r in detail["ranges"]]
+    groups: list[tuple[tuple, list]] = []                         # (기운 서명, 그 서명을 가진 범위들)
+    for r in rng:
+        seg = next((x for x in segs if (x["from"], x["to"]) == r), None)
+        if not seg:
+            continue
+        sig = tuple(map(tuple, _seg_gods(seg, name)))
+        for g in groups:
+            if g[0] == sig:
+                g[1].append(r)
+                break
+        else:
+            groups.append((sig, [r]))
+    out = [t for t in (_reason_for(rs, list(sig[0]), list(sig[1]), theme, segs) for sig, rs in groups) if t]
+    return list(dict.fromkeys(out))                               # 기간(기운 서명)별 문장을 하나씩 — 한 덩어리로 길게 잇지 않는다
+
+
+def period_reason(period: dict | None, name: str, theme: str, detail: dict, segments: list | None = None) -> str | None:
+    """호환용: period_reasons 를 한 문자열로 잇는다."""
+    out = period_reasons(period, name, theme, detail, segments)
+    return " ".join(out) if out else None
 
 
 def _when(ranges) -> str:

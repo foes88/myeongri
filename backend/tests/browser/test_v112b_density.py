@@ -51,7 +51,9 @@ def test_changes_are_three_items_of_title_plus_one_sentence_and_summaries_are_ex
         assert it.locator("h3").count() == 1 and it.locator(":scope > p").count() == 1                                      # 제목 1개 + 요약 1문장
         one_line = it.locator(":scope > p").inner_text()
         assert n_sent(one_line) <= 1
-        ok = re.fullmatch(rf"이 해는 {seg_n}개 구간으로 나뉩니다\.", one_line) or any(norm(one_line) in norm(s) for s in sources if s)
+        turns = re.findall(r"(\d+)월 (\d+)일부터", one_line)
+        seg_dates = {f"{int(g['from'][5:7])}-{int(g['from'][8:10])}" for g in v["segments"]["2027"][1:]}
+        ok = re.fullmatch(rf"이 해는 {seg_n}개 구간으로 나뉩니다\.", one_line) or (turns and all(f"{int(m)}-{int(d)}" in seg_dates for m, d in turns)) or any(norm(one_line) in norm(s) for s in sources if s)
         assert ok, one_line                                                                                                 # 원문의 문장이거나 구간 수(사실)
     # 접힌 상세는 모두 원문이며 기본으로는 보이지 않는다
     assert p.locator(".dash-changes .chg-more[open]").count() == 0
@@ -64,9 +66,12 @@ def test_domain_panel_has_summary_then_topics_then_a_folded_source_area(browser,
     settle(p)
     for dom in ("overall", "wealth", "career"):
         p.locator(f"#verdict .dtab[data-domain={dom}]").click()
-        head = p.inner_text("#dash-dom-panel .dp-headline")
-        assert head and n_sent(head) <= 2                                                                                   # A: 핵심 요약 최대 2문장
-        assert p.evaluate("+getComputedStyle(document.querySelector('#dash-dom-panel .dp-headline')).fontWeight") <= 500   # 문장 전체를 굵게 하지 않는다
+        if p.locator("#dash-dom-panel .dp-headline").count():
+            head = p.inner_text("#dash-dom-panel .dp-headline")
+            assert head and n_sent(head) <= 2                                                                               # A: 핵심 요약 최대 2문장
+            assert p.evaluate("+getComputedStyle(document.querySelector('#dash-dom-panel .dp-headline')).fontWeight") <= 500   # 문장 전체를 굵게 하지 않는다
+        else:
+            assert dom == "overall" and p.evaluate("document.querySelector('#dash-dom-panel').dataset.headlineInHero") == "1"   # 종합운은 위 핵심 결론이 같은 문장을 보임
         topics = p.locator("#dash-dom-panel .dp-topics > .dp-topic")                                                        # B: 기본으로 보이는 주제(중요한 것만, 없으면 만들지 않는다)
         for i in range(topics.count()):
             t = topics.nth(i)

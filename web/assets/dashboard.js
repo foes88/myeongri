@@ -92,7 +92,9 @@ function fillChanges(vm,S,root){
   const cands=[];   // [아이콘, 제목, 한 문장 요약, 접힌 상세]
   if(r.change)cands.push(['↗','이 해에 달라지는 점',first(r.change),rest(r.change)]);
   if(th&&th.theme)cands.push(['◎','이 해의 주제',first(th.theme),rest(th.theme)]);
-  if(sg.length>1)cands.push(['◷','변화가 적용되는 기간','이 해는 '+sg.length+'개 구간으로 나뉩니다.',()=>{const ul=E('ul');sg.forEach(g=>{const li=E('li');li.append(E('b',g.label),document.createTextNode(' ('+g.days+'일)'+(g.note?' · '+g.note:'')));ul.append(li)});return ul}]);
+  const md=iso=>{const m=/^\d{4}-(\d\d)-(\d\d)/.exec(iso||'');return m?(+m[1])+'월 '+(+m[2])+'일':''};
+  const turns=sg.slice(1).filter(g=>g.note&&md(g.from)).map(g=>md(g.from)+'부터 '+g.note.replace(/^이 날부터\s*/,'').replace(/^입춘부터\s*/,'입춘 이후 ').replace(/^입춘 전:\s*/,''));   // 구간 경계는 엔진이 정한 날짜 그대로
+  if(sg.length>1)cands.push(['◷','변화가 적용되는 기간',turns.length?turns.join(' · ')+'.':'이 해는 '+sg.length+'개 구간으로 나뉩니다.',()=>{const ul=E('ul');sg.forEach(g=>{const li=E('li');li.append(E('b',g.label),document.createTextNode(' ('+g.days+'일)'+(g.note?' · '+g.note:'')));ul.append(li)});return ul}]);
   const c3=r.caution||((why.against||[])[0]);if(c3)cands.push(['◇',r.caution?'점검할 점':'반대로 보는 근거',first(c3),rest(c3)]);
   const chosen=[],dropped=[];
   cands.forEach(c=>{const same=refs.concat(chosen.map(x=>x[2])).some(x=>key18(x)===key18(c[2])||dice(x,c[2])>=SAME_MEANING);if(same)dropped.push(c[2]);else if(chosen.length<3)chosen.push(c)});
@@ -319,7 +321,10 @@ function fillDomain(vm,S,root){
   pn.dataset.deduped='0';pn.dataset.dropkeys='';   // 요약·주제별 해석·원문을 함께 두므로 화면에서 지우는 문장이 없다
   /* A 핵심 요약: 머리 문장 최대 2문장(원문 그대로, 굵지 않게). 남는 문장은 ‘전체 해석’에 있다 */
   const f1=first(b.headline),r1=rest(b.headline),f2=first(r1),sumText=(f1+(f2?' '+f2:'')).trim(),f2rest=f2?r1.slice(f2.length).trim():'';
-  pn.append(E('p',sumText||b.headline,'dp-headline'));
+  const heroTxt=[...root.querySelectorAll('.dash-conclusion .concl-text,.dash-conclusion .hero-sub')].map(e=>e.textContent).join(' ');
+  const sameAsHero=S.domain==='overall'&&heroTxt&&dice(sumText||b.headline,heroTxt)>=0.6;   // 종합운은 위 핵심 결론이 같은 문장을 이미 보이므로 되풀이하지 않는다
+  if(!sameAsHero)pn.append(E('p',sumText||b.headline,'dp-headline'));
+  else pn.dataset.headlineInHero='1';
   /* B 주제별 해석: 엔진이 문장을 만든 칸(kind)별. 중요한 주제(함께 고려할 점·시기 참고)와 현실 관점은 기본으로 보이고, 나머지 주제는 접힘. A 와 같은 의미의 문장은 접힘으로 보낸다(지우지 않는다) */
   const TITLES={natal:'타고난 모습',period:'이 해에 달라지는 조건',relation:'관계와 변화',relation2:'관계와 변화',contrast:'함께 고려할 점',timing:'시기 참고',cross:'다른 분야와의 연결',emphasis:'무게가 실린 쪽',where:'나타나는 영역',where2:'나타나는 영역'};
   const CAUTION={relation:1,relation2:1,contrast:1},SHOW={contrast:1,timing:1};

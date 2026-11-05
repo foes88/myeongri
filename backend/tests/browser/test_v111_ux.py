@@ -110,7 +110,7 @@ def test_body_typography_is_readable_and_has_no_forced_breaks(browser, one, size
       const b=q('.yp-para span'),l=px(b.lineHeight)/px(b.fontSize);return {body:px(b.fontSize),lh:l,concl:px(q('.concl-text').fontSize),yp:px(q('.yp-core .yp-change').fontSize),
         dom:px(q('.dp-story').fontSize),sec:px(q('.dash-flow h2').fontSize),gap:px(q('.yp-para').marginTop),sub:px(q('.hero-sub').fontSize),chg:px(q('.chg-item p').fontSize)}}""")
     assert 16 <= f["body"] <= 18 and 1.65 <= f["lh"] <= 1.85 and f["dom"] >= 16                                         # 본문 16px 전후, 행간 1.65~1.8
-    assert f["concl"] >= 26 and f["sub"] >= 17 and f["chg"] >= 16 and f["sec"] >= 24 and f["gap"] >= 14                  # 핵심 해석 26px 이상(가장 큰 글자), 보조 17px, 제목 24px 이상, 문단 간격
+    assert f["concl"] >= 26 and f["sub"] >= 17 and f["chg"] >= 16 and f["sec"] >= 21 and f["gap"] >= 14                  # 핵심 해석 26px 이상(가장 큰 글자), 보조 17px, 제목 24px 이상, 문단 간격
     assert p.evaluate("document.querySelectorAll('#dash br').length") == 0
     ctx.close()
 

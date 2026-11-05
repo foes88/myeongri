@@ -461,9 +461,7 @@ def _change_sentences(dom: str, w: str, yr: dict, t: dict, years: list[int], key
         parts.append(_pick(P_FLAT, key + "p").format(w=w))
     # 결론이 이미 말한 변화는 풀이에서 '무엇이 들어와 만들었는지'(새 정보)로 설명한다
     for n in yr["ups"] + yr["ups_persistent"] + yr["ups_partial"]:
-        r = E.period_reason(None, n, _theme(dom, n), det[n], yr["_segments"])
-        if r:
-            reasons.append(r)
+        reasons.extend(E.period_reasons(None, n, _theme(dom, n), det[n], yr["_segments"]))
     sent = " ".join(parts)
     if covered & set(yr["ups"]) and reasons:
         sent = reasons[0] if not (yr["ups_persistent"] or yr["ups_partial"]) else sent
@@ -544,7 +542,7 @@ def domain_block(pre: dict, dom: str, years: list[int], period: dict | None, nm:
             slots["relation"] = ("구조 변화와는 별개로, " + rss[0]) if flat_year else rss[0]
             if len(rss) > 1:
                 slots["relation2"] = rss[1]
-            why["period"].append(" ".join(rss))
+            why["period"].extend(rss)   # 문장 하나씩(한 덩어리로 잇지 않는다)
     if t["T"] > 0 and not t["ten_up"]:
         if nat_ten:
             n = nat_ten[0]
@@ -630,7 +628,7 @@ def _palace_block(pre, dom, w, name, period, yr, t, tone, head_tpl, luck_date) -
         rss = relation_sentences(dom, prels, w, with_luck=False, year=(period or {}).get("year"), pre_end=FA.pre_ipchun_end(period["segments"]) if period else None)
         if rss:
             story.extend(rss)
-            why["period"].append(" ".join(rss))
+            why["period"].extend(rss)   # 문장 하나씩(한 덩어리로 잇지 않는다)
         else:
             why["period"].append(f"{w}에는 이 분야의 자리에 새로 닿는 관계가 확인되지 않았습니다.")
     counter = [R.natural(x) for x in ex["evidence_against"]][:2]
@@ -721,7 +719,7 @@ def overall_block(pre: dict, years: list[int], period: dict | None, nm: dict, lu
             slots["relation"] = ("구조 변화와는 별개로, " + rss[0]) if flat_mixed or not (t["sup_up"] or t["ten_up"]) else rss[0]
             if len(rss) > 1:
                 slots["relation2"] = rss[1]
-            why["period"].append(" ".join(rss))
+            why["period"].extend(rss)   # 문장 하나씩(한 덩어리로 잇지 않는다)
     if luck_date and yr is not None and yr["luck_split"]:
         slots["timing"] = f"{_date_plain(luck_date)} 무렵 10년 단위 큰 흐름이 바뀌어, 그 전과 후의 분위기가 달라질 수 있습니다. 교체일은 3일=1년 환산이라 며칠~몇 주 달라질 수 있습니다."
     cons = [x for x in others if x["domain"] != "overall"]
@@ -807,9 +805,7 @@ def period_block(pre: dict, years: list[int], periods: dict[int, dict], yrs: dic
             if r["luck_split"] and ld:
                 reasons.append(f"{_date_plain(ld)} 무렵 10년 단위 큰 흐름이 바뀌어 그 전후의 구조가 달라지기 때문입니다.")
             for n in extra_up[:1]:
-                x = E.period_reason(periods[y], n, _theme(primary, n), r["ups_detail"][n])
-                if x:
-                    reasons.append(x)
+                reasons.extend(E.period_reasons(periods[y], n, _theme(primary, n), r["ups_detail"][n]))
             if r["ups_partial"] and not reasons:
                 n = r["ups_partial"][0]
                 reasons.append(f"{_rng(r['ups_detail'][n]['ranges'], r.get('pre_end'))} 동안 일시적으로 {_theme(primary, n)}이 더해지기 때문입니다(해 전체의 변화는 아님).")
