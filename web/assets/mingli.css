@@ -661,3 +661,9 @@ body.is-static .hero-ask{display:none}
 .hero-row{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-start}
 .hero-row .hero-actions,.hero-row .hero-more{margin:0}
 .hero-row .hero-more[open]{flex:1 0 100%}
+
+/* v11.2c: 변화 카드 아이콘(장식, 의미는 제목이 전달)과 접힘 머리글의 내용 예고 */
+.chg-ic{display:inline-block;width:1.3em;color:var(--seal);font-weight:700}
+.sum-hint{font-weight:400;font-size:.88rem;color:var(--ink2)}
+.hero-more>summary .sum-hint{display:none}
+@media (min-width:700px){.hero-more>summary .sum-hint{display:inline}}

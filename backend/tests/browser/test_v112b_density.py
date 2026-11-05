@@ -43,7 +43,8 @@ def test_changes_are_three_items_of_title_plus_one_sentence_and_summaries_are_ex
     assert 1 <= items.count() <= 3
     row = next(r for r in v["period"]["years"] if r["year"] == 2027)
     ow = next(b for b in v["detail"]["2027"]["blocks"] if b["domain"] == "overall")
-    sources = [row.get("change") or "", row.get("caution") or ""] + list((ow.get("why") or {}).get("against") or [])
+    theme = next((z["theme"] for z in v["profile"]["sipsung"]["years"] if z["year"] == 2027), "")
+    sources = [row.get("change") or "", row.get("caution") or "", theme] + list((ow.get("why") or {}).get("against") or [])
     seg_n = len(v["segments"]["2027"])
     for i in range(items.count()):
         it = items.nth(i)

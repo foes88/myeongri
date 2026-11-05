@@ -7,6 +7,9 @@ const tv=t=>TV[t]||['·','','t-quiet'];
 const first=t=>{const m=String(t||'').match(/^.*?[.!?](\s|$)/);return m?m[0].trim():String(t||'')};
 const rest=t=>String(t||'').slice(first(t).length).trim();
 const key18=t=>String(t||'').replace(/\s+/g,'').slice(0,18);
+const bigrams=t=>{const s=String(t||'').replace(/[\s·.,!?‘’“”()\-—:]/g,''),o=new Set();for(let i=0;i<s.length-1;i++)o.add(s.slice(i,i+2));return o};
+const dice=(a,b)=>{const A=bigrams(a),B=bigrams(b);if(!A.size||!B.size)return 0;let c=0;A.forEach(x=>{if(B.has(x))c++});return 2*c/(A.size+B.size)};
+const SAME_MEANING=0.4;   // 합성 5개 연도 측정에서 실제 반복은 0.42~0.51, 무관한 쌍은 0.3 미만
 const E=(t,txt,cls)=>{const e=document.createElement(t);if(txt!==undefined&&txt!==null)e.textContent=txt;if(cls)e.className=cls;return e};
 const A=(e,o)=>{Object.entries(o).forEach(([k,v])=>e.setAttribute(k,v));return e};
 
@@ -58,7 +61,7 @@ function hero(vm){
   const act=E('div',null,'hero-actions');
   const ask=E('button','궁금한 점 물어보기','hero-ask');ask.type='button';ask.onclick=()=>{const q=document.getElementById('q2');if(!q)return;const red=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;q.scrollIntoView({block:'center',behavior:red?'auto':'smooth'});q.focus({preventScroll:true})};
   act.append(ask);
-  const d=E('details',null,'hero-more');d.append(E('summary','자세한 해석 보기'),E('p',null,'hero-extra'));
+  const d=E('details',null,'hero-more');const hsm=E('summary');hsm.append(E('b','자세한 해석 보기'),E('span','  핵심 해석 전문 · 자세한 풀이 · 반대 근거와 한계','sum-hint'));d.append(hsm,E('p',null,'hero-extra'));
   const yp=E('div',null,'year-panel');yp.id='dash-year-panel';A(yp,{'aria-live':'polite'});d.append(yp);const row=E('div',null,'hero-row');row.append(act,d);s.append(row);
   return s}
 function fillHero(vm,S,root){
@@ -81,12 +84,16 @@ function fillChanges(vm,S,root){
   s.querySelector('#h-chg').textContent=has?y+'년의 주요 변화':'주요 변화';
   const list=s.querySelector('.chg-list');list.textContent='';
   const r=has?vm.row(y):{},ow=(has&&vm.block(y,'overall'))||{},why=ow.why||{},th=has?vm.theme(y):null,sg=has?vm.seg(y):[];
-  const heroKeys=new Set();root.querySelectorAll('.dash-conclusion .concl-text,.dash-conclusion .hero-sub').forEach(e=>heroKeys.add(key18(e.textContent)));
-  const items=[];   // [제목, 한 문장 요약, 접힌 상세(문자열 또는 DOM 만드는 함수)]
-  const c1=r.change||(th?th.theme:null);if(c1)items.push([r.change?'이 해에 달라지는 점':'이 해의 주제',first(c1),rest(c1)]);
-  if(sg.length>1)items.push(['변화가 적용되는 기간','이 해는 '+sg.length+'개 구간으로 나뉩니다.',()=>{const ul=E('ul');sg.forEach(g=>{const li=E('li');li.append(E('b',g.label),document.createTextNode(' ('+g.days+'일)'+(g.note?' · '+g.note:'')));ul.append(li)});return ul}]);
-  const c3=r.caution||((why.against||[])[0]);if(c3)items.push([r.caution?'점검할 점':'반대로 보는 근거',first(c3),rest(c3)]);
-  items.filter(it=>!heroKeys.has(key18(it[1]))).slice(0,3).forEach(([t,one,more])=>{const d=E('div',null,'chg-item');d.append(E('h3',t),E('p',one));
+  const refs=[];root.querySelectorAll('.dash-conclusion .concl-text,.dash-conclusion .hero-sub').forEach(e=>refs.push(e.textContent));
+  const cands=[];   // [아이콘, 제목, 한 문장 요약, 접힌 상세]
+  if(r.change)cands.push(['↗','이 해에 달라지는 점',first(r.change),rest(r.change)]);
+  if(th&&th.theme)cands.push(['◎','이 해의 주제',first(th.theme),rest(th.theme)]);
+  if(sg.length>1)cands.push(['◷','변화가 적용되는 기간','이 해는 '+sg.length+'개 구간으로 나뉩니다.',()=>{const ul=E('ul');sg.forEach(g=>{const li=E('li');li.append(E('b',g.label),document.createTextNode(' ('+g.days+'일)'+(g.note?' · '+g.note:'')));ul.append(li)});return ul}]);
+  const c3=r.caution||((why.against||[])[0]);if(c3)cands.push(['◇',r.caution?'점검할 점':'반대로 보는 근거',first(c3),rest(c3)]);
+  const chosen=[],dropped=[];
+  cands.forEach(c=>{const same=refs.concat(chosen.map(x=>x[2])).some(x=>key18(x)===key18(c[2])||dice(x,c[2])>=SAME_MEANING);if(same)dropped.push(c[2]);else if(chosen.length<3)chosen.push(c)});
+  s.dataset.dropped=dropped.map(key18).join('|');
+  chosen.forEach(([ic,t,one,more])=>{const d=E('div',null,'chg-item');const h3=E('h3');h3.append(E('span',ic,'chg-ic'),document.createTextNode(' '+t));h3.firstChild.setAttribute('aria-hidden','true');d.append(h3,E('p',one));
     if(more){const dt=E('details',null,'fold chg-more');dt.append(E('summary','자세히 보기'));dt.append(typeof more==='function'?more():E('p',more));d.append(dt)}list.append(d)});
   if(!list.childElementCount)list.append(E('p','이 해에는 따로 짚을 변화가 확인되지 않았습니다.','muted'));
   const groups={};vm.domains.forEach(d=>{const b=has?vm.block(y,d.domain):null;if(!b)return;const m=tv(b.tone);(groups[m[1]]=groups[m[1]]||{sym:m[0],names:[]}).names.push(d.name)});
@@ -323,7 +330,7 @@ function fillDomain(vm,S,root){
   [['타고난 사주에서',w.natal],['이 시기에는',w.period],['반대로 보는 이유',w.against]].forEach(([lab,arr])=>{if(arr&&arr.length){d.append(E('h4',lab));const ul=E('ul');arr.forEach(t=>ul.append(E('li',t)));d.append(ul)}});
   if(w.nature)d.append(E('p',w.nature,'small muted'));
   const hasMore=L.childElementCount||R.childElementCount||d.childElementCount>1;
-  if(hasMore){const dm=E('details',null,'fold dp-more');dm.append(E('summary','상세 해석 펼치기'));
+  if(hasMore){const dm=E('details',null,'fold dp-more');const dsm=E('summary');dsm.append(E('b','상세 해석 펼치기'),E('span','  설명 · 현실 관점 · 근거','sum-hint'));dm.append(dsm);
     const cols=E('div',null,'dp-cols');cols.append(L,R);dm.append(cols);if(d.childElementCount>1)dm.append(d);pn.append(dm)}}
 
 /* ---------- 조립 ---------- */
