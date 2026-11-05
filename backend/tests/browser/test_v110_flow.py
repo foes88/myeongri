@@ -50,11 +50,11 @@ def test_next_and_previous_month_cross_year_boundaries(browser, one):
     p.locator("#dash-months-body .mcell").nth(n - 1).click()
     assert "2028년 첫 달" in p.inner_text("#dash-month-detail .mnav")
     p.click("#dash-month-detail .mnav .navbtn >> nth=1")
-    assert p.inner_text("#dash-year-panel h3") == "2028년"
+    assert p.inner_text("#h-concl") == "2028년의 흐름"
     assert p.get_attribute("#dash-months-body .mgrid", "aria-label").startswith("2028")
     assert "선택됨" in p.inner_text("#dash-months-body .mcell >> nth=0")
     p.click("#dash-month-detail .mnav .navbtn >> nth=0")                               # 2028 첫 달 → 2027 마지막 달
-    assert p.inner_text("#dash-year-panel h3") == "2027년"
+    assert p.inner_text("#h-concl") == "2027년의 흐름"
     last = p.locator("#dash-months-body .mcell").count() - 1
     assert "선택됨" in p.inner_text(f"#dash-months-body .mcell >> nth={last}")
     ctx.close()
@@ -131,17 +131,4 @@ def test_no_identical_advice_sentence_appears_twice_on_one_screen(browser, one):
         top = p.evaluate("[...document.querySelectorAll('#dash-year-panel .yp-think li')].map(l=>l.textContent)")
         low = p.evaluate("[...document.querySelectorAll('#dash-dom-panel .dp-side li')].map(l=>l.textContent)")
         assert not (set(top) & set(low)), (dom, set(top) & set(low))
-    ctx.close()
-
-
-@pytest.mark.parametrize("size", ["360", "768", "1440"])
-def test_stamp_never_overlaps_the_conclusion_text(browser, one, size):
-    ctx, p, reqs, console = open_page(browser, one, size)
-    analyze(p)
-    settle(p)
-    p.wait_for_timeout(300)
-    hit = p.evaluate("""()=>{const s=document.querySelector('.stamp').getBoundingClientRect();
-      const r=document.createRange();r.selectNodeContents(document.querySelector('.concl-text'));
-      return [...r.getClientRects()].filter(c=>c.width>0&&!(c.right<s.left||c.left>s.right||c.bottom<s.top||c.top>s.bottom)).length}""")
-    assert hit == 0                                                                                                      # 인장은 결론 글의 어떤 줄과도 겹치지 않는다
     ctx.close()

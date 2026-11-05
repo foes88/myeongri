@@ -68,13 +68,13 @@ def test_selection_changes_content_immediately_and_only_the_changed_panel_transi
     analyze(p)
     settle(p)
     p.locator("#verdict .tl-node[data-year='2029']").click()
-    assert p.inner_text("#dash-year-panel h3") == "2029년"                                                          # 텍스트는 즉시 바뀐다(애니메이션을 기다리지 않는다)
-    p.wait_for_function("document.querySelector('#dash-year-panel').getAnimations().length>0 || document.querySelector('#dash-year-panel').style.opacity!==''", timeout=1500)
+    assert p.inner_text("#h-concl") == "2029년의 흐름"                                                          # 텍스트는 즉시 바뀐다(애니메이션을 기다리지 않는다)
+    p.wait_for_function("document.querySelector('.concl-text').getAnimations().length>0 || document.querySelector('.concl-text').style.opacity!==''", timeout=1500)
     settle(p)
     p.wait_for_timeout(100)
     assert p.evaluate(LEFTOVER) == 0
     # 같은 연도에서 분야만 바꾸면 해 패널은 전환하지 않는다
-    p.evaluate("window.__yp = document.querySelector('#dash-year-panel')")
+    p.evaluate("window.__yp = document.querySelector('.concl-text')")
     p.locator("#verdict .dtab[data-domain=wealth]").click()
     assert p.evaluate("window.__yp.getAnimations().length===0 && window.__yp.style.opacity===''")
     assert p.inner_text("#dash-dom-panel .dp-head h3") == "재물운"
@@ -95,7 +95,7 @@ def test_reduced_motion_preference_disables_every_animation(browser, one):
     assert p.evaluate("[...document.querySelectorAll('.me-elements .efill')].some(e=>e.style.height==='100%')")
     p.locator("#verdict .tl-node").nth(2).click()
     assert p.evaluate("document.getAnimations().filter(a=>a.effect && a.effect.getTiming().iterations!==Infinity).length") == 0
-    assert p.inner_text("#dash-year-panel h3") == "2029년"
+    assert p.inner_text("#h-concl") == "2029년의 흐름"
     # CSS 전환·누름 피드백도 꺼진다
     assert p.evaluate("getComputedStyle(document.querySelector('.tl-node')).transitionDuration") in ("0s", "0s, 0s", "0s, 0s, 0s, 0s")
     ctx.close()
@@ -106,7 +106,7 @@ def test_page_is_complete_when_the_motion_library_fails_to_load(browser, one):
     assert p.evaluate("typeof Motion") == "undefined" and p.evaluate("MingliMotion.enabled()") is False
     analyze(p)
     assert p.locator("#verdict .tl-node").count() == 5 and p.locator("#verdict .dtab").count() == 5
-    assert p.evaluate(LEFTOVER) == 0 and p.inner_text("#dash-year-panel h3") == "2027년"
+    assert p.evaluate(LEFTOVER) == 0 and p.inner_text("#h-concl") == "2027년의 흐름"
     assert not [c for c in console if "PAGEERROR" in c]                                                              # 로드 실패가 오류로 번지지 않는다
     ctx.close()
 
@@ -147,20 +147,19 @@ def test_input_screen_intro_ends_clean(browser, one):
     ctx.close()
 
 
-def test_identity_effects_stamp_brush_slide_and_ink_end_clean(browser, one):
+def test_identity_effects_slide_and_hero_transition_end_clean(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "1440")
     analyze(p)
-    assert p.locator("#verdict .dash-conclusion .stamp[aria-hidden=true]").count() == 1                              # 인장은 장식(스크린리더 제외)
+    assert p.locator("#verdict .dash-conclusion .stamp").count() == 0 and p.locator(".brush").count() == 0           # v11.2: 장식(인장·붓 밑줄)은 걷어 냈다
     settle(p)
     p.wait_for_timeout(150)
     assert p.evaluate(LEFTOVER) == 0 and p.evaluate("document.querySelectorAll('.tl-ghost').length") == 0
-    assert p.evaluate("getComputedStyle(document.querySelector('.stamp')).transform") != "none"                      # 최종 기울기는 CSS 가 가진다
     p.locator("#verdict .tl-node[data-year='2029']").click()
     p.wait_for_function("document.querySelectorAll('.tl-ghost').length===1", timeout=1500)                           # 선택 표시가 이동 중
-    assert p.inner_text("#dash-year-panel h3") == "2029년"                                                          # 텍스트는 기다리지 않고 바뀐다
+    assert p.inner_text("#h-concl") == "2029년의 흐름"                                                              # 텍스트는 기다리지 않고 바뀐다
     settle(p)
     p.wait_for_timeout(150)
-    assert p.evaluate("document.querySelectorAll('.tl-ghost').length") == 0 and p.evaluate("document.querySelector('#dash-year-panel').style.clipPath") == ""
+    assert p.evaluate("document.querySelectorAll('.tl-ghost').length") == 0
     assert p.evaluate(LEFTOVER) == 0
     assert not p.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth")
     ctx.close()
@@ -180,7 +179,8 @@ def test_final_polish_equal_circles_single_highlight_and_visible_selected_state(
     analyze(p)
     settle(p)
     p.wait_for_timeout(200)
-    p.click(".wheel-fold summary")                                                                                      # v11.1: 순환도는 접힌 보조 설명이라 펼쳐서 확인
+    p.click("#dash-evidence > summary")                                                                                  # v11.2: 해석의 근거(접힘)를 열고
+    p.click(".wheel-fold summary")                                                                                      # 순환도(접힌 보조 설명)를 펼쳐서 확인
     p.wait_for_timeout(300)
     radii = p.evaluate("[...document.querySelectorAll('.wheel .wc')].map(c=>c.getAttribute('r'))")
     assert len(radii) == 5 and len(set(radii)) == 1                                                                   # 원 크기는 모두 같다(강약 표현 아님)
@@ -197,26 +197,30 @@ def test_final_polish_equal_circles_single_highlight_and_visible_selected_state(
     ctx.close()
 
 
-def test_year_panel_lists_each_domain_and_click_opens_that_domain(browser, one):
+def test_changes_section_shows_existing_changes_and_the_domain_judgement_summary(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "1440")
     analyze(p)
     settle(p)
-    n = p.locator("#dash-year-panel .yp-dom").count()
-    assert n >= 2                                                                                                    # 분야별 한 줄 요약(종합 제외)
-    first = p.locator("#dash-year-panel .yp-dom .ydn").first.inner_text()
-    p.locator("#dash-year-panel .yp-dom").first.click()
-    assert p.inner_text("#dash-dom-panel .dp-head h3") in first                                                      # 눌러서 해당 분야 상세로 이동
-    assert "네 기둥" in p.inner_text("#status summary") or p.locator("#status table.pillars").count() == 1
-    assert p.locator("#status table.pillars .me-cell").count() == 1                                                  # 나의 중심(일간) 표시는 하나
+    n = p.locator(".dash-changes .chg-item").count()
+    assert 1 <= n <= 3                                                                                               # 주요 변화는 2~3개 이내(데이터가 없으면 더 적음)
+    assert p.inner_text("#h-chg") == "2027년의 주요 변화"
+    tones = p.inner_text(".chg-tones")
+    assert "분야별 판정 요약" in tones and "종합운" in tones and any(w in tones for w in ("기회", "주의", "양면", "안정", "근거 부족", "변화 없음"))   # 기존 판정을 기호+글자로 요약
+    p.locator("#verdict .dtab[data-domain=career]").click()
+    assert p.inner_text("#dash-dom-panel .dp-head h3") == "직업·승진운"
+    assert p.locator("#verdict .dtab[aria-selected=true]").count() == 1
     ctx.close()
 
 
-def test_year_panel_has_core_detail_and_reality_sections(browser, one):
+def test_hero_leads_with_the_year_and_the_detail_fold_has_the_full_year_reading(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "1440")
     analyze(p)
     settle(p)
+    assert p.inner_text("#h-concl") == "2027년의 흐름" and p.locator(".concl-text").inner_text().startswith("2027년")  # 첫 화면의 답: 이 해는 어떤 해인가
+    assert p.locator(".hero-more").evaluate("e=>e.open") is False and "자세한 해석 보기" in p.inner_text(".hero-more summary")
+    p.click(".hero-more summary")
     heads = p.evaluate("[...document.querySelectorAll('#dash-year-panel h4')].map(h=>h.textContent)")
-    assert "핵심 결론" in heads and "자세한 풀이" in heads                                                         # 결론 → 풀이 → (현실 관점) 구조
+    assert "자세한 풀이" in heads
     txt = p.inner_text("#dash-year-panel")
     assert "반대로 보는 근거와 한계" in txt and "보장하지 않습니다" in txt
     ctx.close()

@@ -15,6 +15,7 @@ function trimSession(){const s=$('session');s.querySelectorAll('h3').forEach(h=>
   const hd=s.querySelector('h2');if(hd)hd.textContent='더 물어보기';const k=s.querySelector('.kicker');if(k)k.textContent='후속 상담';
   const lab=s.querySelector('label[for=q2]');if(lab)lab.textContent='궁금한 점을 그대로 적어 보세요';
   $('askb').textContent='물어보기';
+  if(!s.querySelector('.ask-purpose')){const pp=el('p','지금 보고 있는 연도·월·분야를 기준으로 답합니다. 질문에 연도나 월을 적으면 그쪽이 우선합니다. 예: ‘2028년 5월은 어때요?’, ‘재물과 직업은 어떻게 이어져요?’','small muted ask-purpose');const ctx=$('ctxline');if(ctx)ctx.before(pp)}
   const dp=$('depth');if(dp){const g=dp.closest('div');if(g)g.hidden=true}}
 trimSession();
 
@@ -145,7 +146,7 @@ renderReport=function(a,pre,reopened){
     if(v.profile){root.append(profileEl(v.profile))}
     if(v.mode==='multi'){root.append(periodEl(v))}else{v.blocks.forEach((b,i)=>root.append(blockEl(v,b,i===0)))}
   }
-  root.append(limitsEl(v));out.append(root);
+  const slot=root.querySelector('.ev-extra'),lim=limitsEl(v);(slot||root).append(lim);out.append(root);
   if(window.MingliMotion&&document.getElementById('dash')){window.MingliMotion.results(document.getElementById('dash'));window.MingliMotion.sticky(document.querySelector('#dash .dash-bar'))}
   /* 내 사주(네 기둥): 결론 아래에 접어 둔다 */
   const st=$('status');st.textContent='';st.hidden=false;st.className='chapter pillars-card';

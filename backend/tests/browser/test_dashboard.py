@@ -38,11 +38,11 @@ def test_layout_at_five_widths(browser, one, size):
         assert d["w"] / vw >= 0.72                                                                                  # 데스크톱 가로폭 활용
     c = box(p, "#verdict .concl-text")                                                                              # 핵심 결론이 첫 화면 안에 온전히 보인다
     assert c["y"] >= 0 and c["b"] <= vh, (c, vh)
-    me, fl = box(p, ".dash-me"), box(p, ".dash-flow")
-    assert fl["y"] >= me["b"] - 5                                                                                   # v11.1: 내 사주의 모습은 가로 띠, 시기별 흐름은 그 아래(좌우 높이 불일치·내부 스크롤 없음)
-    assert me["w"] / vw > 0.6 or vw < 700                                                                          # 띠가 가로폭을 쓴다
-    order = p.evaluate("['.dash-bar','.dash-conclusion','.dash-grid','.dash-domains'].map(s=>document.querySelector(s).getBoundingClientRect().top+scrollY)")
-    assert order == sorted(order)                                                                                   # 컨트롤 바 → 결론 → 내 사주|시기 → 분야
+    assert p.evaluate("document.getElementById('dash-evidence').open") is False                                       # v11.2: 해석의 근거는 기본 접힘
+    gap = p.evaluate("(()=>{const f=document.querySelector('.dash-flow').getBoundingClientRect(),e=document.getElementById('dash-evidence').getBoundingClientRect();return e.top-f.bottom})()")
+    assert 0 <= gap <= 80                                                                                           # 시기별 흐름 바로 아래에 근거가 이어진다(빈 공간 없음)
+    order = p.evaluate("['.dash-bar','.dash-conclusion','.dash-changes','.dash-domains','.dash-flow','#dash-evidence'].map(s=>document.querySelector(s).getBoundingClientRect().top+scrollY)")
+    assert order == sorted(order)                                                                                   # 컨트롤 바 → 핵심 해석 → 주요 변화 → 분야별 해석 → 시기별 흐름 → 해석의 근거
     assert not [x for x in console if "PAGEERROR" in x or "Content Security" in x]
     ctx.close()
 
@@ -55,7 +55,7 @@ def test_timeline_selection_syncs_every_region(browser, one):
     nodes.nth(3).click()                                                                                            # 2030
     pressed = p.locator("#verdict .tl-node[aria-pressed=true]")
     assert pressed.count() == 1 and pressed.get_attribute("data-year") == "2030"
-    assert p.inner_text("#dash-year-panel h3") == "2030년"
+    assert p.inner_text("#h-concl") == "2030년의 흐름"
     assert p.inner_text("#dash-dom-sub").startswith("2030년 기준")
     assert p.locator("#verdict .dgrid th.selcol").inner_text() == "2030"
     assert p.locator("#verdict .dgrid td.selcell").get_attribute("data-year") == "2030"
@@ -69,7 +69,7 @@ def test_grid_cell_click_selects_year_and_domain_everywhere(browser, one):
     analyze(p)
     p.locator("#verdict .dgrid .cell[data-year='2029'][data-domain='wealth']").click()
     assert p.locator("#verdict .dtab[aria-selected=true]").get_attribute("data-domain") == "wealth"
-    assert p.inner_text("#dash-dom-panel .dp-head h3") == "재물운" and p.inner_text("#dash-year-panel h3") == "2029년"
+    assert p.inner_text("#dash-dom-panel .dp-head h3") == "재물운" and p.inner_text("#h-concl") == "2029년의 흐름"
     assert p.locator("#verdict .tl-node[aria-pressed=true]").get_attribute("data-year") == "2029"
     assert p.locator("#verdict .dgrid .cell[aria-pressed=true]").count() == 1
     assert p.inner_text("#ctxline") == "지금 보고 있는 것: 2029년 · 재물운"
@@ -121,11 +121,11 @@ def test_one_year_and_five_year_views_agree_on_the_same_year(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "1440")
     analyze(p)                                                                                                       # 5년: 2027~2031
     p.locator("#verdict .dgrid .cell[data-year='2028'][data-domain='wealth']").click()
-    five = {"label": p.inner_text("#dash-year-panel .yp-dom:has-text('재물운') .ydn"), "head": p.inner_text("#dash-dom-panel .dp-headline"), "yp": p.inner_text("#dash-year-panel .yp-dom:has-text('재물운') .ydh")}
+    five = {"chip": p.inner_text("#dash-dom-panel .dp-head .chip"), "head": p.inner_text("#dash-dom-panel .dp-headline"), "hero": p.inner_text(".concl-text")}
     p.click("#dash-to1")                                                                                             # v11.1: 모드를 바꿔도 선택한 연도(2028)·분야(재물)가 유지된다
     p.wait_for_function("document.querySelectorAll('#verdict .tl-node').length===0 && (document.getElementById('dash-span')||{}).textContent==='2028년'", timeout=60000)
     assert p.locator("#verdict .dtab[aria-selected=true]").get_attribute("data-domain") == "wealth"
-    one_y = {"label": p.inner_text("#dash-year-panel .yp-dom:has-text('재물운') .ydn"), "head": p.inner_text("#dash-dom-panel .dp-headline"), "yp": p.inner_text("#dash-year-panel .yp-dom:has-text('재물운') .ydh")}
+    one_y = {"chip": p.inner_text("#dash-dom-panel .dp-head .chip"), "head": p.inner_text("#dash-dom-panel .dp-headline"), "hero": p.inner_text(".concl-text")}
     assert one_y == five                                                                                             # 같은 해의 결론이 보기 범위와 무관하게 같다
     ctx.close()
 
@@ -167,6 +167,7 @@ def test_split_year_shows_real_segments_with_boundaries(browser, one):
     ctx, p, reqs, console = open_page(browser, one, "1440")
     analyze(p)
     p.locator("#verdict .tl-node[data-year='2027']").click()
+    p.evaluate("document.querySelector('.hero-more').open=true")                                                    # 자세한 해석 보기(해 패널)
     panel = p.inner_text("#dash-year-panel")
     assert "이 해의 구간" in panel and "1월 1일~2월 3일" in panel and "입춘 전" in panel and "2월 4일~12월 31일" in panel
     assert "한 해 전체의 특징으로 읽지 않습니다" in panel

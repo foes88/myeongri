@@ -119,10 +119,9 @@ function results(root){
   const q=s=>root.querySelectorAll(s),one=s=>root.querySelector(s);
   appear(one('.dash-bar'),{y:0,duration:0.3});
   appear(one('.dash-conclusion'),{y:12,duration:0.5,delay:0.05});
-  stampIn(one('.dash-conclusion .stamp'),{delay:0.35});
+  appear(q('.chg-item'),{y:8,duration:0.4,delay:0.3,stagger:0.08});
   highlight(q('.dash-conclusion .hl'),{delay:0.7});
   wheelIn(one('.me-elements'),{delay:0.6});
-  brush(one('.dash-conclusion .brush'),{delay:0.3});
   appear(q('.trio-item'),{y:8,duration:0.4,delay:0.25,stagger:0.09});
   appear(q('.dash-me > *'),{y:8,duration:0.4,delay:0.4,stagger:0.07});
   grow(q('.me-elements .efill'),{delay:0.55});
