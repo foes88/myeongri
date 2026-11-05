@@ -293,8 +293,8 @@ def test_mvp_human_flow_loading_year_switch_multi_year_follow_up(browser, one):
     assert p.locator("#verdict .tl-node").count() == 5 and bodies is not None
     # 연도를 고르면 그 해의 풀이가 해 패널과 분야 상세에 나타난다
     p.locator("#verdict .tl-node >> nth=2").click()
-    p.wait_for_function("document.querySelector('#dash-year-panel h3').textContent==='2033년'")
-    assert p.is_visible("#dash-dom-panel .dp-headline")
+    p.wait_for_function("document.querySelector('#h-concl').textContent==='2033년의 흐름'")
+    assert p.is_visible("#dash-dom-panel .dp-headline") or p.evaluate("+document.querySelector('#dash-dom-panel').dataset.deduped") >= 1 or p.evaluate("document.querySelector('#dash-dom-panel').dataset.headlineInHero")   # 종합운 머리 문장은 핵심 해석에 이미 있으면 다시 쓰지 않는다
     assert_verdict_layout(p)
     # 후속 질문
     p.fill("#q2", "사업 쪽은 어떻게 보이나요?")
@@ -391,8 +391,10 @@ def test_user_screen_and_api_expose_no_internal_information(browser, one):
     for i in range(3):
         p.locator("#verdict .dtab").nth(i).click()
         order = p.evaluate("[...document.querySelector('#dash-dom-panel').children].map(c=>c.className||c.tagName)")
-        assert order[0] == "dp-head" and order[1].startswith("dp-headline") and order[2] == "dp-cols"
-        p.locator("#dash-dom-panel .fold summary").click()
+        deduped = p.evaluate("+document.querySelector('#dash-dom-panel').dataset.deduped")
+        in_hero = p.evaluate("document.querySelector('#dash-dom-panel').dataset.headlineInHero") == "1"                                                     # 종합운은 위 핵심 결론에 같은 문장이 있으면 되풀이하지 않는다
+        assert order[0] == "dp-head" and (order[1].startswith("dp-headline") or in_hero) and order[-1] == "fold dp-more"             # 핵심 요약 → 주제별 해석 → 원문·근거(접힘)
+        p.locator("#dash-dom-panel .dp-more > summary").click()
     assert_verdict_layout(p)
     assert p.locator("#dash-dom-panel details[open]").count() == 1
     # 모바일 가독성: 가로 넘침 없고 핵심 결론이 360px 첫 화면(800px) 안에 온전히 보인다
@@ -423,7 +425,7 @@ def test_v83_one_five_ten_year_views_and_year_comparison(browser, one, size):
     p.click("#submitb")
     p.wait_for_selector("#verdict .dash-conclusion .concl-text", timeout=60000)
     assert_verdict_layout(p)
-    assert p.locator("#verdict .dtab").count() == 3 and p.locator("#verdict .tl-node").count() == 1
+    assert p.locator("#verdict .dtab").count() == 3 and p.locator("#verdict .tl-node").count() == 0 and p.locator("#verdict .dgrid").count() == 0   # v11.1: 1년 보기에는 한 칸짜리 타임라인·비교표가 없다
     # 5년
     p.click("#dash-to5")
     p.wait_for_function("document.querySelectorAll('#verdict .tl-node').length===5", timeout=60000)
@@ -431,7 +433,7 @@ def test_v83_one_five_ten_year_views_and_year_comparison(browser, one, size):
     # 10년: 연도 노드 10개(촘촘한 보기), 선택한 해 패널이 하나
     p.click("#dash-to10")
     p.wait_for_function("document.querySelectorAll('#verdict .tl-node').length===10", timeout=60000)
-    assert p.locator("#verdict .timeline.compact").count() == 1 and p.locator("#dash-year-panel h3").count() == 1
+    assert p.locator("#verdict .timeline.compact").count() == 1 and p.locator("#h-concl").count() == 1
     assert_verdict_layout(p)
     # 연도 비교(추천 질문 칩): 두 해를 함께 답한다
     chip = p.locator("#chips .chipq", has_text="어떤 차이가 있어")

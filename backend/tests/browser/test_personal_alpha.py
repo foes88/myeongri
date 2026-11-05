@@ -31,14 +31,19 @@ def test_personal_end_to_end(browser, one, size):
     # STEP2 기본 풀이 + 계산 상태(쉬운 말, 내부 등급 비노출)
     body = p.inner_text("#report")
     calc = p.locator("#status [data-calc]")
-    assert calc.count() == 1 and "계산 상태" in calc.inner_text()
+    assert calc.count() == 1 and "계산 상태" in p.inner_text("#status summary")                                      # 계산 상태는 한 줄 요약으로 보이고 자세한 내용은 접힘(v11.2b)
+    p.evaluate("document.querySelector('#status details').open=true")
+    assert "참고" in calc.inner_text()
     assert not any(w in body for w in ("PILLARS_VERIFIED", "ASTRO_VERIFIED", "lunar-python", "golden"))
     assert p.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth")
     # v10.1: 핵심 결론(특징·변화·관점 3칸, 근거·조건은 접힘)
-    pf = p.locator("#verdict .dash-conclusion")
-    assert pf.count() == 1 and "이 사주에서 중요하게 읽히는 것" in pf.inner_text() and pf.locator(".trio-item").count() == 3
-    assert pf.locator("details[open]").count() == 0 and pf.locator("details").count() == 2
-    assert not any(w in pf.inner_text() for w in ("격국", "용신", "식상생재", "claim", "대운", "세운"))
+    hero = p.locator("#verdict .dash-conclusion")
+    assert hero.count() == 1 and hero.locator(".concl-text").inner_text().startswith(str(p.evaluate("window.MingliSel.year")))   # v11.2: 첫 화면은 그 해의 핵심 해석
+    p.click("#dash-evidence > summary")                                                                               # 사주 구조 요약(특징·변화·관점)은 해석의 근거 안에 있다
+    pf = p.locator("#dash-evidence .ev-natal")
+    assert pf.count() == 1 and "이 사주의 가장 뚜렷한 특징" in pf.inner_text() and pf.locator(".trio-item").count() == 3
+    assert hero.locator("details[open]").count() == 0
+    assert not any(w in pf.inner_text() + hero.inner_text() for w in ("격국", "용신", "식상생재", "claim", "대운", "세운"))
     # STEP3 연도 이동: 폼을 건드리지 않고 저장된 명식으로 다시 풀이
     posts_before = len([1 for m, u, pd in reqs if m == "POST" and u.endswith("/api/v1/reports")])
     p.click("#dash-next")

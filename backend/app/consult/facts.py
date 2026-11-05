@@ -18,7 +18,7 @@
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 UP = ("강화", "신규 출현")
 DOWN = ("약화", "소멸")
@@ -88,7 +88,7 @@ def year_reading(period: dict, rel: list[str]) -> dict:
             bad[t] = bad.get(t, 0) + d
     lucks = [s["luck"] for s in segs]
     cat = lambda dct, c: [n for n, r in dct.items() if r["category"] == c]
-    return {"year": year, "total_days": total, "split": len(segs) > 1, "luck_split": len(set(lucks)) > 1, "luck_edges": sorted(luck_edges),
+    return {"year": year, "pre_end": pre_ipchun_end(segs), "total_days": total, "split": len(segs) > 1, "luck_split": len(set(lucks)) > 1, "luck_edges": sorted(luck_edges),
             "ups": cat(ups, "year"), "ups_persistent": cat(ups, "persistent"), "ups_partial": cat(ups, "partial"), "ups_detail": ups,
             "downs": cat(downs, "year"), "downs_detail": downs,
             "bad": sorted(t for t, d in bad.items() if d / total >= MAJOR_FRAC), "bad_partial": sorted(t for t, d in bad.items() if d / total < MAJOR_FRAC),
@@ -117,6 +117,57 @@ def palace_relations(period: dict, palaces: tuple[str, ...]) -> list[dict]:
         a["frac"] = a["days"] / total
         out.append(a)
     return sorted(out, key=lambda x: (-x["frac"], x["who"], x["type"]))
+
+
+def pre_ipchun_end(segs: list[dict]) -> str | None:
+    """엔진이 나눈 구간에서 ‘전해의 세운이 적용되는’ 앞쪽 구간의 마지막 날. 해의 마지막 세운과 다른 세운을 가진 첫머리 구간들의 끝이며,
+    날짜를 직접 정해 두지 않는다(대운 교체가 입춘 전에 끼어 구간이 둘 이상이어도 맞는다). 입춘 전 구간이 없으면 None."""
+    if len(segs) < 2:
+        return None
+    final, end = segs[-1]["sewun"], None
+    for s in segs:
+        if s["sewun"] == final:
+            break
+        end = s["to"]
+    return end
+
+
+def contiguous_ranges(ranges: list[tuple[str, str]]) -> list[tuple[str, str]]:
+    """실제로 이어진(하루 차이 이내) 범위만 하나로 합치고, 떨어져 있는 범위는 따로 둔다(‘최소 시작~최대 끝’으로 이으면 없는 기간까지 말하게 된다)."""
+    out: list[list[str]] = []
+    for a, b in sorted(ranges):
+        if out and date.fromisoformat(a) <= date.fromisoformat(out[-1][1]) + timedelta(days=1):
+            out[-1][1] = max(out[-1][1], b)
+        else:
+            out.append([a, b])
+    return [(a, b) for a, b in out]
+
+
+PRE_NOTE = "(입춘 전이라 전해의 기운이 적용되는 기간)"
+
+
+def _fmt_rng(a: str, b: str) -> str:
+    return f"{int(a[5:7])}월 {int(a[8:10])}일~{int(b[5:7])}월 {int(b[8:10])}일"
+
+
+def _list_join(items: list[str]) -> str:
+    return items[0] if len(items) == 1 else (f"{items[0]}과 {items[1]}" if len(items) == 2 else ", ".join(items[:-1]) + f"과 {items[-1]}")
+
+
+def range_phrase(ranges, pre_end: str | None = None) -> str:
+    """기간을 사실대로 말한다. 이어진 범위만 합치고(떨어진 범위는 따로), pre_end(입춘 전 마지막 날, 엔진 구간에서 구함)가 있으면
+    그 앞쪽 기간에만 ‘입춘 전’ 설명을 붙인다. 입춘 전과 후가 이어져 있으면 둘로 나누어 각각 말한다."""
+    items: list[str] = []
+    for a, b in contiguous_ranges(list(ranges)):
+        if pre_end and a <= pre_end:
+            if b <= pre_end:
+                items.append(_fmt_rng(a, b) + PRE_NOTE)
+            else:
+                items.append(_fmt_rng(a, pre_end) + PRE_NOTE)
+                items.append(_fmt_rng((date.fromisoformat(pre_end) + timedelta(days=1)).isoformat(), b))
+        else:
+            items.append(_fmt_rng(a, b))
+    return _list_join(items)
 
 
 def merged_range(ranges: list[tuple[str, str]]) -> tuple[str, str]:

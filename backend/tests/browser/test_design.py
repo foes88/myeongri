@@ -8,7 +8,8 @@ pytestmark = pytest.mark.browser
 
 SIZES = {"360": (360, 800), "768": (768, 1024), "1440": (1440, 900)}
 BANNED_COPY = ["AI 분석", "인사이트", "예측 정확도", "성공 확률", "운명을 바꾼다", "적중률"]
-PALETTE = {"paper": "rgb(247, 244, 238)", "ink": "rgb(31, 26, 23)"}
+PALETTE = {"paper": "rgb(247, 250, 249)", "ink": "rgb(25, 46, 50)"}   # v11.4 Modern Myeongri 토큰(--bg-page, --text-primary)
+BRAND_TEAL = {"rgb(24, 124, 121)", "rgb(18, 102, 98)", "rgb(25, 46, 50)", "rgb(223, 239, 235)", "rgb(14, 79, 76)", "rgb(156, 203, 196)", "rgb(12, 76, 73)", "rgb(90, 109, 112)"}   # 의도한 옥색 계열
 
 
 def hue_sat(rgb):
@@ -85,9 +86,9 @@ def test_depth_modes_are_visually_separated_and_palette_has_no_blue_or_mint(sess
     offenders = []
     for c in bad:
         h, s = hue_sat(c)
-        if s > 0.2 and 150 <= h <= 270:
+        if s > 0.2 and 150 <= h <= 270 and c not in BRAND_TEAL:
             offenders.append(c)
-    assert offenders == [], offenders  # 민트/블루 계열 없음
+    assert offenders == [], offenders  # 의도한 옥색 토큰 밖의 민트/블루 계열 없음
     text = p.inner_text("body")
     assert not [b for b in BANNED_COPY if b in text]
     # 상태는 색만으로 구분하지 않는다: 검증 배지에 글자와 기호가 있다

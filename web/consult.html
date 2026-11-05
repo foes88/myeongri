@@ -53,6 +53,7 @@
         <div id="y2w" hidden><label for="y2">비교할 연도</label><input id="y2" type="number" min="1901" max="2049" value="2031"></div>
       </div>
       <p class="small muted" id="pdesc" role="status"></p>
+      <label class="doms-all"><input type="checkbox" id="doms-all">전체 선택</label>
       <div role="group" id="doms" aria-label="관심 분야(복수 선택)" class="checks">
         <label><input type="checkbox" value="overall" checked>종합운</label><label><input type="checkbox" value="wealth">재물운</label>
         <label><input type="checkbox" value="career">직업·승진운</label><label><input type="checkbox" value="business">사업운</label>
@@ -84,7 +85,7 @@
 
   <section id="acct" class="doc acct" hidden aria-label="회원">
     <div id="acct-out"><h2>내 리포트 저장 <span class="small muted">(선택)</span></h2>
-      <p class="small muted">로그인하면 분석 결과를 암호화해 저장하고, 다시 열어 후속 상담을 이어갈 수 있습니다. 출생 정보 원문은 저장하지 않습니다. 로그인하지 않아도 일회성 분석을 그대로 쓸 수 있습니다.</p>
+      <p class="small muted"><b>저장하려면 로그인이 필요합니다.</b> 출생 정보 원문은 저장하지 않습니다.</p>
       <div class="grid"><div><label for="acct-mail">이메일</label><input id="acct-mail" type="email" autocomplete="username" maxlength="254"></div>
         <div><label for="acct-pw">비밀번호<span class="hint">10자 이상, 영문+숫자</span></label><input id="acct-pw" type="password" autocomplete="current-password" maxlength="200"></div></div>
       <p><button type="button" class="primary" id="acct-login">로그인</button> <button type="button" class="sec" id="acct-reg">가입</button></p></div>
@@ -507,6 +508,13 @@ if(ONESHOT){
 </script>
 <script src="assets/vendor/motion-14.9.0.js"></script>
 <script src="assets/motion-ui.js"></script>
+<script>
+(function(){const all=document.getElementById('doms-all'),box=document.getElementById('doms');if(!all||!box)return;
+  const items=()=>[...box.querySelectorAll('input[type=checkbox]')];
+  const sync=()=>{const it=items(),n=it.filter(i=>i.checked).length;all.checked=n===it.length;all.indeterminate=n>0&&n<it.length};
+  all.addEventListener('change',()=>{items().forEach(i=>{i.checked=all.checked});all.indeterminate=false});
+  box.addEventListener('change',sync);sync()})();
+</script>
 <script src="assets/dashboard.js"></script>
 <script src="assets/verdict_ui.js"></script>
 <script src="assets/member.js"></script>

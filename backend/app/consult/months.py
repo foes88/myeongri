@@ -97,6 +97,8 @@ def build_year(pre: dict, year: int, doms: list[str]) -> dict | None:
         notes = []
         if year_switch:
             notes.append("입춘부터 그해의 기운이 적용됩니다. 이전 구간은 전해의 기운이 적용되는 기간입니다.")
+            if tm and tm["at"].date() != start:                    # 절입 시각이 정오 이후면 월 계산(정오 기준)은 다음 날부터 새 달로 읽는다 → 연간 구간(절입 날짜 기준)과 하루 차이를 숨기지 않는다
+                notes.append(f"입춘 시각은 {tm['at'].month}월 {tm['at'].day}일 {tm['at'].strftime('%H:%M')}입니다. 월 계산은 하루의 정오 기준이라 이 달의 시작이 하루 늦게 표시되며, 연간 구간에서는 {tm['at'].month}월 {tm['at'].day}일부터 적용합니다.")
         if luck_switch:
             notes.append("이날부터 10년 큰 흐름이 바뀝니다. 한 달 안에서도 앞뒤를 나누어 봅니다.")
         items.append({

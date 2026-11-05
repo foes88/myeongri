@@ -81,6 +81,6 @@ async function reYears(years){
   const n=$('cover').querySelector('p.small.muted:last-child');if(n)n.textContent='저장된 명식으로 '+curYears[0]+(curYears.length>1?'~'+curYears[curYears.length-1]:'')+'년을 다시 풀었습니다. 출생 정보는 다시 입력하지 않아도 됩니다.'}
 const yn=(id,fn)=>{const e=$(id);if(e)e.addEventListener('click',ev=>{if(!AUTH||!reportId||!curYears.length)return;ev.stopImmediatePropagation();ev.preventDefault();fn()},true)};
 yn('yprev',()=>reYears(curYears.map(y=>y-1)));yn('ynext',()=>reYears(curYears.map(y=>y+1)));
-yn('to1',()=>reYears([curYears[0]]));yn('to5',()=>reYears(Array.from({length:5},(_,i)=>curYears[0]+i)));yn('to10',()=>reYears(Array.from({length:10},(_,i)=>curYears[0]+i)));
+yn('to1',()=>reYears([(window.MingliKeep&&window.MingliKeep.year)||curYears[0]]));yn('to5',()=>reYears(Array.from({length:5},(_,i)=>curYears[0]+i)));yn('to10',()=>reYears(Array.from({length:10},(_,i)=>curYears[0]+i)));
 show();refresh();
 })();

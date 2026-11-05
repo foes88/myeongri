@@ -346,6 +346,17 @@ from .accounts.api import router as accounts_router  # noqa: E402
 app.include_router(accounts_router)
 
 
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+
+class NoCacheStaticFiles(StaticFiles):
+    """로컬 서버용: 화면 파일을 매번 ETag 로 다시 확인하게 한다(no-cache = 저장은 하되 쓰기 전에 검증). 코드를 고친 뒤 새로고침해도 옛 화면이 남는 문제를 막는다."""
+
+    async def get_response(self, path, scope):
+        r = await super().get_response(path, scope)
+        r.headers['Cache-Control'] = 'no-cache'
+        return r
+
+
 if os.environ.get('SERVE_WEB'):  # 로컬/테스트에서 화면과 API 를 같은 출처로 서빙(Vercel 에서는 정적 파일을 Vercel 이 서빙)
-    from fastapi.staticfiles import StaticFiles
-    app.mount('/', StaticFiles(directory=os.environ['SERVE_WEB'], html=True), name='web')
+    app.mount('/', NoCacheStaticFiles(directory=os.environ['SERVE_WEB'], html=True), name='web')
